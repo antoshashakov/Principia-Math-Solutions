@@ -11,8 +11,8 @@ Nothing here is inferred.
 - **Source manuscript, sha256-pinned:**
 
 ```
-c2d7ed5b1f45fda03daaf45f9cc7d920b670983aa874cce52b0076c04c00c1f7  paper/erdos123_lean_journal.tex
-a1660af0a93b4c73703cf8c9d58c87873134a0f8eafeb0f193bb8fd660175a17  paper/erdos123_lean_journal.pdf
+1d120ea6306ab6841667a1e94d693480dbaa725a46562cc06150737c51bcb703  paper/erdos123_lean_journal.tex
+3418e67a5243e6ca26689bd80a662cf1a394272531e72697cd2f8050c5c11221  paper/erdos123_lean_journal.pdf
 ```
 
 All claims about "the paper" refer to exactly those bytes.

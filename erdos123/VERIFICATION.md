@@ -134,27 +134,53 @@ EXIT=1
 Both failed, as required. The scratch file was deleted after the run; it is reproducible
 from the table above.
 
-## 6. Comparator — NOT RUN LOCALLY
+## 6. Comparator — RUN ON CI, passes
 
-**This is the one thing on this page that has not been executed locally, and it is
-recorded here rather than glossed over.**
+Comparator requires `landrun`, which is Linux-only (Landlock LSM), so it cannot run on
+the Windows machine where §§1-5 were performed. It runs instead in
+`.github/workflows/erdos123-comparator.yml` on `ubuntu-latest`.
 
-[Comparator](https://github.com/leanprover/comparator) requires `landrun`, which is
-Linux-only (it uses Landlock LSM). The checks above were run on Windows, so Comparator
-could not be run locally.
+**That workflow now has a green run:**
+[run 29775840287](https://github.com/antoshashakov/Principia-Math-Solutions/actions/runs/29775840287),
+commit `efb49f9`, 2026-07-20.
 
-What exists:
+```
+Running Lean default kernel on solution.
+Lean default kernel accepts the solution
+Your solution is okay!
+Finished with result: success
+Service runtime: 12min 22.477s
+```
 
-- Configs for all six results in `comparator/`, plus `comparator/all.json` covering
-  them together. `lakefile.toml` declares `Challenge` and `Solution` as separate
-  `lean_lib`s, as Comparator requires.
-- `.github/workflows/comparator.yml`, which runs Comparator on Ubuntu in a job that
-  deliberately does **not** pre-build `Challenge` or `Solution` (that is assumption 2 of
-  Comparator's threat model), with `landrun`, `lean4export`, and `comparator` pinned by
-  commit SHA.
+All six results in `comparator/all.json` were certified together: the proofs in
+`Solution.lean` prove exactly the statements in `Challenge.lean`, using no axioms beyond
+`propext`, `Quot.sound`, `Classical.choice`, and the Lean kernel accepts the replayed
+environment.
 
-Until that workflow has a green run on this repository, treat the Comparator claim as
-*configured but unconfirmed*, and rely on §5, which was run.
+The sandbox was real, not stubbed. The job builds `landrun` from the pinned SHA and then
+probes that it actually denies an out-of-policy write, failing the run if the sandbox
+silently no-ops — so a pass cannot come from a sandbox that was not enforcing. The job
+also does not pre-build `Challenge` or `Solution` outside the sandbox, preserving
+assumption 2 of Comparator's threat model.
+
+Three faults had to be fixed before this run could succeed, each hidden behind the
+previous one:
+
+1. `systemd-run --pty`, which Comparator's README gives, allocates a terminal and waits
+   on it; on a CI runner that never resolves. The first dispatch hung for 2h19m and was
+   cancelled. Fixed by `--pipe --wait --collect`, plus `timeout-minutes` so a future hang
+   fails instead of running to the job cap.
+2. Comparator invokes `lean4export` *by name* inside the landrun sandbox, so it must be on
+   `PATH`; `COMPARATOR_LEAN4EXPORT` alone is not sufficient (verified directly — with the
+   variable set but the binary off `PATH`, landrun still reports
+   `Failed to find binary`). Fixed by adding its directory to `$GITHUB_PATH`.
+3. `lean4export` must be built against the *same* Lean version as the project. The pin was
+   `af5aa64` (toolchain v4.33.0-rc1) against this v4.31.0 project, which fails the export
+   with `incompatible header`. Fixed by pinning `8554815`, whose lean-toolchain is
+   v4.31.0.
+
+§5 remains independently valuable: it is the interface check with a negative control, and
+it does not depend on Comparator.
 
 ## 7. The standalone single-file artifact
 

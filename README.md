@@ -5,7 +5,7 @@ self-contained Lake project with its own paper, build, and verification record.
 
 | Problem | Result | Status |
 | --- | --- | --- |
-| [`erdos123/`](erdos123/) | [Erdős Problem 123](https://www.erdosproblems.com/123) — for pairwise-coprime `a,b,c ≥ 2`, every large integer is a subset sum of a divisibility antichain in `{aᵏbˡcᵐ}` — together with a local central limit theorem for the subset sums of a short multiplicative band | Complete, `sorry`-free |
+| [`erdos123/`](erdos123/) | [Erdős Problem 123](https://www.erdosproblems.com/123) — for pairwise-coprime `a,b,c ≥ 2`, every large integer is a subset sum of a divisibility antichain in `{aᵏbˡcᵐ}` — together with a local central limit theorem for the subset sums of a short multiplicative band | Complete, `sorry`-free; **Comparator-certified on CI** |
 | [`erdos1054/`](erdos1054/) | [Erdős Problem 1054](https://www.erdosproblems.com/1054) — the limsup part: for every `A ≥ 1` the represented `N` with `f(N) > A·N` have positive lower density, so `f(N)/N` is unbounded — together with an unconditional formalization of the almost-all binary Goldbach theorem it rests on | Complete, `sorry`-free; Comparator **not yet run** (see [`erdos1054/VERIFICATION.md`](erdos1054/VERIFICATION.md) §5) |
 
 ## Conventions

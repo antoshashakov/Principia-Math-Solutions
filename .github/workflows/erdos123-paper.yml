@@ -1,5 +1,6 @@
 name: erdos123-paper
 
+# Keep the committed PDF and verification hashes synchronized with the TeX source.
 on:
   push:
     branches: [main]

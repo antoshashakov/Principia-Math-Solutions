@@ -1,0 +1,58 @@
+name: erdos123-build
+
+# Scoped to the erdos123 solution; other solutions get their own workflow.
+on:
+  push:
+    branches: [main]
+    paths: ['erdos123/**', '.github/workflows/erdos123-*.yml']
+  pull_request:
+    paths: ['erdos123/**', '.github/workflows/erdos123-*.yml']
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: erdos123
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Cache Mathlib oleans
+        run: lake exe cache get
+
+      - name: Build
+        run: lake build
+
+      - name: Build Challenge and Solution
+        run: lake build Challenge Solution
+
+      # The development must contain no unproved placeholders and no extra postulates.
+      # Challenge.lean is excluded on purpose: its `sorry`s are the Comparator fixture.
+      - name: No sorry / axiom / native_decide in the development
+        run: |
+          if grep -rn "sorry\|^axiom \|native_decide" Erdos123/*.lean; then
+            echo "::error::unproved placeholder or extra postulate found in the development"
+            exit 1
+          fi
+          if grep -rn "^axiom \|native_decide" Solution.lean; then
+            echo "::error::extra postulate found in Solution.lean"
+            exit 1
+          fi
+          echo "clean"
+
+      # Challenge.lean must have exactly six intentional sorries — one per main result.
+      # More would mean an unproved statement crept in; fewer would mean one went missing.
+      - name: Challenge.lean has exactly six intentional sorries
+        run: |
+          n=$(grep -c "^  sorry$" Challenge.lean)
+          echo "found $n"
+          test "$n" -eq 6

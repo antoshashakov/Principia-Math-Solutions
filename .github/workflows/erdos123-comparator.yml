@@ -1,0 +1,100 @@
+name: erdos123-comparator
+
+# Runs Comparator (https://github.com/leanprover/comparator) to verify mechanically that
+# Solution.lean proves exactly the statements in Challenge.lean, using no axioms beyond
+# propext, Quot.sound, Classical.choice.
+#
+# This job deliberately does NOT pre-build Challenge or Solution. Comparator's threat
+# model assumes the solution has not been compiled beforehand; building it here would
+# void that assumption. It is a separate workflow from `build` for the same reason.
+
+on:
+  push:
+    branches: [main]
+    paths: ['erdos123/**', '.github/workflows/erdos123-*.yml']
+  pull_request:
+    paths: ['erdos123/**', '.github/workflows/erdos123-*.yml']
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: erdos123
+
+env:
+  # Pinned by commit SHA, not tag — a moving tag would silently change what is trusted.
+  # Resolved 2026-07-20; HEAD of each repo at that date.
+  COMPARATOR_SHA: c3903e1ed0148a32cd39510707c632dc4d265514
+  LEAN4EXPORT_SHA: af5aa64bb914c3c2c781f378088dbd38acf4f804
+  LANDRUN_SHA: 5ed4a3db3a4ad930d577215c6b9abaa19df7f99f
+
+jobs:
+  comparator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Build landrun
+        run: |
+          git clone https://github.com/Zouuup/landrun.git /tmp/landrun
+          cd /tmp/landrun && git checkout "$LANDRUN_SHA"
+          go build -o /usr/local/bin/landrun ./cmd/landrun
+          landrun --help >/dev/null
+
+      - name: Probe that landrun actually denies out-of-policy writes
+        run: |
+          # If the sandbox silently no-ops, a Comparator pass means nothing.
+          set +e
+          landrun --rox / -- /bin/sh -c 'echo x > /tmp/_landrun_probe' 2>/dev/null
+          rc=$?
+          set -e
+          if [ -f /tmp/_landrun_probe ]; then
+            echo "::error::landrun did NOT deny an out-of-policy write; refusing to trust Comparator"
+            exit 1
+          fi
+          echo "landrun denies out-of-policy writes (rc=$rc)"
+
+      - name: Build lean4export
+        run: |
+          git clone https://github.com/leanprover/lean4export.git /tmp/lean4export
+          cd /tmp/lean4export && git checkout "$LEAN4EXPORT_SHA"
+          lake build
+          echo "COMPARATOR_LEAN4EXPORT=/tmp/lean4export/.lake/build/bin/lean4export" >> "$GITHUB_ENV"
+
+      - name: Build comparator
+        run: |
+          git clone https://github.com/leanprover/comparator.git /tmp/comparator
+          cd /tmp/comparator && git checkout "$COMPARATOR_SHA"
+          lake build
+
+      - name: Fetch Mathlib oleans
+        run: lake exe cache get
+
+      - name: Run comparator on all six main results
+        run: |
+          set -o pipefail
+          systemd-run --property=RestrictAddressFamilies=~AF_UNIX --user --pty \
+            -E PATH="$PATH" --working-directory "$(pwd)" -- \
+            bash -c 'lake env /tmp/comparator/.lake/build/bin/comparator comparator/all.json' \
+            2>&1 | tee comparator.log
+
+      - name: Require the success string
+        run: |
+          grep -q "Your solution is okay!" comparator.log
+          echo "comparator accepted the solution"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comparator-log
+          path: comparator.log

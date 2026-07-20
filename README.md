@@ -1,0 +1,36 @@
+# Principia Math — Solutions
+
+Lean 4 formalizations of solved open problems, one folder per problem. Each folder is a
+self-contained Lake project with its own paper, build, and verification record.
+
+| Problem | Result | Status |
+| --- | --- | --- |
+| [`erdos123/`](erdos123/) | [Erdős Problem 123](https://www.erdosproblems.com/123) — for pairwise-coprime `a,b,c ≥ 2`, every large integer is a subset sum of a divisibility antichain in `{aᵏbˡcᵐ}` — together with a local central limit theorem for the subset sums of a short multiplicative band | Complete, `sorry`-free |
+
+## Conventions
+
+Every solution folder follows the same layout, so a reviewer knows where to look
+without reading the whole tree:
+
+- **`paper/`** — the manuscript the Lean is measured against, committed and sha256-pinned
+  so "the paper" refers to exact bytes.
+- **`formalization.yaml`** — metadata per the
+  [mathlib-initiative reporting standard](https://github.com/mathlib-initiative/formalization.yaml),
+  including an `alignment` block mapping each numbered result in the paper to the Lean
+  declaration that proves it.
+- **`Challenge.lean` + a definition-only statement module** — the trusted statements,
+  with a deliberately tiny import closure. This pair is the entire audit surface: read
+  it and you have read everything you must trust.
+- **`Solution.lean`** — the same statements, proved.
+  [Comparator](https://github.com/leanprover/comparator) verifies mechanically that the
+  two match and that no extra axioms were used; configs live in `comparator/`.
+- **`VERIFICATION.md`** — the honest ledger. Every claim is either a command that was
+  run with its actual output recorded, or an explicit note that it was **not** run.
+
+The point of the split is that Lean's kernel already rules out an unsound proof. What it
+cannot rule out is a sound proof of a subtly *different* statement — so the statements
+are isolated, kept short, and checked separately from the proofs.
+
+## License
+
+Apache-2.0. See [LICENSE](LICENSE).

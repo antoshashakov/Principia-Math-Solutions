@@ -1,0 +1,424 @@
+\documentclass[10pt,reqno]{amsart}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,mathtools,microtype}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={Antichain Subset Sums in Rank-Three Multiplicative Semigroups}}
+
+\setlength{\parindent}{1.15em}
+\setlength{\parskip}{0pt}
+\setlength{\abovedisplayskip}{5pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{5pt plus 2pt minus 2pt}
+\setlength{\abovedisplayshortskip}{3pt plus 1pt}
+\setlength{\belowdisplayshortskip}{3pt plus 1pt}
+\setlength{\jot}{1.5pt}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\N}{\mathbb N}
+\newcommand{\Nzero}{\mathbb Z_{\ge 0}}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\R}{\mathbb R}
+\newcommand{\T}{\mathbb T}
+\newcommand{\Sg}{\mathcal S}
+\newcommand{\B}{\mathcal B}
+\newcommand{\Eset}{\mathcal E}
+\newcommand{\Prob}{\mathbb P}
+\newcommand{\Ex}{\mathbb E}
+\newcommand{\e}{\mathrm e}
+\newcommand{\distz}[1]{\lVert #1\rVert}
+
+\title[Antichain subset sums]{Antichain Subset Sums in Rank-Three Multiplicative Semigroups}
+\author{}
+\date{}
+
+\begin{document}
+
+\begin{abstract}
+Let $a,b,c\ge2$ be pairwise coprime and
+$\Sg=\{a^k b^\ell c^m:k,\ell,m\ge0\}$.  For every real
+$1<\rho<\min(a,b,c)$, every sufficiently large integer is a subset sum of
+$\Sg\cap[x,\rho x)$ for some $x$.  Such a set is automatically a divisibility
+antichain, resolving Erd\H{o}s Problem~123.  For rational $\rho$ we prove the
+stronger statement that the Bernoulli subset sums of each large band satisfy a
+uniform local central limit theorem.  The main new ingredient is an arithmetic
+rigidity argument on a triangular grid in exponent space; the remaining
+Fourier analysis is standard.
+\end{abstract}
+
+\maketitle
+
+\section{Statement and reduction}
+
+Fix pairwise-coprime integers $a,b,c\ge2$, and write
+\[
+ \Sg=\{a^k b^\ell c^m:k,\ell,m\in\Nzero\},
+ \qquad d=\min(a,b,c).
+\]
+Let $\rho=p/q\in\mathbb Q$ satisfy $1<\rho<d$, with $p,q\in\N$ and $q>0$.
+For an integer $x\ge1$ set
+\[
+ \B_x=\Sg\cap[x,\rho x),\qquad
+ W_x=\sum_{s\in\B_x}s,\qquad V_x^2=\sum_{s\in\B_x}s^2,
+\]
+and
+\[
+ \mu_x=\frac{W_x}{2},\qquad \sigma_x=\frac{V_x}{2}.
+\]
+Let $(\xi_s)_{s\in\B_x}$ be independent Bernoulli variables taking the values
+$0,1$ with equal probability, and put $Y_x=\sum_{s\in\B_x}s\xi_s$.
+
+\begin{theorem}[Local limit theorem]\label{thm:lclt}
+As $x\to\infty$ through the positive integers,
+\begin{equation}\label{eq:lclt}
+ \Prob(Y_x=n)=\frac{1}{\sqrt{2\pi}\,\sigma_x}
+ \exp\!\left(-\frac{(n-\mu_x)^2}{2\sigma_x^2}\right)
+ +o\!\left(\frac1{\sigma_x}\right),
+\end{equation}
+uniformly for $n\in\Nzero$.  In particular, for all sufficiently large $x$,
+every integer $n$ with $|n-\mu_x|\le\sigma_x$ is a subset sum of $\B_x$.
+\end{theorem}
+
+\begin{theorem}[Erd\H{o}s Problem~123]\label{thm:main}
+For every real $1<\rho<d$, every sufficiently large integer $N$ can be written
+as
+\[
+ N=\sum_{s\in A}s,
+ \qquad A\subset \Sg\cap[x,\rho x)
+\]
+for some positive integer $x$.  Consequently no two distinct elements of $A$
+divide one another.
+\end{theorem}
+
+The last assertion is immediate.  If $u<v$ belong to $\Sg$ and $u\mid v$,
+unique factorization in the three pairwise-coprime bases gives
+$v/u=a^r b^s c^t\ge d$; two elements of $[x,\rho x)$ have ratio less than
+$\rho<d$.
+
+We prove Theorem~\ref{thm:lclt} for rational $\rho$, then obtain the theorem for
+an arbitrary real $\rho$ by choosing a rational $\rho'$ with
+$1<\rho'<\rho$.
+
+\section{A triangular grid in the exponent slab}
+
+Put
+\[
+ \alpha=\log a,\qquad \beta=\log b,\qquad \gamma=\log c,
+ \qquad \eta=\log\rho,
+\]
+and, with $L=\log x$,
+\[
+ \Eset_L=\{(k,\ell,m)\in\Nzero^3:
+ L\le \alpha k+\beta\ell+\gamma m<L+\eta\}.
+\]
+This set parametrizes $\B_x$.  The ratios of any two of
+$\alpha,\beta,\gamma$ are irrational: for instance
+$\alpha/\beta=r/s\in\mathbb Q$ would give $a^s=b^r$, contrary to
+$\gcd(a,b)=1$.
+
+We use the following elementary consequence of irrational rotation.  If
+$u,v>0$, $u/v\notin\mathbb Q$, and $0<\eta<v$, then there is $R$ such that,
+whenever
+\[
+ uX+vY=A+\frac\eta2,\qquad X,Y\ge R,
+\]
+there are nonnegative integers $r,s$, each within $R$ of the corresponding
+real coordinate, for which
+\begin{equation}\label{eq:strip-rounding}
+ A\le ur+vs<A+\eta.
+\end{equation}
+Indeed, bounded multiples of $u/v$ form a finite $\eta/(8v)$-net modulo $1$.
+Writing $r_0=\lfloor X\rfloor$ and $y=(A-ur_0)/v$, choose a bounded integer
+$h$ so that the fractional part of $y-hu/v$ lies between
+$1-5\eta/(8v)$ and $1-3\eta/(8v)$; then take
+$r=r_0+h$ and $s=\lceil y-hu/v\rceil$.  This gives
+\eqref{eq:strip-rounding}, and the displayed linear relation bounds the error
+in the second coordinate.
+
+Applying this to the three pairs of logarithms gives a constant $R_0$ with the
+following property: every point $(X,Y,Z)$ on
+\begin{equation}\label{eq:central-plane}
+ \alpha X+\beta Y+\gamma Z=L+\frac\eta2
+\end{equation}
+whose positive coordinates are at least $2R_0$, and of which at most one is
+zero, lies within $R_0$ coordinatewise of a point of $\Eset_L$; a zero
+coordinate remains zero.  When all coordinates are positive, round $Y$ to a
+nearest integer $\ell_0$, replace
+$Z$ by $Z+(\beta/\gamma)(Y-\ell_0)$, and apply
+\eqref{eq:strip-rounding} to $\alpha,\gamma$.  If one coordinate is zero,
+apply the two-variable statement directly to the other two.
+
+\begin{proposition}[Band geometry]\label{prop:grid}
+There are constants $c,C>0$ and integers $D,K\ge1$ such that, for all large
+$x$,
+\begin{equation}\label{eq:moments}
+ cL^2\le |\B_x|\le CL^2,
+ \qquad c xL\le V_x\le CxL,
+ \qquad c xL^2\le W_x\le CxL^2.
+\end{equation}
+Moreover, for some $n\asymp L$ there are distinct elements $s_v\in\B_x$
+indexed by
+\[
+ \Delta_n^\circ=\{(i,j,r)\in\Nzero^3:i+j+r=n\}
+ \setminus\{(n,0,0),(0,n,0),(0,0,n)\},
+\]
+such that a zero coordinate of $v$ gives a zero corresponding exponent of
+$s_v$, and adjacent vertices satisfy
+\begin{equation}\label{eq:edge-relation}
+ A_{vw}s_v=B_{vw}s_w,
+ \qquad 1\le A_{vw},B_{vw}\le K.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Choose $\tau_0$ so large that
+$\tau_0/\max(\alpha,\beta,\gamma)>4R_0$.  For large $L$, let
+\[
+ n=\left\lfloor\frac{L+\eta/2}{\tau_0}\right\rfloor,
+ \qquad \tau=\frac{L+\eta/2}{n};
+\]
+then $n\asymp L$ and $\tau_0\le\tau\le2\tau_0$.  For
+$v=(i,j,r)\in\Delta_n^\circ$, round the point
+\[
+ \left(\frac{\tau i}{\alpha},
+       \frac{\tau j}{\beta},
+       \frac{\tau r}{\gamma}\right)
+\]
+to an exponent triple in $\Eset_L$.  The corners were removed, so the rounding
+lemma applies.  It preserves the coordinate faces.  Distinct vertices have
+one target coordinate separated by more than $4R_0$, hence have distinct
+images.  Adjacent targets differ by a bounded amount, so their rounded
+exponents differ coordinatewise by at most some fixed $D$.  Clearing the
+positive and negative exponent differences gives \eqref{eq:edge-relation} with
+$K=(abc)^D$.
+
+Since $|\Delta_n^\circ|\asymp n^2$, this gives $|\B_x|\gg L^2$.  Conversely,
+$k,\ell\ll L$, while for fixed $k,\ell$ there is at most one $m$, because two
+choices would change the logarithmic weight by at least $\gamma>\eta$.
+Thus $|\B_x|\ll L^2$.  Finally $x\le s<\rho x$ throughout the band, and
+\eqref{eq:moments} follows by summing $s$ and $s^2$.
+\end{proof}
+
+\section{Low-energy frequencies}
+
+For $t\in\T=\R/\Z$, put
+\[
+ Q_x(t)=\sum_{s\in\B_x}\distz{st}^{2},
+ \qquad \distz y=\min_{m\in\Z}|y-m|.
+\]
+The following is the arithmetic core of the proof.
+
+\begin{proposition}[Rigidity]\label{prop:rigidity}
+There are constants $z_0,C,\kappa,\delta>0$ such that, for all large $x$ and
+$0\le z\le z_0L^2$,
+\begin{equation}\label{eq:low-energy}
+ \operatorname{meas}\{t\in\T:Q_x(t)\le z\}
+ \le \frac1x
+ \exp\!\left(C\left(1+\frac zL\right)\log(L+2)\right).
+\end{equation}
+The constants may be chosen so that $\delta d\le1/8$ and
+\begin{equation}\label{eq:very-low}
+ Q_x(t)<\kappa L\quad\Longrightarrow\quad
+ \distz t\le\frac\delta x.
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+Use the grid from Proposition~\ref{prop:grid}, and choose
+$0<\delta_0<\min(1/(4K),1/32)$.  For each vertex let $m_v$ be a nearest integer to
+$s_vt$, and call $v$ bad if $|s_vt-m_v|>\delta_0$.  If there are $H$ bad
+vertices, then
+\begin{equation}\label{eq:H-bound}
+ H\delta_0^2\le Q_x(t).
+\end{equation}
+
+For $n/3\le q\le2n/3$, consider the row
+\[
+ R_q=\{(i,q-i,n-q):0\le i\le q\}.
+\]
+There are $\gg n$ disjoint such rows, so one contains at most $4H/n$ bad
+vertices.  From its central half consider the disjoint paths
+\[
+ P_j=\{(q-j+r,j,n-q-r):0\le r\le n-q\},
+ \qquad q/4\le j\le3q/4.
+\]
+One of them contains at most $7H/n$ bad vertices.  Their union is connected,
+has three endpoints on the three coordinate faces, and contains only
+$O(1+H/n)$ bad vertices.  If $8H<n$, the row and path can both be chosen with
+no bad vertices.
+
+Orient the edges of this row and path.  For an edge $vw$, define the integer
+\[
+ e_{vw}=B_{vw}m_w-A_{vw}m_v,
+\]
+where \eqref{eq:edge-relation} is used.  If both endpoints are good, then
+\[
+ |e_{vw}|\le B_{vw}|m_w-s_wt|+A_{vw}|m_v-s_vt|<2K\delta_0<1,
+\]
+so $e_{vw}=0$.  Thus, when $Q_x(t)\le z$, only
+$O(1+z/L)$ edge values can be nonzero, by \eqref{eq:H-bound} and $n\asymp L$.
+The row, path, positions of the nonzero edge values, and their bounded integer
+values can therefore take at most
+\begin{equation}\label{eq:code-count}
+ \exp\!\left(C\left(1+\frac zL\right)\log(L+2)\right)
+\end{equation}
+possible values.
+
+Fix these data and compare two compatible frequencies.  If
+$\Delta_v$ denotes the difference of their nearest integers, then
+\[
+ B_{vw}\Delta_w=A_{vw}\Delta_v,
+ \qquad B_{vw}s_w=A_{vw}s_v.
+\]
+Connectivity gives $\Delta_v=r s_v$ for one rational number $r$.  The three
+end weights respectively omit $a,b,c$; pairwise coprimality therefore gives
+their gcd, and hence the gcd of all weights on the row and path, as $1$.
+Consequently $r\in\Z$.  At a fixed root of weight $s_0$, the nearest integer
+lies between $0$ and $s_0$, so a fixed choice of the edge data permits at most
+three root values modulo $s_0$.  Each root value confines $t$ to an interval of
+length $1/s_0\le1/x$.  Multiplying this by \eqref{eq:code-count} proves
+\eqref{eq:low-energy}.
+
+If $Q_x(t)<\kappa L$ and $\kappa$ is sufficiently small, then
+\eqref{eq:H-bound} gives $8H<n$.  Choose a completely good row and path.  Every
+$e_{vw}$ is zero, so $m_v/s_v$ is constant.  Its denominator divides the gcd
+of the three face weights, which is $1$; hence the common ratio is an integer.
+At any vertex, $|s_vt-m_v|\le\delta_0$ and $s_v\ge x$, so initially
+$\distz t\le\delta_0/x$.  To sharpen the constant, apply this conclusion to a
+fixed rational subband of width at most $3/2$.  Writing $t=r+u$, we then have
+$|u|\le1/(32x)$; nearest-integer rounding vanishes on that subband, and hence
+$Q_x(t)\ge u^2\sum s^2\gg x^2L^2u^2$.  Thus $Q_x(t)<\kappa L$ forces
+$|u|\le\delta/x$ for any fixed $\delta>0$ once $x$ is large.  Choose
+$\delta d\le1/8$ to obtain \eqref{eq:very-low}.
+\end{proof}
+
+\section{Fourier analysis and completion of the proof}
+
+We shall use
+\begin{equation}\label{eq:cos-decay}
+ |\cos(\pi y)|\le \exp(-2\distz y^2),
+\end{equation}
+which follows from
+$\sin(\pi u/2)\ge u$ for $0\le u\le1/2$.
+
+\begin{lemma}[Fourier tails]\label{lem:tails}
+\begin{equation}\label{eq:tail}
+ \int_{T/V_x\le |t|\le1/2}
+ \left|\prod_{s\in\B_x}\cos(\pi st)\right|dt
+ =o\!\left(\frac1{V_x}\right),
+ \qquad T=L^{1/4}.
+\end{equation}
+\end{lemma}
+
+\begin{proof}
+For large $x$, $T/V_x<2\delta/x$.  On
+$T/V_x\le |t|\le2\delta/x$, every $s\in\B_x$ satisfies
+$|st|<2\delta d\le1/4$, so \eqref{eq:cos-decay} and
+$V_x^2=\sum s^2$ give
+\[
+ \prod_{s\in\B_x}|\cos(\pi st)|\le \exp(-2V_x^2t^2).
+\]
+Its integral is at most
+$V_x^{-1}\int_T^\infty e^{-2u^2}\,du=o(1/V_x)$.
+
+On $2\delta/x\le |t|\le1/2$, Proposition~\ref{prop:rigidity} gives
+$Q_x(t)\ge\kappa L$.  By \eqref{eq:cos-decay}, the integrand is at most
+$e^{-2Q_x(t)}$.  Layering by the values of $Q_x$ and using
+\eqref{eq:low-energy} yields
+\[
+ \int e^{-2Q_x(t)}dt
+ \le \frac2x\int_{\kappa L}^{z_0L^2}
+ e^{-2z+C(1+z/L)\log(L+2)}\,dz+e^{-2z_0L^2}.
+\]
+For large $L$ this is $O(x^{-1}L^C e^{-3\kappa L/2})+e^{-2z_0L^2}$,
+which is $o(1/(xL))=o(1/V_x)$ by \eqref{eq:moments}.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:lclt}]
+Fourier inversion gives
+\begin{equation}\label{eq:fourier}
+ \Prob(Y_x=n)=\int_{-1/2}^{1/2}
+ e^{-2\pi i(n-\mu_x)t}
+ \prod_{s\in\B_x}\cos(\pi st)\,dt.
+\end{equation}
+On $|t|\le T/V_x$, all $|\pi st|$ tend uniformly to zero.  The elementary
+estimates
+\[
+ |\cos u-e^{-u^2/2}|\le u^4,
+ \qquad
+ \left|\prod_j x_j-\prod_j y_j\right|
+ \le\sum_j|x_j-y_j|
+ \quad (|x_j|,|y_j|\le1)
+\]
+give
+\begin{equation}\label{eq:product-gaussian}
+ \left|\prod_{s\in\B_x}\cos(\pi st)
+ -\exp\!\left(-\frac{\pi^2V_x^2t^2}{2}\right)\right|
+ \le \pi^4t^4\sum_{s\in\B_x}s^4.
+\end{equation}
+Since $s<px$ and $\sum s^2=V_x^2$,
+$\sum s^4\le (px)^2V_x^2$.  Integrating the right side of
+\eqref{eq:product-gaussian} over $|t|\le T/V_x$ gives
+\[
+ O\!\left(\frac{(px)^2T^5}{V_x^3}\right)=o\!\left(\frac1{V_x}\right)
+\]
+by \eqref{eq:moments}.  The Gaussian tail outside this interval is also
+$o(1/V_x)$.  Hence the principal part of \eqref{eq:fourier} equals
+\[
+ \int_{\R}e^{-2\pi i(n-\mu_x)t}
+ \exp\!\left(-\frac{\pi^2V_x^2t^2}{2}\right)dt
+ +o\!\left(\frac1{V_x}\right).
+\]
+The standard Gaussian Fourier transform evaluates this integral as
+\[
+ \frac{\sqrt{2/\pi}}{V_x}
+ \exp\!\left(-\frac{2(n-\mu_x)^2}{V_x^2}\right)
+ =\frac1{\sqrt{2\pi}\,\sigma_x}
+ \exp\!\left(-\frac{(n-\mu_x)^2}{2\sigma_x^2}\right).
+\]
+The error is uniform in $n$, since the omitted oscillatory factor always has
+modulus $1$.  Lemma~\ref{lem:tails} proves \eqref{eq:lclt}.
+
+If $|n-\mu_x|\le\sigma_x$, the main term in \eqref{eq:lclt} is at least
+$e^{-1/2}/(\sqrt{2\pi}\sigma_x)$, whereas the error is
+$o(1/\sigma_x)$.  Thus $\Prob(Y_x=n)>0$ for all sufficiently large $x$, so
+$n$ is a subset sum of $\B_x$.
+\end{proof}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+First suppose $\rho=p/q$ is rational.  By Proposition~\ref{prop:grid}, for all
+large $x$ the band has at least $4p^4$ elements, and hence
+\begin{equation}\label{eq:V-sweep}
+ V_x^2\ge4p^4x^2,
+ \qquad V_x\ge2p^2x.
+\end{equation}
+Also
+\begin{equation}\label{eq:W-step}
+ W_{x+1}\le W_x+p^2(x+1).
+\end{equation}
+Indeed, an element entering when $x$ is replaced by $x+1$ lies in an interval
+of length $p/q<p$, so there are at most $p$ such integers, each at most
+$p(x+1)$; elements leaving the band only decrease the sum.
+
+Fix a sufficiently large initial $X$.  For $N$ large enough that $W_X\le2N$,
+choose the largest $x\ge X$ with $W_x\le2N$.  Such an $x$ exists and is finite,
+since every sufficiently large band is nonempty and then $W_x\ge x$.  By
+maximality and \eqref{eq:W-step},
+\[
+ 0\le2N-W_x<W_{x+1}-W_x\le p^2(x+1)\le2p^2x\le V_x.
+\]
+Thus $|N-\mu_x|\le\sigma_x$, and Theorem~\ref{thm:lclt} gives a subset of
+$\B_x$ summing to $N$.
+
+For a real $1<\rho<d$, choose a rational $\rho'$ with
+$1<\rho'<\rho$.  The rational case supplies the representation inside
+$[x,\rho'x)\subset[x,\rho x)$.  As observed at the start, every such subset is
+a divisibility antichain.
+\end{proof}
+
+
+\end{document}

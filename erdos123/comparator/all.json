@@ -1,0 +1,7 @@
+{
+    "challenge_module": "Challenge",
+    "solution_module": "Solution",
+    "theorem_names": ["Erdos123.Statement.erdos123_dcomplete_real", "Erdos123.Statement.glclt_asymptotic", "Erdos123.Statement.glclt_coverage", "Erdos123.Statement.erdos123_dcomplete'", "Erdos123.Statement.glow_energy_measure_general", "Erdos123.Statement.gvery_low_sharp"],
+    "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"],
+    "enable_nanoda": false
+}

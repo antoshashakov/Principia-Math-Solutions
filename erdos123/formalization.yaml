@@ -1,0 +1,247 @@
+# Schema: https://github.com/mathlib-initiative/formalization.yaml
+version: "v0.3"
+
+project:
+  name: "Erdős Problem 123 and a local limit theorem for antichain subset sums, in Lean 4"
+  authors:
+    - "Anton Shakov"
+    - "Principia Math harness (autonomous multi-model research harness)"
+  license: "Apache-2.0"
+
+sources:
+  - title: "Antichain Subset Sums in Rank-Three Multiplicative Semigroups"
+    authors:
+      - "Anton Shakov"
+    id: "paper/erdos123_lean_journal.pdf"
+    type: "manuscript"
+    license: "Apache-2.0"
+    author_contacted: "n/a"
+    note: >-
+      The source author is also the formalization project author. The exact manuscript
+      the Lean was checked against is committed in this repository at
+      `paper/erdos123_lean_journal.tex` (and `.pdf`), and pinned by sha256 in
+      `VERIFICATION.md`. The problem statement of record is
+      https://www.erdosproblems.com/123.
+
+status:
+  scope: >-
+    Complete Lean 4 + Mathlib formalization of every numbered result in the source
+    manuscript: Theorem 1.1 (local limit theorem) in both halves — the asymptotic
+    eq. (1.1) and the coverage consequence; Theorem 1.2 (Erdős Problem 123);
+    Proposition 2.1 (band geometry) in all three two-sided moment bounds plus the
+    triangular-grid embedding; Proposition 3.1 (rigidity) in both eq. (3.1) and
+    eq. (3.2); and Lemma 4.1 (Fourier tails). No result in the manuscript is left
+    unformalized, and no result is assumed from the literature beyond Mathlib.
+    The manuscript makes no effectivity claim, and correspondingly the Lean
+    thresholds are existential (`∃ X₀`, `∃ N₀`) exactly as the manuscript states them.
+    The sorry counts below exclude `Challenge.lean`, which is the statement-only
+    Comparator fixture and whose placeholders are intentional.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms:
+    - "propext"
+    - "Classical.choice"
+    - "Quot.sound"
+  main_results:
+    - declaration: "Erdos123Band.erdos123_dcomplete_real"
+      file: "Erdos123/GMain.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator/erdos123_dcomplete_real.json"
+      literature_dependencies: []
+    - declaration: "Erdos123Band.glclt_asymptotic"
+      file: "Erdos123/GLCLTAsymptotic.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator/glclt_asymptotic.json"
+      literature_dependencies: []
+    - declaration: "Erdos123Band.glclt_coverage"
+      file: "Erdos123/GLCLT.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator/glclt_coverage.json"
+      literature_dependencies: []
+    - declaration: "Erdos123Band.erdos123_dcomplete'"
+      file: "Erdos123/Main.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator/erdos123_dcomplete.json"
+      literature_dependencies: []
+    - declaration: "Erdos123Band.glow_energy_measure_general"
+      file: "Erdos123/GLowEnergyGen.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator/rigidity.json"
+      literature_dependencies: []
+    - declaration: "Erdos123Band.gvery_low_sharp"
+      file: "Erdos123/GTail.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator/rigidity.json"
+      literature_dependencies: []
+
+automation:
+  methods:
+    - method: "autonomous"
+      models: []
+      framework: "Principia Math harness"
+      tool_setup: >-
+        Autonomous multi-model research harness. The harness searched for the
+        mathematical argument and produced the Lean development; a human set the
+        targets, adjudicated the statements against the manuscript, and performed the
+        audit recorded in `VERIFICATION.md`.
+      prompting_notes: >-
+        Targets were given as the numbered results of the manuscript. The trusted
+        statement layer (`Erdos123/Statement.lean`, `Challenge.lean`) was authored
+        separately from the proof development so that the statements being proved were
+        not themselves harness output.
+  notes: >-
+    The `models` list is left empty deliberately rather than guessed; the harness
+    dispatches across several frontier models per run and no per-declaration
+    attribution was retained.
+
+fidelity:
+  divergences: >-
+    Two deliberate deviations, neither affecting a stated result.
+
+    (1) Theorem 1.2 is additionally available in the classical "d-complete" phrasing as
+    `Erdos123Band.erdos123_dcomplete'` (`Erdos123/Main.lean`), which is proved by an
+    independent Phase-1 route over the fixed band [x, 3x/2). That route establishes
+    coverage only for the shrunk window `100·(2n − S₁)² ≤ S₂` rather than the
+    manuscript's full window, and it obtains its major-arc constant existentially. It is
+    a second, self-contained proof of Erdős 123 and is not used by, and does not weaken,
+    the manuscript's route: the manuscript's full window `(2n − S₁)² ≤ S₂` is delivered
+    by `glclt_coverage`, which goes through the Gaussian Fourier analysis as written.
+
+    (2) Proposition 3.1's hypothesis `z ≤ z₀·L²` is carried in the Lean statement to
+    match the manuscript, but the proof never uses it — the formalized bound holds for
+    every `z ≥ 0`. This is a strengthening; the manuscript's statement is met exactly.
+
+    Beyond these: `Erdos123Complete.lean` is a generated single-file concatenation of the
+    development and is not part of `lake build`; see `VERIFICATION.md` for how it is
+    checked and for the note on how it came to exist.
+
+review:
+  status: "self-assessed"
+  reviewers: []
+  notes: >-
+    Every claim in `VERIFICATION.md` was produced by running the stated command and
+    recording its actual output, on the commit and toolchain named there. Statement
+    fidelity was checked by interface check with negative controls: each of the six
+    results is discharged in `Solution.lean` by direct term assignment from the
+    development (positive control, passes), and deliberately STRONGER restatements of
+    both halves of Theorem 1.1 fail to elaborate (negative control, fails as required).
+    Comparator configs are provided and run in CI; see `VERIFICATION.md` for exactly
+    which runs have been observed. Not peer-reviewed.
+
+alignment:
+  namespace: "Erdos123Band (development); Erdos123.Statement (trusted statements)"
+  statements:
+    - source: "Theorem 1.1, eq. (1.1) — local limit theorem, the asymptotic"
+      lean: "glclt_asymptotic"
+      module: "Erdos123/GLCLTAsymptotic.lean"
+      status: "proved"
+      note: >-
+        The manuscript's "uniformly for n" is the quantifier order
+        `∀ ε > 0, ∃ X₀, ∀ x ≥ X₀, ∀ n`: the `∀ n` sits inside the `∃ X₀`.
+    - source: "Theorem 1.1, second assertion — every n with |n − μ_x| ≤ σ_x is a subset sum"
+      lean: "glclt_coverage"
+      module: "Erdos123/GLCLT.lean"
+      status: "proved"
+      note: >-
+        `|n − μ_x| ≤ σ_x` is stated in the cleared form `(2n − S₁)² ≤ S₂`; these are
+        equivalent since μ_x = W_x/2 = S₁/2 and σ_x = V_x/2 with V_x² = S₂. Full
+        window, no shrinkage constant.
+    - source: "Theorem 1.2 — Erdős Problem 123, real ratio ρ"
+      lean: "erdos123_dcomplete_real"
+      module: "Erdos123/GMain.lean"
+      status: "proved"
+      note: >-
+        Includes the manuscript's antichain conclusion explicitly, as `IsPrimitive T`.
+    - source: "Theorem 1.2 — rational ratio ρ = p/q, intermediate form"
+      lean: "erdos123_dcomplete_general"
+      module: "Erdos123/GMain.lean"
+      status: "proved"
+    - source: "Theorem 1.2 — classical d-complete phrasing"
+      lean: "erdos123_dcomplete'"
+      module: "Erdos123/Main.lean"
+      status: "proved"
+      note: "Independent Phase-1 route; see fidelity.divergences (1)."
+    - source: "§1, antichain remark (elements of [x, ρx) with ρ < d cannot divide)"
+      lean: "gband_primitive"
+      module: "Erdos123/GBand.lean"
+      status: "proved"
+    - source: "Proposition 2.1, eq. (2.3) — band cardinality cL² ≤ |B_x| ≤ CL²"
+      lean: "gband_card_ge_sq, gband_card_le_sq"
+      module: "Erdos123/GGrid.lean, Erdos123/GSlab.lean"
+      status: "proved"
+    - source: "Proposition 2.1, eq. (2.3) — second moment c·xL ≤ V_x ≤ C·xL"
+      lean: "gV_lower, gV_upper"
+      module: "Erdos123/GBandAux.lean"
+      status: "proved"
+    - source: "Proposition 2.1, eq. (2.3) — first moment c·xL² ≤ W_x ≤ C·xL²"
+      lean: "gMu_lower, gMu_upper, gmu_bounds"
+      module: "Erdos123/GMuBounds.lean"
+      status: "proved"
+    - source: "Proposition 2.1 — triangular grid embedding and edge relation eq. (2.4)"
+      lean: "ggrid_embedding"
+      module: "Erdos123/GGrid.lean"
+      status: "proved"
+    - source: "§2, strip-rounding lemma eq. (2.1) and the three-coordinate consequence"
+      lean: "gthree_rounding, gexists_int_step"
+      module: "Erdos123/GSlab.lean, Erdos123/GBand.lean"
+      status: "proved"
+    - source: "Proposition 3.1, eq. (3.1) — low-energy measure bound"
+      lean: "glow_energy_measure_general"
+      module: "Erdos123/GLowEnergyGen.lean"
+      status: "proved"
+      note: >-
+        The circle 𝕋 = ℝ/ℤ is realized as the interval [0,1). See
+        fidelity.divergences (2) on the vestigial `z ≤ z₀L²` hypothesis.
+    - source: "Proposition 3.1, eq. (3.2) — very low energy forces ‖t‖ ≤ δ/x, with δd ≤ 1/8"
+      lean: "gvery_low_sharp"
+      module: "Erdos123/GTail.lean"
+      status: "proved"
+      note: >-
+        `gvery_low` (Erdos123/GRigidity.lean) is the weaker intermediate form, giving
+        δ ≤ 1/32 without the calibration δ·min(a,b,c) ≤ 1/8. It is eq. (3.2) as sharpened
+        in the last paragraph of the proof that yields the manuscript's constant.
+    - source: "Proposition 3.1 proof — edge differences vanish on good edges"
+      lean: "gchain_diff_dvd"
+      module: "Erdos123/GLowEnergy.lean"
+      status: "proved"
+    - source: "Lemma 4.1 — Fourier tail bound, o(1/V_x)"
+      lean: "gtail_upper, gtail_upper_eps"
+      module: "Erdos123/GTail.lean, Erdos123/GLCLTAsymptotic.lean"
+      status: "proved"
+      note: >-
+        `gtail_upper` carries a fixed fraction 1/(10V) sufficient for coverage;
+        `gtail_upper_eps` is the genuine o(1/V_x) form needed for eq. (1.1). Neither
+        implies the other, so both are proved.
+    - source: "§4, eq. (4.2) — |cos u − e^{−u²/2}| ≤ u⁴ and the product estimate"
+      lean: "cos_sub_exp_le, abs_prod_sub_prod_le, abs_prod_cos_sub_exp_le"
+      module: "Erdos123/GCosApprox.lean"
+      status: "proved"
+    - source: "§4, eq. (4.4) — Fourier inversion for P(Y_x = n)"
+      lean: "gcount_eq_integral, gprob_eq_integral"
+      module: "Erdos123/GLCLT.lean, Erdos123/GLCLTAsymptotic.lean"
+      status: "proved"
+    - source: "§4 — the standard Gaussian Fourier transform"
+      lean: "gaussian_ft_scaled, gaussian_ft_scaled_zero, gauss_tail_Ioi, gauss_osc_tail_Ioi"
+      module: "Erdos123/GaussFT.lean"
+      status: "proved"
+    - source: "§4 — principal-range lower bound"
+      lean: "gprincipal_lower, gprincipal_abstract, gprincipal_two_sided"
+      module: "Erdos123/GPrincipal.lean, Erdos123/GLCLTAsymptotic.lean"
+      status: "proved"
+    - source: "Proof of Theorem 1.2 — the sweep, eq. (4.5) and eq. (4.6)"
+      lean: "gsweep"
+      module: "Erdos123/GMain.lean"
+      status: "proved"
+
+acknowledgements: >-
+  Built on Lean 4 and Mathlib. The problem is Erdős Problem 123
+  (https://www.erdosproblems.com/123), catalogued by Thomas Bloom. Statement fidelity is
+  checked with Comparator (https://github.com/leanprover/comparator) by the Lean FRO,
+  and this file follows the formalization.yaml reporting standard
+  (https://github.com/mathlib-initiative/formalization.yaml).

@@ -21,7 +21,6 @@ defaults:
     working-directory: erdos123
 
 env:
-  # Pinned by commit SHA, not tag — a moving tag would silently change what is trusted.
   # Resolved 2026-07-20; HEAD of each repo at that date.
   COMPARATOR_SHA: c3903e1ed0148a32cd39510707c632dc4d265514
   LEAN4EXPORT_SHA: af5aa64bb914c3c2c781f378088dbd38acf4f804
@@ -35,8 +34,7 @@ jobs:
 
       - name: Install elan
         run: |
-          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz \
-            | tar xz
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
           ./elan-init -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
 
@@ -80,13 +78,18 @@ jobs:
       - name: Fetch Mathlib oleans
         run: lake exe cache get
 
+      # NOTE: `--pipe --wait --collect`, NOT the `--pty` given in Comparator's README.
+      # `--pty` allocates a terminal and waits on it, which never resolves on a CI runner
+      # — it hangs indefinitely after printing "Press ^] three times ... to disconnect
+      # TTY". `--pipe` is the non-interactive counterpart: it wires stdout/stderr through
+      # and `--wait` propagates the unit's exit status. The `RestrictAddressFamilies`
+      # property is the part that actually matters for safety and is kept verbatim; it
+      # guards a landrun vulnerability fixed only in Linux 7.1.
       - name: Run comparator on all six main results
+        timeout-minutes: 120
         run: |
           set -o pipefail
-          systemd-run --property=RestrictAddressFamilies=~AF_UNIX --user --pty \
-            -E PATH="$PATH" --working-directory "$(pwd)" -- \
-            bash -c 'lake env /tmp/comparator/.lake/build/bin/comparator comparator/all.json' \
-            2>&1 | tee comparator.log
+          systemd-run --property=RestrictAddressFamilies=~AF_UNIX --user --pipe --wait --collect -E PATH="$PATH" --working-directory "$(pwd)" -- bash -c 'lake env /tmp/comparator/.lake/build/bin/comparator comparator/all.json' 2>&1 | tee comparator.log
 
       - name: Require the success string
         run: |
@@ -97,4 +100,4 @@ jobs:
         if: always()
         with:
           name: comparator-log
-          path: comparator.log
+          path: erdos123/comparator.log

@@ -25,7 +25,7 @@
 \newcommand{\R}{\mathbb R}
 \newcommand{\T}{\mathbb T}
 \newcommand{\Sg}{\mathcal S}
-\newcommand{\B}{\mathcal B}
+\newcommand{\Sx}{\mathcal S_x}
 \newcommand{\Eset}{\mathcal E}
 \newcommand{\Prob}{\mathbb P}
 \newcommand{\Ex}{\mathbb E}
@@ -44,7 +44,7 @@ $\Sg=\{a^k b^\ell c^m:k,\ell,m\ge0\}$.  For every real
 $1<\rho<\min(a,b,c)$, every sufficiently large integer is a subset sum of
 $\Sg\cap[x,\rho x)$ for some $x$.  Such a set is automatically a divisibility
 antichain, resolving Erd\H{o}s Problem~123.  For rational $\rho$ we prove the
-stronger statement that the Bernoulli subset sums of each large band satisfy a
+stronger statement that the Bernoulli subset sums of $\Sg\cap[x,\rho x)$ satisfy a
 uniform local central limit theorem.  The main new ingredient is an arithmetic
 rigidity argument on a triangular grid in exponent space; the remaining
 Fourier analysis is standard.
@@ -62,15 +62,15 @@ Fix pairwise-coprime integers $a,b,c\ge2$, and write
 Let $\rho=p/q\in\mathbb Q$ satisfy $1<\rho<d$, with $p,q\in\N$ and $q>0$.
 For an integer $x\ge1$ set
 \[
- \B_x=\Sg\cap[x,\rho x),\qquad
- W_x=\sum_{s\in\B_x}s,\qquad V_x^2=\sum_{s\in\B_x}s^2,
+ \Sx=\Sg\cap[x,\rho x),\qquad
+ W_x=\sum_{s\in\Sx}s,\qquad V_x^2=\sum_{s\in\Sx}s^2,
 \]
 and
 \[
  \mu_x=\frac{W_x}{2},\qquad \sigma_x=\frac{V_x}{2}.
 \]
-Let $(\xi_s)_{s\in\B_x}$ be independent Bernoulli variables taking the values
-$0,1$ with equal probability, and put $Y_x=\sum_{s\in\B_x}s\xi_s$.
+Let $(\xi_s)_{s\in\Sx}$ be independent Bernoulli variables taking the values
+$0,1$ with equal probability, and put $Y_x=\sum_{s\in\Sx}s\xi_s$.
 
 \begin{theorem}[Local limit theorem]\label{thm:lclt}
 As $x\to\infty$ through the positive integers,
@@ -80,7 +80,7 @@ As $x\to\infty$ through the positive integers,
  +o\!\left(\frac1{\sigma_x}\right),
 \end{equation}
 uniformly for $n\in\Nzero$.  In particular, for all sufficiently large $x$,
-every integer $n$ with $|n-\mu_x|\le\sigma_x$ is a subset sum of $\B_x$.
+every integer $n$ with $|n-\mu_x|\le\sigma_x$ is a subset sum of $\Sx$.
 \end{theorem}
 
 \begin{theorem}[Erd\H{o}s Problem~123]\label{thm:main}
@@ -115,7 +115,7 @@ and, with $L=\log x$,
  \Eset_L=\{(k,\ell,m)\in\Nzero^3:
  L\le \alpha k+\beta\ell+\gamma m<L+\eta\}.
 \]
-This set parametrizes $\B_x$.  The ratios of any two of
+This set parametrizes $\Sx$.  The ratios of any two of
 $\alpha,\beta,\gamma$ are irrational: for instance
 $\alpha/\beta=r/s\in\mathbb Q$ would give $a^s=b^r$, contrary to
 $\gcd(a,b)=1$.
@@ -152,15 +152,15 @@ $Z$ by $Z+(\beta/\gamma)(Y-\ell_0)$, and apply
 \eqref{eq:strip-rounding} to $\alpha,\gamma$.  If one coordinate is zero,
 apply the two-variable statement directly to the other two.
 
-\begin{proposition}[Band geometry]\label{prop:grid}
+\begin{proposition}[Geometry and moments]\label{prop:grid}
 There are constants $c,C>0$ and integers $D,K\ge1$ such that, for all large
 $x$,
 \begin{equation}\label{eq:moments}
- cL^2\le |\B_x|\le CL^2,
+ cL^2\le |\Sx|\le CL^2,
  \qquad c xL\le V_x\le CxL,
  \qquad c xL^2\le W_x\le CxL^2.
 \end{equation}
-Moreover, for some $n\asymp L$ there are distinct elements $s_v\in\B_x$
+Moreover, for some $n\asymp L$ there are distinct elements $s_v\in\Sx$
 indexed by
 \[
  \Delta_n^\circ=\{(i,j,r)\in\Nzero^3:i+j+r=n\}
@@ -196,10 +196,10 @@ exponents differ coordinatewise by at most some fixed $D$.  Clearing the
 positive and negative exponent differences gives \eqref{eq:edge-relation} with
 $K=(abc)^D$.
 
-Since $|\Delta_n^\circ|\asymp n^2$, this gives $|\B_x|\gg L^2$.  Conversely,
+Since $|\Delta_n^\circ|\asymp n^2$, this gives $|\Sx|\gg L^2$.  Conversely,
 $k,\ell\ll L$, while for fixed $k,\ell$ there is at most one $m$, because two
 choices would change the logarithmic weight by at least $\gamma>\eta$.
-Thus $|\B_x|\ll L^2$.  Finally $x\le s<\rho x$ throughout the band, and
+Thus $|\Sx|\ll L^2$.  Finally $x\le s<\rho x$ for every $s\in\Sx$, and
 \eqref{eq:moments} follows by summing $s$ and $s^2$.
 \end{proof}
 
@@ -207,7 +207,7 @@ Thus $|\B_x|\ll L^2$.  Finally $x\le s<\rho x$ throughout the band, and
 
 For $t\in\T=\R/\Z$, put
 \[
- Q_x(t)=\sum_{s\in\B_x}\distz{st}^{2},
+ Q_x(t)=\sum_{s\in\Sx}\distz{st}^{2},
  \qquad \distz y=\min_{m\in\Z}|y-m|.
 \]
 The following is the arithmetic core of the proof.
@@ -288,9 +288,10 @@ If $Q_x(t)<\kappa L$ and $\kappa$ is sufficiently small, then
 $e_{vw}$ is zero, so $m_v/s_v$ is constant.  Its denominator divides the gcd
 of the three face weights, which is $1$; hence the common ratio is an integer.
 At any vertex, $|s_vt-m_v|\le\delta_0$ and $s_v\ge x$, so initially
-$\distz t\le\delta_0/x$.  To sharpen the constant, apply this conclusion to a
-fixed rational subband of width at most $3/2$.  Writing $t=r+u$, we then have
-$|u|\le1/(32x)$; nearest-integer rounding vanishes on that subband, and hence
+$\distz t\le\delta_0/x$.  To sharpen the constant, choose a rational $\rho_0$ with
+$1<\rho_0\le\min(\rho,3/2)$ and repeat the preceding argument for
+$\Sg\cap[x,\rho_0x)$.  Writing $t=r+u$, we then have $|u|\le1/(32x)$;
+nearest-integer rounding vanishes on this set, and hence
 $Q_x(t)\ge u^2\sum s^2\gg x^2L^2u^2$.  Thus $Q_x(t)<\kappa L$ forces
 $|u|\le\delta/x$ for any fixed $\delta>0$ once $x$ is large.  Choose
 $\delta d\le1/8$ to obtain \eqref{eq:very-low}.
@@ -308,7 +309,7 @@ $\sin(\pi u/2)\ge u$ for $0\le u\le1/2$.
 \begin{lemma}[Fourier tails]\label{lem:tails}
 \begin{equation}\label{eq:tail}
  \int_{T/V_x\le |t|\le1/2}
- \left|\prod_{s\in\B_x}\cos(\pi st)\right|dt
+ \left|\prod_{s\in\Sx}\cos(\pi st)\right|dt
  =o\!\left(\frac1{V_x}\right),
  \qquad T=L^{1/4}.
 \end{equation}
@@ -316,11 +317,11 @@ $\sin(\pi u/2)\ge u$ for $0\le u\le1/2$.
 
 \begin{proof}
 For large $x$, $T/V_x<2\delta/x$.  On
-$T/V_x\le |t|\le2\delta/x$, every $s\in\B_x$ satisfies
+$T/V_x\le |t|\le2\delta/x$, every $s\in\Sx$ satisfies
 $|st|<2\delta d\le1/4$, so \eqref{eq:cos-decay} and
 $V_x^2=\sum s^2$ give
 \[
- \prod_{s\in\B_x}|\cos(\pi st)|\le \exp(-2V_x^2t^2).
+ \prod_{s\in\Sx}|\cos(\pi st)|\le \exp(-2V_x^2t^2).
 \]
 Its integral is at most
 $V_x^{-1}\int_T^\infty e^{-2u^2}\,du=o(1/V_x)$.
@@ -343,7 +344,7 @@ Fourier inversion gives
 \begin{equation}\label{eq:fourier}
  \Prob(Y_x=n)=\int_{-1/2}^{1/2}
  e^{-2\pi i(n-\mu_x)t}
- \prod_{s\in\B_x}\cos(\pi st)\,dt.
+ \prod_{s\in\Sx}\cos(\pi st)\,dt.
 \end{equation}
 On $|t|\le T/V_x$, all $|\pi st|$ tend uniformly to zero.  The elementary
 estimates
@@ -356,9 +357,9 @@ estimates
 \]
 give
 \begin{equation}\label{eq:product-gaussian}
- \left|\prod_{s\in\B_x}\cos(\pi st)
+ \left|\prod_{s\in\Sx}\cos(\pi st)
  -\exp\!\left(-\frac{\pi^2V_x^2t^2}{2}\right)\right|
- \le \pi^4t^4\sum_{s\in\B_x}s^4.
+ \le \pi^4t^4\sum_{s\in\Sx}s^4.
 \end{equation}
 Since $s<px$ and $\sum s^2=V_x^2$,
 $\sum s^4\le (px)^2V_x^2$.  Integrating the right side of
@@ -386,12 +387,12 @@ modulus $1$.  Lemma~\ref{lem:tails} proves \eqref{eq:lclt}.
 If $|n-\mu_x|\le\sigma_x$, the main term in \eqref{eq:lclt} is at least
 $e^{-1/2}/(\sqrt{2\pi}\sigma_x)$, whereas the error is
 $o(1/\sigma_x)$.  Thus $\Prob(Y_x=n)>0$ for all sufficiently large $x$, so
-$n$ is a subset sum of $\B_x$.
+$n$ is a subset sum of $\Sx$.
 \end{proof}
 
 \begin{proof}[Proof of Theorem~\ref{thm:main}]
-First suppose $\rho=p/q$ is rational.  By Proposition~\ref{prop:grid}, for all
-large $x$ the band has at least $4p^4$ elements, and hence
+First suppose $\rho=p/q$ is rational.  By Proposition~\ref{prop:grid},
+$|\Sx|\ge4p^4$ for all sufficiently large $x$, and hence
 \begin{equation}\label{eq:V-sweep}
  V_x^2\ge4p^4x^2,
  \qquad V_x\ge2p^2x.
@@ -402,17 +403,17 @@ Also
 \end{equation}
 Indeed, an element entering when $x$ is replaced by $x+1$ lies in an interval
 of length $p/q<p$, so there are at most $p$ such integers, each at most
-$p(x+1)$; elements leaving the band only decrease the sum.
+$p(x+1)$; elements leaving $\Sx$ only decrease the sum.
 
 Fix a sufficiently large initial $X$.  For $N$ large enough that $W_X\le2N$,
 choose the largest $x\ge X$ with $W_x\le2N$.  Such an $x$ exists and is finite,
-since every sufficiently large band is nonempty and then $W_x\ge x$.  By
+since $\Sx$ is nonempty for all sufficiently large $x$, and then $W_x\ge x$.  By
 maximality and \eqref{eq:W-step},
 \[
  0\le2N-W_x<W_{x+1}-W_x\le p^2(x+1)\le2p^2x\le V_x.
 \]
 Thus $|N-\mu_x|\le\sigma_x$, and Theorem~\ref{thm:lclt} gives a subset of
-$\B_x$ summing to $N$.
+$\Sx$ summing to $N$.
 
 For a real $1<\rho<d$, choose a rational $\rho'$ with
 $1<\rho'<\rho$.  The rational case supplies the representation inside

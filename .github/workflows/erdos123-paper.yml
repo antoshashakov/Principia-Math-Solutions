@@ -1,0 +1,67 @@
+name: erdos123-paper
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'erdos123/paper/erdos123_lean_journal.tex'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-paper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            latexmk texlive-latex-base texlive-latex-recommended \
+            texlive-latex-extra texlive-fonts-recommended
+
+      - name: Build PDF
+        env:
+          SOURCE_DATE_EPOCH: ${{ github.event.head_commit.timestamp }}
+        run: |
+          cd erdos123/paper
+          latexmk -pdf -interaction=nonstopmode -halt-on-error erdos123_lean_journal.tex
+
+      - name: Update manuscript hashes
+        run: |
+          tex_sha=$(sha256sum erdos123/paper/erdos123_lean_journal.tex | awk '{print $1}')
+          pdf_sha=$(sha256sum erdos123/paper/erdos123_lean_journal.pdf | awk '{print $1}')
+          python3 - "$tex_sha" "$pdf_sha" <<'PY'
+          from pathlib import Path
+          import sys
+
+          tex_sha, pdf_sha = sys.argv[1:]
+          path = Path('erdos123/VERIFICATION.md')
+          text = path.read_text()
+          lines = []
+          for line in text.splitlines():
+              if line.rstrip().endswith('paper/erdos123_lean_journal.tex'):
+                  line = f'{tex_sha}  paper/erdos123_lean_journal.tex'
+              elif line.rstrip().endswith('paper/erdos123_lean_journal.pdf'):
+                  line = f'{pdf_sha}  paper/erdos123_lean_journal.pdf'
+              lines.append(line)
+          path.write_text('\n'.join(lines) + '\n')
+          PY
+
+      - name: Commit rebuilt paper
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add erdos123/paper/erdos123_lean_journal.pdf erdos123/VERIFICATION.md
+          if git diff --cached --quiet; then
+            echo 'No generated changes.'
+            exit 0
+          fi
+          git commit -m 'erdos123: rebuild paper PDF'
+          git pull --rebase origin main
+          git push origin HEAD:main

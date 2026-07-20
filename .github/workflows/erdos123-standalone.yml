@@ -1,0 +1,74 @@
+name: erdos123-standalone
+
+# Compiles erdos123/Erdos123Complete.lean — the whole development concatenated into one
+# standalone file importing only Mathlib. It is NOT part of the Lake library, so the
+# `erdos123-build` workflow does not cover it, and it goes stale if Erdos123/* is edited
+# without regenerating it. This workflow is what closes VERIFICATION.md §7.
+#
+# Kept separate from `erdos123-build` because it is slow (a single ~12k-line file, no
+# incrementality) and because a failure here means "the generated file is stale", not
+# "the development is broken" — nothing in the repository depends on it.
+#
+# Triggered only on changes to the Lean sources, not on documentation edits.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'erdos123/**.lean'
+      - 'erdos123/lakefile.toml'
+      - 'erdos123/lean-toolchain'
+      - '.github/workflows/erdos123-standalone.yml'
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: erdos123
+
+jobs:
+  standalone:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch Mathlib oleans
+        run: lake exe cache get
+
+      # Static checks first — these are cheap and independent of whether it compiles.
+      - name: No unproved placeholder or extra postulate in the standalone file
+        run: |
+          if grep -n "sorry\|^axiom \|native_decide" Erdos123Complete.lean; then
+            echo "::error::Erdos123Complete.lean contains a placeholder or extra postulate"
+            exit 1
+          fi
+          echo "clean"
+
+      - name: Compile the standalone file
+        run: |
+          set -o pipefail
+          lake env lean Erdos123Complete.lean 2>&1 | tee standalone.log
+          echo "lean exited $?"
+
+      # `lake env lean` reports errors on stderr and exits nonzero, which the step above
+      # already catches. This is a redundant belt-and-braces check on the captured log,
+      # so a future change to how output is routed cannot turn a failure into a pass.
+      - name: No errors in the compile log
+        run: |
+          if grep -n ": error" standalone.log; then
+            echo "::error::compile log contains errors"
+            exit 1
+          fi
+          echo "no errors in log"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: erdos123-standalone-log
+          path: erdos123/standalone.log

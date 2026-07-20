@@ -196,13 +196,23 @@ checked separately:
 $ lake env lean Erdos123Complete.lean
 ```
 
-**Status of this particular check: not completed at the time of writing.** A run was
-started and was still in progress when this file was committed; it is not reported as
-passing here. Static checks that WERE run on the file: it contains zero occurrences of
-the token `sorry` and no `axiom` declaration or `native_decide`. Treat the compilation
-of this file as unconfirmed until the command above is run to completion. Nothing else
-in this repository depends on it — it is a convenience artifact, and the primary
-verification path is §2–§5.
+**Status of this particular check: moved to CI, result pending.** Local runs of this
+command were started three times on the Windows machine and killed by the environment
+before finishing, so no local result was ever obtained and none is reported here. Rather
+than keep retrying it in a place where it cannot be relied on to complete, the check now
+runs in `.github/workflows/erdos123-standalone.yml` on `ubuntu-latest`, which also
+uploads the compile log as an artifact. Consult that workflow's latest run for the
+current answer; if it has not yet run green, treat the compilation of this file as
+unconfirmed.
+
+Static checks that WERE run, and that hold regardless: the file contains zero
+occurrences of the token `sorry`, no `axiom` declaration, and no `native_decide`. The
+workflow re-runs those same static checks before attempting the compile, so they cannot
+silently rot.
+
+Nothing else in this repository depends on this file — it is a convenience artifact, and
+the primary verification path is §2–§6. A failure here means the generated file has gone
+stale relative to `Erdos123/*`, not that anything in the development is wrong.
 
 It will go stale if `Erdos123/*` is edited without regenerating it. It is offered as a
 convenience for reviewers who want a single file, not as the primary artifact.

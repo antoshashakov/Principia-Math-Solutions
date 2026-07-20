@@ -5,6 +5,11 @@ on:
     branches: [main]
     paths:
       - 'erdos123/paper/erdos123_lean_journal.tex'
+      - '.github/workflows/erdos123-paper.yml'
+  pull_request:
+    paths:
+      - 'erdos123/paper/erdos123_lean_journal.tex'
+      - '.github/workflows/erdos123-paper.yml'
   workflow_dispatch:
 
 permissions:
@@ -17,6 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
 
       - name: Install LaTeX
         run: |
@@ -26,9 +32,8 @@ jobs:
             texlive-latex-extra texlive-fonts-recommended
 
       - name: Build PDF
-        env:
-          SOURCE_DATE_EPOCH: ${{ github.event.head_commit.timestamp }}
         run: |
+          export SOURCE_DATE_EPOCH="$(git log -1 --format=%ct)"
           cd erdos123/paper
           latexmk -pdf -interaction=nonstopmode -halt-on-error erdos123_lean_journal.tex
 
@@ -42,9 +47,8 @@ jobs:
 
           tex_sha, pdf_sha = sys.argv[1:]
           path = Path('erdos123/VERIFICATION.md')
-          text = path.read_text()
           lines = []
-          for line in text.splitlines():
+          for line in path.read_text().splitlines():
               if line.rstrip().endswith('paper/erdos123_lean_journal.tex'):
                   line = f'{tex_sha}  paper/erdos123_lean_journal.tex'
               elif line.rstrip().endswith('paper/erdos123_lean_journal.pdf'):
@@ -55,6 +59,7 @@ jobs:
 
       - name: Commit rebuilt paper
         run: |
+          branch="${GITHUB_HEAD_REF:-${GITHUB_REF_NAME}}"
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add erdos123/paper/erdos123_lean_journal.pdf erdos123/VERIFICATION.md
@@ -63,5 +68,5 @@ jobs:
             exit 0
           fi
           git commit -m 'erdos123: rebuild paper PDF'
-          git pull --rebase origin main
-          git push origin HEAD:main
+          git pull --rebase origin "$branch"
+          git push origin HEAD:"$branch"

@@ -1,0 +1,98 @@
+\documentclass[11pt,reqno]{amsart}
+
+\usepackage[letterpaper,margin=1in]{geometry}
+\usepackage{amsmath,amssymb,mathtools,microtype}
+\usepackage[hidelinks]{hyperref}
+\hypersetup{pdftitle={Erdos 123+ : distinct 2^k 3^l 5^m summands within a factor 1+epsilon}}
+
+\setlength{\parindent}{1.15em}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+
+\newcommand{\Sg}{\mathcal S}
+\newcommand{\N}{\mathbb N}
+\newcommand{\Z}{\mathbb Z}
+\newcommand{\Nzero}{\mathbb Z_{\ge 0}}
+
+\title[Erd\H{o}s 123$^{+}$]{Erd\H{o}s 123$^{+}$: distinct $2^{k}3^{\ell}5^{m}$
+summands within a factor $1+\varepsilon$}
+\author{Principia Math}
+\date{}
+
+\begin{document}
+
+\begin{abstract}
+We record a one-line corollary of the representation theorem behind our solution of
+Erd\H{o}s Problem~123: for $\{2^{k}3^{\ell}5^{m}\}$ and every $\varepsilon>0$, every
+sufficiently large integer is a sum of distinct such numbers whose largest and smallest
+terms differ by a factor less than $1+\varepsilon$.  This settles the stronger conjecture
+Erd\H{o}s recorded in~1992 (\cite{Er92b}; the comment to erdosproblems.com/123), by
+applying that theorem with $\rho=1+\varepsilon$.
+\end{abstract}
+
+\maketitle
+
+\section*{The theorem we proved}
+
+Let $a,b,c\ge2$ be pairwise coprime and
+$\Sg=\{a^{k}b^{\ell}c^{m}:k,\ell,m\in\Nzero\}$; write $d=\min(a,b,c)$.  Our solution of
+Erd\H{o}s~123 rests on the following theorem, formalized and machine-checked in Lean~4
+(Theorems~1.1 and~1.2 of \emph{Antichain Subset Sums in Rank-Three Multiplicative
+Semigroups}; for rational $\rho$ it comes from a uniform local central limit theorem for
+the Bernoulli subset sums of $\Sg\cap[x,\rho x)$).
+
+\begin{theorem}\label{thm:rep}
+For every real $\rho$ with $1<\rho<d$, every sufficiently large integer $N$ can be written
+as
+\[
+  N=\sum_{s\in A}s,\qquad A\subset \Sg\cap[x,\rho x)
+\]
+for some positive integer $x$.  Since any two elements of $[x,\rho x)$ have ratio
+$<\rho<d$, no element of $A$ divides another; thus the terms of $A$ are distinct and no
+one of them divides another.
+\end{theorem}
+
+\section*{The strengthening, and how it follows}
+
+For $(a,b,c)=(2,3,5)$, Erd\H{o}s asked for more than distinctness and non-divisibility: he
+conjectured that all the summands can be taken from a single interval $[x,\rho x)$ with
+$\rho$ as close to~$1$ as one wishes.
+
+\begin{corollary}[Erd\H{o}s 123$^{+}$, \cite{Er92b}, 1992]\label{cor:plus}
+For every $\varepsilon>0$, every sufficiently large integer $n$ can be written as a sum of
+distinct integers $b_{1}<\dots<b_{t}$ of the form $2^{k}3^{\ell}5^{m}$ with
+\[
+  b_{t}<(1+\varepsilon)\,b_{1}.
+\]
+\end{corollary}
+
+\begin{proof}
+Here $d=\min(2,3,5)=2$.  Given $\varepsilon>0$, set
+\[
+  \rho=1+\min\!\left(\varepsilon,\tfrac12\right)\in(1,2),
+\]
+so that $1<\rho<d$ and Theorem~\ref{thm:rep} applies.  For all large $n$ it gives a set
+$A\subset\Sg\cap[x,\rho x)$ with $\sum_{s\in A}s=n$; list its distinct elements as
+$b_{1}<\dots<b_{t}$.  Every $b_{i}$ lies in $[x,\rho x)$, so $b_{1}\ge x$ and
+\[
+  b_{t}<\rho x\le(1+\varepsilon)\,x\le(1+\varepsilon)\,b_{1}.
+\]
+The terms are distinct and pairwise non-dividing by the last sentence of
+Theorem~\ref{thm:rep}.  (When $\varepsilon\ge1$ the choice $\rho=\tfrac32$ already gives
+the claim.)
+\end{proof}
+
+The only freedom used is the choice of $\rho$: the two endpoints of the interval
+$[x,\rho x)$ in Theorem~\ref{thm:rep} are in the ratio $\rho$, which we take to be
+$1+\varepsilon$.  The same argument gives the corresponding statement for every
+pairwise-coprime triple $a,b,c$, since a ratio $\rho=1+\varepsilon<d$ is available whenever
+$\varepsilon<d-1$.
+
+\begin{thebibliography}{9}
+\bibitem{Er92b}
+P.~Erd\H{o}s, conjecture recorded in~1992; see the comments to Erd\H{o}s Problem~123 at
+\texttt{https://www.erdosproblems.com/123} (reference \texttt{[Er92b]}).
+\end{thebibliography}
+
+\end{document}

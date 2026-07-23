@@ -1,0 +1,8 @@
+{
+    "challenge_module": "Challenge",
+    "solution_module": "Solution",
+    "theorem_names": ["Erdos883.Statement.erdos883_threshold_sharp"],
+    "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"],
+    "definition_names": ["Erdos883.Statement.coprimeGraph", "Erdos883.Statement.HasCycleLength", "Erdos883.Statement.T", "Erdos883.Statement.q"],
+    "enable_nanoda": false
+}

@@ -1,0 +1,57 @@
+name: erdos883-build
+
+# Scoped to the erdos883 solution; other solutions get their own workflow.
+on:
+  push:
+    branches: [main]
+    paths: ['erdos883/**', '.github/workflows/erdos883-*.yml']
+  pull_request:
+    paths: ['erdos883/**', '.github/workflows/erdos883-*.yml']
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: erdos883
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Cache Mathlib oleans
+        run: lake exe cache get
+
+      - name: Build
+        run: lake build
+
+      - name: Build Challenge and Solution
+        run: lake build Challenge Solution
+
+      # No unproved placeholders, no native_decide, and NO axiom declarations anywhere:
+      # both erdos883 results are axiom-free. Challenge.lean's two `sorry`s are the
+      # Comparator fixture and are checked separately below. The unproved forcing
+      # statement is a `def ... : Prop`, not an axiom and not a sorry.
+      - name: No sorry / native_decide / axiom declarations
+        run: |
+          if grep -rn "sorry\|native_decide" Erdos883/*.lean Solution.lean; then
+            echo "::error::unproved placeholder or native_decide found"; exit 1
+          fi
+          if grep -rn "^axiom " Erdos883/*.lean Solution.lean Challenge.lean; then
+            echo "::error::axiom declaration found; erdos883 must be axiom-free"; exit 1
+          fi
+          echo "clean (no sorries outside Challenge.lean, no axioms)"
+
+      # Challenge.lean must have exactly two intentional sorries — one per proved result.
+      - name: Challenge.lean has exactly two intentional sorries
+        run: |
+          n=$(grep -c "^  sorry$" Challenge.lean)
+          echo "found $n"
+          test "$n" -eq 2

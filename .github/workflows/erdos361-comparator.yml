@@ -105,7 +105,7 @@ jobs:
       # and `--wait` propagates the unit's exit status. The `RestrictAddressFamilies`
       # property is the part that actually matters for safety and is kept verbatim; it
       # guards a landrun vulnerability fixed only in Linux 7.1.
-      - name: Run comparator: c>=1 (axiom-free) then irregularity (Alon-conditional)
+      - name: "Run comparator (cge1 axiom-free then irregular Alon-conditional)"
         timeout-minutes: 120
         run: |
           set -o pipefail

@@ -1,0 +1,67 @@
+# Erdős Problem 361 — irregularity of forbidden-subset-sum extremal sets
+
+> For fixed `c > 0` let `f_c(n) = max { |A| : A ⊆ {1, …, ⌊cn⌋}, n ∉ Σ(A) }`, where `Σ(A)`
+> is the set of nonempty subset sums. **Does `f_c(n)/n` converge?**
+> **Answer: it converges iff `c ≥ 1`.** For `c ≥ 1`, `f_c(n) = ⌊cn⌋ − ⌈n/2⌉`, so
+> `f_c(n)/n → c − 1/2`. For every `c ∈ (0,1)`, `f_c(n)/n` does **not** converge — the
+> affirmative answer to the Erdős–Graham irregularity question.
+
+## Results
+
+| Paper result | Statement | Lean name | Module |
+| --- | --- | --- | --- |
+| Regular range (`c ≥ 1`) | `F M n = M − ⌈n/2⌉` for `1 ≤ n ≤ M` | `Erdos361.Statement.erdos361_cge1` | `Erdos361/Core.lean` |
+| **Theorem 4 (irregularity)** | `∀ c ∈ (0,1)`, `f_c(n)/n` has no limit | `Erdos361.Statement.erdos361_irregular` | `Erdos361/Core.lean` |
+
+`f_c(n)` is modelled by `Fc c n = F ⌊c·n⌋ n`, where `F M n` is the max cardinality of an
+avoider of `n` in `[1,M]` (`Erdos361/Statement.lean`).
+
+## How the statements are kept honest
+
+`Erdos361/Statement.lean` (definitions + one axiom, Mathlib-only import) and `Challenge.lean`
+(the two statements, `sorry`) are the **entire audit surface**. `Solution.lean` proves the
+same two statements by direct term assignment from the development, so Lean checks the
+development's statements are definitionally the trusted ones.
+[Comparator](https://github.com/leanprover/comparator) verifies this mechanically on CI
+(`comparator/`), and checks the axiom footprints.
+
+## The one axiom
+
+`erdos361_cge1` is **axiom-free** (`propext`, `Quot.sound`, `Classical.choice` only).
+
+`erdos361_irregular` additionally depends on **one** trusted, cited external theorem:
+`Erdos361.Statement.alon_zero_sum` = **Alon 1987** *(Subset Sums, J. Number Theory 27
+(1987) 196–205, Theorem 1.1)*, the paper's sole external input, which is not in Mathlib. It
+is stated verbatim (ε-form, `0 < |B| ≤ k`) in the trusted `Statement.lean` and is listed in
+`comparator/erdos361_irregular.json`'s `permitted_axioms`. See `VERIFICATION.md` §4.
+
+## Verify it yourself
+
+```bash
+cd erdos361
+lake exe cache get
+lake build                 # the development (Erdos361)
+lake build Challenge Solution
+```
+
+Comparator (Linux-only; runs on CI):
+```bash
+lake env /path/to/comparator comparator/erdos361_cge1.json        # expect: Your solution is okay!
+lake env /path/to/comparator comparator/erdos361_irregular.json   # expect: Your solution is okay!
+```
+
+## Layout
+
+```
+erdos361/
+├── Erdos361/
+│   ├── Statement.lean   trusted defs (Avoids/Avoiders/F/Fc) + the Alon axiom
+│   └── Core.lean        the development: modular dichotomy, avoider bounds, both theorems
+├── Erdos361.lean        build root (imports Core)
+├── Challenge.lean       the two statements, `sorry`  (audit surface)
+├── Solution.lean        the two statements, proved by term assignment + #print axioms
+├── comparator/          all.json + one config per result
+├── paper/erdos361.pdf   the manuscript (Theorem 4), sha256-pinned in VERIFICATION.md
+├── formalization.yaml   mathlib-initiative metadata + alignment
+└── VERIFICATION.md      the honest ledger
+```

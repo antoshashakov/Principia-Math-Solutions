@@ -1,0 +1,63 @@
+name: erdos361-build
+
+# Scoped to the erdos361 solution; other solutions get their own workflow.
+on:
+  push:
+    branches: [main]
+    paths: ['erdos361/**', '.github/workflows/erdos361-*.yml']
+  pull_request:
+    paths: ['erdos361/**', '.github/workflows/erdos361-*.yml']
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: erdos361
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Cache Mathlib oleans
+        run: lake exe cache get
+
+      - name: Build
+        run: lake build
+
+      - name: Build Challenge and Solution
+        run: lake build Challenge Solution
+
+      # No unproved placeholders, no native_decide anywhere; and the ONLY axiom in the whole
+      # solution is the single trusted, cited external theorem `alon_zero_sum` (Alon 1987,
+      # Thm 1.1) declared in Erdos361/Statement.lean. Challenge.lean's two `sorry`s are the
+      # Comparator fixture and are checked separately below.
+      - name: No sorry / native_decide; exactly one intended Alon axiom
+        run: |
+          if grep -rn "sorry\|native_decide" Erdos361/*.lean Solution.lean; then
+            echo "::error::unproved placeholder or native_decide found"; exit 1
+          fi
+          total=$(grep -rh "^axiom " Erdos361/*.lean Solution.lean Challenge.lean | wc -l)
+          echo "axiom declarations found: $total"
+          grep -rn "^axiom " Erdos361/*.lean Solution.lean Challenge.lean || true
+          if [ "$total" -ne 1 ]; then
+            echo "::error::expected exactly one axiom (alon_zero_sum), found $total"; exit 1
+          fi
+          if ! grep -q "^axiom alon_zero_sum" Erdos361/Statement.lean; then
+            echo "::error::the one axiom must be alon_zero_sum in Statement.lean"; exit 1
+          fi
+          echo "clean (one trusted axiom: alon_zero_sum = Alon 1987 Thm 1.1)"
+
+      # Challenge.lean must have exactly two intentional sorries — one per main result.
+      - name: Challenge.lean has exactly two intentional sorries
+        run: |
+          n=$(grep -c "^  sorry$" Challenge.lean)
+          echo "found $n"
+          test "$n" -eq 2

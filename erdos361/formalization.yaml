@@ -1,0 +1,100 @@
+# Schema: https://github.com/mathlib-initiative/formalization.yaml
+version: "v0.3"
+
+project:
+  name: "Erdős Problem 361 — irregularity of forbidden-subset-sum extremal sets, in Lean 4"
+  authors:
+    - "Principia Math harness (autonomous multi-model research harness)"
+  license: "Apache-2.0"
+
+sources:
+  - title: "Divisor-Sensitive Bounds for Forbidden Subset Sums"
+    authors:
+      - "Principia Math harness (ChatGPT / GPT-5 collaboration, refereed by Claude)"
+    id: "paper/erdos361.pdf"
+    type: "manuscript"
+    license: "Apache-2.0"
+    author_contacted: "n/a"
+    note: >-
+      The exact manuscript the Lean is checked against is committed at `paper/erdos361.pdf`
+      and pinned by sha256 in `VERIFICATION.md`. Only Theorem 4 (irregularity) and the c ≥ 1
+      exact formula are formalized here; the paper's general divisor-sensitive Theorem 1 and
+      Corollaries 2–3 are not (see VERIFICATION.md §7). The problem statement of record is
+      https://www.erdosproblems.com/361.
+  - title: "Subset Sums"
+    authors:
+      - "Noga Alon"
+    id: "Alon, J. Number Theory 27 (1987) 196–205, Theorem 1.1"
+    type: "literature"
+    license: "n/a"
+    author_contacted: "n/a"
+    note: >-
+      The bounded zero-sum theorem in ℤ/Nℤ that is the sole external input to the
+      irregularity proof. It is NOT in Mathlib and is NOT re-proved here; it is assumed as
+      the axiom `Erdos361.Statement.alon_zero_sum` (stated verbatim, ε-form 0 < |B| ≤ k) and
+      declared in the trusted statement layer. This is the one literature dependency.
+
+status:
+  scope: >-
+    Lean 4 + Mathlib formalization of the Erdős–Graham irregularity question for
+    f_c(n) = max{|A| : A ⊆ [1,⌊cn⌋], n ∉ Σ(A)}: f_c(n)/n converges iff c ≥ 1. The c ≥ 1
+    exact formula (F M n = M − ⌈n/2⌉) is proved axiom-free; Theorem 4 (for every c ∈ (0,1),
+    f_c(n)/n does not converge) is proved conditional on ONE cited literature result,
+    Alon 1987 Theorem 1.1, assumed as the axiom `alon_zero_sum`. Thresholds are existential
+    (∃ E₀, ∃ N₀), matching the manuscript, which makes no effectivity claim. The sorry counts
+    below exclude `Challenge.lean` (the statement-only Comparator fixture; 2 intentional
+    placeholders).
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms:
+    - "propext"
+    - "Classical.choice"
+    - "Quot.sound"
+    - "Erdos361.Statement.alon_zero_sum"   # Alon 1987 Thm 1.1; used only by erdos361_irregular
+  main_results:
+    - declaration: "Erdos361.erdos361_cge1"
+      file: "Erdos361/Core.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator/erdos361_cge1.json"
+      literature_dependencies: []
+    - declaration: "Erdos361.erdos361_irregular"
+      file: "Erdos361/Core.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound", "Erdos361.Statement.alon_zero_sum"]
+      comparator_config: "comparator/erdos361_irregular.json"
+      literature_dependencies:
+        - "Alon 1987, Subset Sums, J. Number Theory 27, Theorem 1.1 (bounded zero-sum in ℤ/Nℤ)"
+
+automation:
+  proof_assistant: "Lean 4"
+  mathlib: "rev fabf563a7c95a166b8d7b6efca11c8b4dc9d911f (tag v4.31.0)"
+
+fidelity:
+  divergences:
+    - "erdos361_irregular is conditional on the axiom alon_zero_sum (Alon 1987 Thm 1.1), a
+       standard published theorem not in Mathlib. erdos361_cge1 is unconditional."
+    - "The paper's general divisor-sensitive Theorem 1 / Cor 2–3 are not formalized."
+    - "Thresholds are existential, not explicit (no effectivity claim in the paper)."
+
+review:
+  comparator: >-
+    Runs on CI (.github/workflows/erdos361-comparator.yml), Linux-only, in a landrun/Landlock
+    sandbox: comparator/erdos361_cge1.json (axiom-free) and comparator/erdos361_irregular.json
+    (permits alon_zero_sum). Pending on the first push.
+
+alignment:
+  statements:
+    - paper_result: "c ≥ 1 exact formula (regular range)"
+      lean_name: "Erdos361.Statement.erdos361_cge1"
+      module: "Challenge.lean / Solution.lean (proved from Erdos361/Core.lean)"
+      status: "proved, axiom-free"
+    - paper_result: "Theorem 4 (irregularity for every c ∈ (0,1))"
+      lean_name: "Erdos361.Statement.erdos361_irregular"
+      module: "Challenge.lean / Solution.lean (proved from Erdos361/Core.lean)"
+      status: "proved, conditional on alon_zero_sum (Alon 1987 Thm 1.1)"
+
+acknowledgements: >-
+  Modular-dichotomy and divisor-sensitive arguments from the ChatGPT/GPT-5 collaboration
+  (including the |B| ≤ k / floor-constant endpoint correction, verified against the Alon
+  source); Lean formalization by the Claude side of the harness.

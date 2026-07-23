@@ -1,0 +1,132 @@
+name: erdos361-comparator
+
+# Runs Comparator (https://github.com/leanprover/comparator) to verify mechanically that
+# Solution.lean proves exactly the statements in Challenge.lean, using no axioms beyond
+# propext, Quot.sound, Classical.choice.
+#
+# This job deliberately does NOT pre-build Challenge or Solution. Comparator's threat
+# model assumes the solution has not been compiled beforehand; building it here would
+# void that assumption. It is a separate workflow from `build` for the same reason.
+
+on:
+  push:
+    branches: [main]
+    paths: ['erdos361/**', '.github/workflows/erdos361-*.yml']
+  pull_request:
+    paths: ['erdos361/**', '.github/workflows/erdos361-*.yml']
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: erdos361
+
+env:
+  # Resolved 2026-07-20; HEAD of each repo at that date.
+  COMPARATOR_SHA: c3903e1ed0148a32cd39510707c632dc4d265514
+  # lean4export must match the PROJECT's Lean version (erdos361 is on v4.31.0).
+  # af5aa64 is toolchain v4.33.0-rc1 and fails with "incompatible header".
+  LEAN4EXPORT_SHA: 8554815c2dc6b7abe99ec1f08849c9759ba77947
+  LANDRUN_SHA: 5ed4a3db3a4ad930d577215c6b9abaa19df7f99f
+
+jobs:
+  comparator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # ubuntu-latest ships ~25-30 GB of preinstalled tooling this job never uses, and the
+      # runner image's free space varies between runs. Unpacking the Mathlib olean cache
+      # needs several GB; run 29776973373 died mid-unpack with
+      #   /home/runner/.cache/mathlib/*.ltar: No space left on device (os error 28)
+      # even though an earlier, identical run had succeeded. Reclaiming the unused tooling
+      # up front removes that coin flip.
+      - name: Free disk space
+        run: |
+          echo "before:"; df -h / | tail -1
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc                       /usr/local/.ghcup /opt/hostedtoolcache/CodeQL                       /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          echo "after:"; df -h / | tail -1
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Build landrun
+        run: |
+          git clone https://github.com/Zouuup/landrun.git /tmp/landrun
+          cd /tmp/landrun && git checkout "$LANDRUN_SHA"
+          go build -o /usr/local/bin/landrun ./cmd/landrun
+          landrun --help >/dev/null
+
+      - name: Probe that landrun actually denies out-of-policy writes
+        run: |
+          # If the sandbox silently no-ops, a Comparator pass means nothing.
+          set +e
+          landrun --rox / -- /bin/sh -c 'echo x > /tmp/_landrun_probe' 2>/dev/null
+          rc=$?
+          set -e
+          if [ -f /tmp/_landrun_probe ]; then
+            echo "::error::landrun did NOT deny an out-of-policy write; refusing to trust Comparator"
+            exit 1
+          fi
+          echo "landrun denies out-of-policy writes (rc=$rc)"
+
+      - name: Build lean4export
+        run: |
+          git clone https://github.com/leanprover/lean4export.git /tmp/lean4export
+          cd /tmp/lean4export && git checkout "$LEAN4EXPORT_SHA"
+          lake build
+          echo "COMPARATOR_LEAN4EXPORT=/tmp/lean4export/.lake/build/bin/lean4export" >> "$GITHUB_ENV"
+          # Comparator invokes lean4export *by name* inside the landrun sandbox, so it must
+          # be on PATH. COMPARATOR_LEAN4EXPORT alone is NOT sufficient at this comparator
+          # revision — verified: with the env var set but the binary off PATH, landrun still
+          # fails with `Failed to find binary: exec: "lean4export" ... not found in $PATH`.
+          echo "/tmp/lean4export/.lake/build/bin" >> "$GITHUB_PATH"
+
+      - name: Build comparator
+        run: |
+          git clone https://github.com/leanprover/comparator.git /tmp/comparator
+          cd /tmp/comparator && git checkout "$COMPARATOR_SHA"
+          lake build
+
+      - name: Fetch Mathlib oleans
+        run: lake exe cache get
+
+      # NOTE: `--pipe --wait --collect`, NOT the `--pty` given in Comparator's README.
+      # `--pty` allocates a terminal and waits on it, which never resolves on a CI runner
+      # — it hangs indefinitely after printing "Press ^] three times ... to disconnect
+      # TTY". `--pipe` is the non-interactive counterpart: it wires stdout/stderr through
+      # and `--wait` propagates the unit's exit status. The `RestrictAddressFamilies`
+      # property is the part that actually matters for safety and is kept verbatim; it
+      # guards a landrun vulnerability fixed only in Linux 7.1.
+      - name: Run comparator: c>=1 (axiom-free) then irregularity (Alon-conditional)
+        timeout-minutes: 120
+        run: |
+          set -o pipefail
+          run_cfg() {
+            echo "=== comparator on $1 ==="
+            systemd-run --property=RestrictAddressFamilies=~AF_UNIX --user --pipe --wait --collect -E PATH="$PATH" --working-directory "$(pwd)" -- bash -c "lake env /tmp/comparator/.lake/build/bin/comparator $1" 2>&1 | tee -a comparator.log
+          }
+          # erdos361_cge1: must pass with NO extra axioms (permitted = propext/Quot.sound/Classical.choice).
+          run_cfg comparator/erdos361_cge1.json
+          # erdos361_irregular: permitted axioms additionally include the cited Alon 1987 theorem.
+          run_cfg comparator/erdos361_irregular.json
+
+      - name: Require the success string
+        run: |
+          n=$(grep -c "Your solution is okay!" comparator.log)
+          echo "comparator 'okay' count: $n (expected 2 — cge1 axiom-free + irregular Alon-conditional)"
+          test "$n" -eq 2
+          echo "comparator accepted both configs"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: comparator-log
+          path: erdos361/comparator.log

@@ -10,7 +10,7 @@ output recorded, or an explicit note that it was **not** run (and where it is ru
   toolchain/Mathlib rev via a warm Lean REPL (see §4). `lake build` of this split project and
   the Comparator run are **Linux/CI operations** (§2, §6) — see the noted exceptions.
 - **Paper bytes (sha256):**
-  `5d332f6ffaa26a9129239ef4c4a1fc2cbdb1e89c1c9aacdf2599f65c48687ceb  paper/erdos361.pdf`
+  `e04454259412ac952f9f063c649d438aac971d7e3ff8ca4b07bab522dfc0202f  paper/erdos361.pdf`
 
 ## §1 Scope
 

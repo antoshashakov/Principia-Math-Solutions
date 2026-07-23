@@ -1,0 +1,57 @@
+name: Build Erdős 361 paper
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'erdos361/paper/erdos361.tex'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-paper:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y latexmk texlive-latex-base texlive-latex-recommended texlive-latex-extra
+
+      - name: Compile paper
+        working-directory: erdos361/paper
+        run: latexmk -pdf -interaction=nonstopmode -halt-on-error erdos361.tex
+
+      - name: Update recorded PDF hash
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import re
+
+          pdf = Path('erdos361/paper/erdos361.pdf')
+          digest = hashlib.sha256(pdf.read_bytes()).hexdigest()
+          ledger = Path('erdos361/VERIFICATION.md')
+          text = ledger.read_text(encoding='utf-8')
+          text, count = re.subn(
+              r'`[0-9a-f]{64}\s+paper/erdos361\.pdf`',
+              f'`{digest}  paper/erdos361.pdf`',
+              text,
+          )
+          if count != 1:
+              raise SystemExit(f'expected one paper hash entry, found {count}')
+          ledger.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Commit generated PDF
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add erdos361/paper/erdos361.pdf erdos361/VERIFICATION.md
+          if ! git diff --cached --quiet; then
+            git commit -m 'erdos361: rebuild paper'
+            git push
+          fi

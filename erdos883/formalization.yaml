@@ -1,0 +1,104 @@
+# Schema: https://github.com/mathlib-initiative/formalization.yaml
+version: "v0.3"
+
+project:
+  name: "Erdős Problem 883 — odd cycles in the coprime graph at the sharp threshold, in Lean 4"
+  authors:
+    - "Principia Math harness (autonomous multi-model research harness)"
+  license: "Apache-2.0"
+
+sources:
+  - title: "Odd Cycles in the Coprime Graph at the Sharp Threshold"
+    authors:
+      - "Principia Math harness (ChatGPT / GPT-5 collaboration)"
+    id: "paper/erdos883.pdf"
+    type: "manuscript"
+    license: "Apache-2.0"
+    author_contacted: "n/a"
+    note: >-
+      The manuscript claims the sharp c = 1/6 resolution of the first question of
+      Erdős #883 (all odd cycles up to 2(⌊n/3⌋−⌊n/6⌋)+1 above the Erdős–Sárközy
+      threshold). Committed at `paper/erdos883.pdf`, sha256-pinned in
+      `VERIFICATION.md`. IMPORTANT: only the STATEMENT and the SHARPNESS half
+      (Proposition 1.2) are formalized here; the forcing direction (the actual
+      solve) is NOT formalized and the manuscript has NOT been independently
+      refereed end-to-end — see `VERIFICATION.md` §4–5 for exactly what has and
+      has not been checked. The problem statement of record is
+      https://www.erdosproblems.com/883.
+  - title: "On cycles in the coprime graph of integers"
+    authors:
+      - "Paul Erdős"
+      - "Gábor N. Sárközy"
+    id: "Electron. J. Combin. 4 (1997), no. 2, R8"
+    type: "literature"
+    license: "n/a"
+    author_contacted: "n/a"
+    note: >-
+      The source of the problem and of the c > 0 qualitative theorem. Not used as
+      an axiom: nothing from the literature is assumed in this repository.
+
+status:
+  scope: >-
+    Lean 4 + Mathlib formalization of the STATEMENT of the sharp forcing
+    conjecture for Erdős #883 (first question), plus complete axiom-free proofs
+    of both sharpness assertions: (a) the threshold T(n) = ⌊n/2⌋+⌊n/3⌋−⌊n/6⌋
+    cannot be lowered — the multiples of 2 or 3 give an |A| = T(n) whose coprime
+    graph is bipartite, hence odd-cycle-free; (b) the ceiling 2q+1,
+    q = ⌊n/3⌋−⌊n/6⌋, is exact — all evens plus the q+1 smallest odds give an
+    |A| = T(n)+1 whose coprime graph contains C_{2t+1} for every 1 ≤ t ≤ q and
+    no longer odd cycle. The forcing direction `erdos883Forcing` is stated as a
+    definition and deliberately NOT claimed.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms:
+    - "propext"
+    - "Classical.choice"
+    - "Quot.sound"
+  main_results:
+    - declaration: "Erdos883.erdos883_threshold_sharp"
+      file: "Erdos883/Core.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator/erdos883_threshold_sharp.json"
+      literature_dependencies: []
+    - declaration: "Erdos883.erdos883_ceiling_sharp"
+      file: "Erdos883/Core.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator/erdos883_ceiling_sharp.json"
+      literature_dependencies: []
+
+automation:
+  proof_assistant: "Lean 4"
+  mathlib: "rev fabf563a7c95a166b8d7b6efca11c8b4dc9d911f (tag v4.31.0)"
+
+fidelity:
+  divergences:
+    - "The forcing direction (Theorem 1.1 of the manuscript, the claimed solve of
+       the problem) is NOT formalized. `Erdos883.Statement.erdos883Forcing` states
+       it; no declaration proves it."
+    - "The manuscript's two numerical certificates (Lemma 4.1: E_S, C'_S, the
+       hinge inequality; Lemma 5.2: the CDF certificate) were independently
+       recomputed in exact rational arithmetic (`referee/`), reproducing the
+       manuscript's values. Its analytic prose (Lemmas 3.1, 3.2, 6.1, the n < n₀
+       regime) has NOT been independently verified."
+
+alignment:
+  statements:
+    - paper_result: "Theorem 1.1, sharpness of T(n) (Proposition 1.2, first half)"
+      lean_name: "Erdos883.Statement.erdos883_threshold_sharp"
+      module: "Challenge.lean / Solution.lean (proved from Erdos883/Core.lean)"
+      status: "proved, axiom-free"
+    - paper_result: "Theorem 1.1, sharpness of L(n) = 2q+1 (Proposition 1.2, second half)"
+      lean_name: "Erdos883.Statement.erdos883_ceiling_sharp"
+      module: "Challenge.lean / Solution.lean (proved from Erdos883/Core.lean)"
+      status: "proved, axiom-free"
+    - paper_result: "Theorem 1.1, forcing direction (the claimed solve)"
+      lean_name: "Erdos883.Statement.erdos883Forcing (statement only)"
+      module: "Erdos883/Statement.lean"
+      status: "NOT formalized; open formalization target"
+
+acknowledgements: >-
+  Manuscript produced by the ChatGPT/GPT-5 side of the harness from the
+  certificate-search campaign; Lean formalization of the statement and sharpness,
+  and independent recomputation of the numerical certificates, by the Claude side.

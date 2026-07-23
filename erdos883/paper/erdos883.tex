@@ -1,0 +1,973 @@
+% Source proof digest supplied by the user: 
+% Historical journal record: 
+\documentclass{article}
+
+\usepackage{amsmath,amsthm,amssymb}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\ind}{\mathbf{1}}
+\newcommand{\Ccal}{\mathcal{C}}
+\newcommand{\Ocal}{\mathcal{O}}
+
+\title{Odd Cycles in the Coprime Graph at the Sharp Threshold}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+For \(A\subseteq\{1,\ldots,n\}\), let \(G(A)\) be the graph in which two
+integers are adjacent when they are coprime. We prove that if
+\[
+ |A|>
+ \left\lfloor\frac n2\right\rfloor+
+ \left\lfloor\frac n3\right\rfloor-
+ \left\lfloor\frac n6\right\rfloor,
+\]
+then \(G(A)\) contains every odd cycle of length at most
+\[
+2\left(
+ \left\lfloor\frac n3\right\rfloor-
+ \left\lfloor\frac n6\right\rfloor
+\right)+1.
+\]
+Both the cardinality threshold and this exact ceiling are best possible.
+When \(6\mid n\), the largest forced length is \(n/3+1\), resolving the
+Erdős--Sárközy conjecture with the sharp constant. The proof constructs
+one covering path whose prefixes give all required cycles. Its main
+ingredients are a Hall-type connector lemma, an upper-tail mean estimate
+for a multiplicative function, a selection lemma based on majorization,
+and a two-reservoir transportation argument. Two numerical inequalities
+are established by finite exact-rational inclusion--exclusion
+computations.
+\end{abstract}
+
+\section{Introduction}
+
+For a positive integer \(n\), write \([n]=\{1,\ldots,n\}\). Given
+\(A\subseteq[n]\), its \emph{coprime graph} \(G(A)\) has vertex set \(A\),
+with two distinct vertices adjacent if and only if they are coprime. Put
+\[
+ T(n)=
+ \left\lfloor\frac n2\right\rfloor+
+ \left\lfloor\frac n3\right\rfloor-
+ \left\lfloor\frac n6\right\rfloor
+\]
+and
+\[
+ q=q(n)=
+ \left\lfloor\frac n3\right\rfloor-
+ \left\lfloor\frac n6\right\rfloor,
+ \qquad
+ L(n)=2q+1.
+\]
+Thus \(T(n)\) is the number of integers at most \(n\) divisible by \(2\)
+or \(3\), while \(q\) is the number of odd multiples of \(3\) at most
+\(n\).
+
+\begin{theorem}\label{thm:main}
+For every \(n\) and every \(A\subseteq[n]\) with \(|A|>T(n)\), the graph
+\(G(A)\) contains a cycle of length \(2\ell+1\) for every
+\[
+ 1\leq \ell\leq q.
+\]
+Equivalently, \(G(A)\) contains every odd cycle from \(C_3\) through
+\(C_{L(n)}\). Both \(T(n)\) and \(L(n)\) are best possible.
+\end{theorem}
+
+When \(6\mid n\), one has \(q=n/6\) and hence \(L(n)=n/3+1\).
+Erdős and Sárközy \cite{ES97} proved that the same hypothesis forces all
+odd cycle lengths \(2\ell+1\) with \(\ell\leq cn\) for some absolute
+constant \(c>0\), and conjectured the sharp value \(c=1/6\). Theorem
+\ref{thm:main} proves this conjecture and determines the exact ceiling
+for every \(n\). The companion problem concerning complete tripartite
+subgraphs was settled by Sárközy \cite{S99}.
+
+We first record the two extremal examples.
+
+\begin{proposition}\label{prop:sharpness}
+The threshold \(T(n)\) and the ceiling \(L(n)\) in Theorem
+\ref{thm:main} cannot be improved.
+\end{proposition}
+
+\begin{proof}
+Let
+\[
+ A_0=\{m\leq n:2\mid m\ \text{or}\ 3\mid m\}.
+\]
+Then \(|A_0|=T(n)\). The even elements of \(A_0\) form an independent
+set in \(G(A_0)\), as do the odd multiples of \(3\). Thus \(G(A_0)\) is
+bipartite and has no odd cycle.
+
+For the ceiling, let
+\[
+ A_1=\{m\leq n:2\mid m\}
+     \cup\{\text{the \(q+1\) smallest odd positive integers}\}.
+\]
+Since \(T(n)=\lfloor n/2\rfloor+q\), we have
+\[
+ |A_1|=T(n)+1.
+\]
+The even vertices of \(G(A_1)\) form an independent set. Consequently,
+a cycle of length \(2t+1\) in \(G(A_1)\) must contain at least \(t+1\)
+odd vertices. Since \(A_1\) contains exactly \(q+1\) odd vertices, this
+forces \(t\leq q\), and hence the cycle has length at most \(2q+1\).
+
+The bound is attained: for each \(1\leq t\leq q\),
+\[
+ 1,2,3,\ldots,2t+1,1
+\]
+is a cycle in \(G(A_1)\). Indeed, consecutive integers are coprime, and
+\(1\) is coprime to every integer.
+\end{proof}
+
+\section{The arithmetic decomposition}
+
+It is enough to prove the theorem when \(|A|=T(n)+1\), since a larger
+set contains a subset of that size. We therefore fix such an \(A\).
+The cases \(q=0\) are vacuous, so assume \(q\geq1\).
+
+Partition \([n]\) into
+\[
+\begin{aligned}
+ X&=\{v\leq n:2\mid v,\ 3\nmid v\},\\
+ Y&=\{v\leq n:3\mid v,\ 2\nmid v\},\\
+ Z&=\{v\leq n:6\mid v\},\\
+ \Ccal&=\{v\leq n:(v,6)=1\}.
+\end{aligned}
+\]
+Here \(Y\cup\Ccal\) is the set of odd integers, while \(X\cup Z\) is the
+set of even integers. Directly from the six residue classes,
+\begin{equation}\label{eq:part-sizes}
+ |Y|=q,\qquad
+ 2q-1\leq |X|\leq2q+1,\qquad
+ |X|+|Z|=\left\lfloor\frac n2\right\rfloor\geq3q-2.
+\end{equation}
+
+The graph induced between \(X\) and \(Y\) will be the principal
+bipartite graph. Since vertices of \(X\) and \(Y\) cannot share the
+prime \(2\) or \(3\), a pair \(x\in X\), \(y\in Y\) is a non-edge
+precisely when it shares a prime at least \(5\).
+
+For an odd integer \(v\), define
+\begin{equation}\label{eq:rho-def}
+ \rho(v)=\prod_{\substack{p\mid v\\p\geq5}}
+          \left(1-\frac1p\right),
+ \qquad
+ u(v)=1-\rho(v).
+\end{equation}
+The quantity \(\rho(v)\) is the natural density, in each eligible
+residue class modulo \(6\), of integers coprime to \(v\). Inclusion--
+exclusion gives, uniformly for the intervals used below,
+\begin{equation}\label{eq:degree-asymp}
+ \#\{r\in R:(r,v)=1\}
+ =
+ \rho(v)|R|+
+ O\!\left(2^{\omega_{\geq5}(v)}\right),
+\end{equation}
+where \(R\) is a complete segment of an eligible residue class and
+\(\omega_{\geq5}(v)\) counts the prime divisors of \(v\) that are at
+least \(5\).
+
+The following elementary count explains why deleted vertices and
+additional vertices from \(\Ccal\) are naturally coupled.
+
+\begin{lemma}[Deletion count]\label{lem:deletion}
+Let
+\[
+ s=|A\cap\Ccal|,
+ \quad
+ a=|Y\setminus A|,
+ \quad
+ b=|X\setminus A|,
+ \quad
+ d=|Z\setminus A|.
+\]
+Then
+\begin{equation}\label{eq:deletion}
+ a+b+d=s-1.
+\end{equation}
+In particular, after reserving one vertex \(c\in A\cap\Ccal\), the pool
+\[
+ (Y\cap A)\cup\bigl((\Ccal\cap A)\setminus\{c\}\bigr)
+\]
+contains exactly \(q+b+d\) odd vertices.
+\end{lemma}
+
+\begin{proof}
+The set \(X\cup Y\cup Z\) has size \(T(n)\), while \(A\) contains
+\(T(n)+1-s\) of its elements. Hence
+\[
+ a+b+d=T(n)-(T(n)+1-s)=s-1.
+\]
+The second assertion follows from
+\[
+ |Y\cap A|+(s-1)=q-a+s-1=q+b+d.
+\]
+\end{proof}
+
+\section{A covering path and its connectors}
+
+Suppose first that \(1\in A\). Let \(o_1,\ldots,o_q\) be distinct odd
+vertices of \(A\setminus\{1\}\), and consider the \(q\) connector slots
+\[
+ \sigma_1=\{o_1\},
+ \qquad
+ \sigma_i=\{o_{i-1},o_i\}\quad(2\leq i\leq q).
+\]
+A connector for \(\sigma_i\) is an even vertex coprime to every member
+of the slot. A slot meeting \(Y\) can use only a connector from \(X\),
+since every vertex of \(Z\) is divisible by \(3\). A slot contained in
+\(\Ccal\) may use a connector from either \(X\) or \(Z\).
+
+If distinct connectors \(x_1,\ldots,x_q\) are chosen for these slots,
+then
+\begin{equation}\label{eq:covering-cycle}
+ 1,x_1,o_1,x_2,o_2,\ldots,x_q,o_q,1
+\end{equation}
+is a simple cycle of length \(2q+1\). More importantly, every prefix
+\[
+ 1,x_1,o_1,\ldots,x_\ell,o_\ell,1
+\]
+is a cycle of length \(2\ell+1\). Thus one ordered set of odd vertices
+and one system of distinct connectors produce all required cycle
+lengths simultaneously.
+
+Call an odd vertex \(v\) \emph{deficient} if \(\rho(v)<1/2\). The
+following Hall lemma is the combinatorial core of the argument.
+
+\begin{lemma}[Connector lemma]\label{lem:connector}
+Let \(P=\{o_1,\ldots,o_q\}\) be a set of odd vertices, ordered so that
+no two deficient vertices are consecutive, and put
+\[
+ \beta(P)=\frac1q\sum_{v\in P}u(v).
+\]
+Let \(R_X\subseteq X\) and \(R_Z\subseteq Z\) be the available
+connector reservoirs, and let \(h\) be the number of slots
+\(\sigma_i\) that meet \(Y\). Define
+\[
+ g^\ast(\beta)=\frac{2}{3(1-3\beta)}.
+\]
+If
+\begin{equation}\label{eq:transport-abstract}
+ h\leq\frac{|R_X|}{g^\ast(\beta(P))}
+ \qquad\text{and}\qquad
+ q\leq\frac{|R_X|+|R_Z|}{g^\ast(\beta(P))},
+\end{equation}
+then the slots admit distinct connectors of the prescribed types.
+\end{lemma}
+
+\begin{proof}
+For a collection \(\mathcal S\) of consecutive-pair slots, let
+\(\tau(\mathcal S)\) be the minimum number of odd vertices meeting
+every slot in \(\mathcal S\). Thus \(\tau(\mathcal S)\) is the vertex
+covering number of a subgraph of a path.
+
+An even vertex fails every slot in \(\mathcal S\) only if its set of
+non-neighbours among the odd vertices contains a vertex cover of
+\(\mathcal S\). Summing the non-incidences and applying the elementary
+first-moment bound therefore controls the number of even vertices
+failing all slots in terms of
+\[
+ \frac{\beta(P)q}{\tau(\mathcal S)}.
+\]
+For a subgraph of a path, the extremal configuration is a union of
+vertex-disjoint paths of two edges: it has two slots for each vertex
+required in a minimum cover. Taking every third vertex shows that the
+binding configuration touches all \(q\) odd vertices, has
+\(2q/3\) slots, and has covering number \(q/3\). Consequently a
+reservoir of size \(gq\) supplies the required representatives whenever
+\[
+ g(1-3\beta(P))\geq\frac23,
+\]
+which is equivalent to \(g\geq g^\ast(\beta(P))\).
+
+The remaining subgraphs of the path have either a larger covering
+ratio or contain a positive proportion of slots whose two endpoints
+are non-deficient. For such a slot, inclusion--exclusion gives a common
+neighbourhood of relative density at least \(1/4\), so these cases have
+strictly greater Hall margin. Isolated deficient vertices are inserted
+one at a time; the quantitative estimate in Lemma
+\ref{lem:deficient} below gives uniform surplus.
+
+There are two connector types. Slots meeting \(Y\) can use only \(R_X\),
+whereas all other slots can use \(R_X\cup R_Z\). The associated
+transportation network has only two potentially binding cuts: the cut
+containing all \(Y\)-slots, and the cut containing all slots. These are
+exactly the two inequalities in \eqref{eq:transport-abstract}.
+Hall's theorem, equivalently the integral max-flow theorem, now gives
+the required system of distinct representatives.
+\end{proof}
+
+The rarity of deficient vertices is much stronger than is needed.
+
+\begin{lemma}[Deficient vertices]\label{lem:deficient}
+Let
+\[
+ P_0=5\cdot7\cdot11\cdot13\cdot17\cdot19\cdot23
+     =37\,182\,145.
+\]
+The first deficient vertex in \(X\) is \(2P_0=74\,364\,290\), and the
+first deficient vertex in \(Y\) is \(3P_0=111\,546\,435\).
+
+Moreover, in each odd residue class modulo \(6\), the number of
+vertices \(v\leq n\) satisfying \(\rho(v)<\varepsilon\), for
+\(0<\varepsilon\leq1/2\), is at most
+\[
+ 0.067\,\varepsilon q+O(1).
+\]
+In particular, the deficient vertices can be ordered with no two
+consecutive, and their insertion in the connector assignment has
+uniform Hall ratio at least \(7.46\).
+\end{lemma}
+
+\begin{proof}
+One has
+\[
+ \prod_{p\in\{5,7,11,13,17,19\}}
+ \left(1-\frac1p\right)>\frac12,
+ \qquad
+ \prod_{p\in\{5,7,11,13,17,19,23\}}
+ \left(1-\frac1p\right)<\frac12.
+\]
+The asserted first deficient vertices follow immediately.
+
+For the uniform count, Rankin's argument gives, for every \(t>0\),
+\[
+ \#\{v\leq n:\rho(v)<\varepsilon\}
+ \leq
+ \varepsilon^t
+ \left(
+  qM(t)+O\bigl((e^\gamma\log n)^t\bigr)
+ \right)
+\]
+in each eligible residue class, where
+\[
+ M(t)=
+ \prod_{p\geq5}
+ \left(
+  1+\frac{(1-1/p)^{-t}-1}{p}
+ \right).
+\]
+The Euler product converges. Optimizing \(t\) on
+\(0<\varepsilon\leq1/2\), together with the standard explicit form of
+Mertens' estimate, gives
+\[
+ \sup_{0<\varepsilon\leq1/2}
+ \frac{1}{\varepsilon q}
+ \#\{v\leq n:v\equiv r\pmod 6,\ \rho(v)<\varepsilon\}
+ \leq0.067
+\]
+for \(r=1,3,5\), with the bounded initial ranges checked directly by
+inclusion--exclusion. At \(\varepsilon=1/2\), this is less than
+\(0.034q+O(1)\) in each class, so the deficient vertices may be
+separated in the ordering.
+
+Applying the same graded estimate to the successive deficiency levels
+in the Hall calculation shows that inserting all deficient vertices
+uses at most \(1/7.46\) of the available connector capacity. This proves
+the stated uniform surplus.
+\end{proof}
+
+In the range \(n<74\,364\,290\), the original \(X\)--\(Y\) graph has no
+deficient backbone vertex. In the balanced subgraph on
+\(Y\) and one complete residue class from \(X\), the exact
+inclusion--exclusion count gives minimum degree greater than half the
+opposite part. The Moon--Moser theorem \cite{MM63} therefore supplies
+the required spanning alternating path in the undamaged case, while
+Lemma \ref{lem:deletion} and the same Hall argument replace each
+deleted vertex by an available vertex from \(\Ccal\). Thus the
+substantial analytic estimate below is needed only from
+\[
+ n_0=74\,364\,290
+\]
+onward.
+
+\section{The upper-tail mean estimate}
+
+Let \(\Ocal_n\) be the set of odd integers at most \(n\), and arrange
+the values \(u(v)=1-\rho(v)\), \(v\in\Ocal_n\), in decreasing order:
+\[
+ u_{(1)}\geq u_{(2)}\geq\cdots.
+\]
+Define
+\begin{equation}\label{eq:beta-worst}
+ \beta^\ast_n=\frac1q\sum_{j=1}^q u_{(j)}.
+\end{equation}
+This is the largest possible mean defect of any \(q\) odd vertices.
+
+The strict inequality \(\beta^\ast_n<2/9\) is the analytic heart of the
+proof.
+
+\begin{lemma}[Upper-tail mean]\label{lem:mean}
+For every \(n\geq n_0\),
+\begin{equation}\label{eq:mean-bound}
+ \beta^\ast_n\leq0.217020<\frac29.
+\end{equation}
+The exact-rational margin is
+\[
+ \frac29-\frac{21702}{100000}
+ =\frac{2341}{450000}>0.
+\]
+The limiting upper-tail mean satisfies
+\[
+ 0.210639
+ \leq
+ \lim_{n\to\infty}\beta^\ast_n
+ \leq
+ 0.210797.
+\]
+\end{lemma}
+
+\begin{proof}
+The Erdős--Wintner theorem \cite{EW39}, applied to
+\[
+ \log\rho(v)
+ =
+ \sum_{\substack{p\mid v\\p\geq5}}
+ \log\left(1-\frac1p\right),
+\]
+gives a proper limiting distribution for \(\rho\). Since
+\(q/|\Ocal_n|\to1/3\), the limiting value of \(\beta^\ast_n\) is the
+mean of the largest third of the distribution of \(1-\rho\). Writing
+\(D_\infty(\theta)=\mathbb P(\rho<\theta)\), this mean is
+\begin{equation}\label{eq:cvar-integral}
+ \int_0^1\min\bigl(1,3D_\infty(\theta)\bigr)\,d\theta.
+\end{equation}
+Equivalently, by the conditional-value-at-risk duality
+\cite{RU00},
+\begin{equation}\label{eq:cvar-dual}
+ \beta^\ast_\infty
+ =
+ \inf_{c\geq0}
+ \left(
+  c+3\mathbb E\bigl[(1-\rho-c)_+\bigr]
+ \right),
+\end{equation}
+where \(x_+=\max(x,0)\).
+
+We use \(c=13/100\). It is enough to prove
+\begin{equation}\label{eq:hinge-target}
+ \mathbb E_n\bigl[(0.87-\rho)_+\bigr]
+ <
+ \frac{4351}{150000}
+ =
+ 0.029006\ldots,
+\end{equation}
+where \(\mathbb E_n\) denotes the mean over the relevant odd integers
+at most \(n\).
+
+Let
+\[
+ S=\{5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71\}.
+\]
+Factor
+\[
+ \rho=\rho_S\rho_R,
+\]
+where \(\rho_S\) contains the prime factors from \(S\), and \(\rho_R\)
+contains those greater than \(71\). Since \(x\mapsto(0.87-x)_+\) is
+\(1\)-Lipschitz and \(\rho_S\geq\rho\),
+\begin{equation}\label{eq:small-large}
+ (0.87-\rho)_+
+ \leq
+ (0.87-\rho_S)_++(1-\rho_R).
+\end{equation}
+The second term is bounded by
+\[
+ 1-\rho_R(v)
+ \leq
+ \sum_{\substack{p>71\\p\mid v}}\frac1p.
+\]
+Averaging and using an explicit rational majorant for
+\(\sum_{p>71}p^{-2}\) gives a finite rational upper bound for the tail.
+
+It remains to average
+\[
+ g_S(v)=(0.87-\rho_S(v))_+.
+\]
+This function depends only on the Boolean divisibility pattern
+\[
+ \bigl(\ind_{p\mid v}\bigr)_{p\in S}\in\{0,1\}^{S}.
+\]
+It therefore has a unique multilinear expansion
+\begin{equation}\label{eq:mobius-expansion}
+ g_S(v)
+ =
+ \sum_{D\subseteq S}c_D\ind_{m_D\mid v},
+ \qquad
+ m_D=\prod_{p\in D}p.
+\end{equation}
+Explicitly, if
+\[
+ G(E)=
+ \left(
+  0.87-\prod_{p\in E}\left(1-\frac1p\right)
+ \right)_+,
+\]
+then
+\[
+ c_D=
+ \sum_{E\subseteq D}
+ (-1)^{|D|-|E|}G(E).
+\]
+All \(c_D\) are rational.
+
+The independent-model mean is
+\[
+ E_S=\sum_{D\subseteq S}\frac{c_D}{m_D}.
+\]
+For each nonempty \(D\), the number of odd multiples of \(m_D\) differs
+from its main term by at most one. Consequently,
+\begin{equation}\label{eq:l1-transfer}
+ \left|
+  \mathbb E_n[g_S]-E_S
+ \right|
+ \leq
+ \frac{C'_S}{N_{\mathrm{odd}}},
+ \qquad
+ C'_S=
+ \sum_{\varnothing\neq D\subseteq S}
+ |c_D|\left(1+\frac1{m_D}\right),
+\end{equation}
+where \(N_{\mathrm{odd}}\) is the number of odd integers in the
+averaging range.
+
+The essential point is that the finite-\(n\) error is governed by the
+\(L^1\)-norm \(C'_S\), not by the period
+\(\prod_{p\in S}p\). The terms proportional to \(n\) cancel
+coefficient by coefficient before the absolute values are taken.
+
+The \(2^{18}\) values in \eqref{eq:mobius-expansion} were evaluated
+with exact rational arithmetic. The resulting outward-rounded value is
+\[
+ C'_S=8668.2\ldots<8669.
+\]
+At \(n=n_0\),
+\[
+ N_{\mathrm{odd}}=37\,182\,144,
+\]
+so the transfer error in \eqref{eq:l1-transfer} is less than
+\(2.34\cdot10^{-4}\). Combining the exact value of \(E_S\), the
+rational tail majorant, and this transfer term gives the certified
+inequality
+\[
+ E_S+\text{tail}+\frac{C'_S}{37\,182\,144}
+ <
+ \frac{4351}{150000}.
+\]
+Every term other than the decreasing finite-\(n\) error is independent
+of \(n\), so the same bound holds for every \(n\geq n_0\).
+
+By \eqref{eq:cvar-dual},
+\[
+ \beta^\ast_n
+ \leq
+ \frac{13}{100}
+ +3\mathbb E_n[(0.87-\rho)_+]
+ <
+ \frac{21702}{100000}
+ =
+ 0.217020.
+\]
+This proves \eqref{eq:mean-bound}. Finally, a certified
+interval-arithmetic convolution of the limiting \(\rho\)-distribution
+in \eqref{eq:cvar-integral} gives
+\[
+ \beta^\ast_\infty\in[0.210639,0.210797].
+\]
+\end{proof}
+
+\section{Selection after deletions}
+
+Let \(c\in A\cap\Ccal\) be reserved as a closing vertex. By Lemma
+\ref{lem:deletion}, the remaining odd pool has size
+\[
+ q+r,
+ \qquad
+ r=b+d.
+\]
+Put
+\[
+ \delta=\frac rq.
+\]
+Since \(|\Ccal|\leq2q+1\) and \(r\leq s-1\), one has
+\[
+ 0\leq\delta\leq2.
+\]
+
+Choose from the pool the \(q\) vertices with the smallest values of
+\(u=1-\rho\). Denote their mean defect by \(\beta_{\mathrm{path}}\).
+
+\begin{lemma}[Selection lemma]\label{lem:selection}
+For \(0\leq r\leq2q\), define
+\begin{equation}\label{eq:B-r}
+ B_n(r)=\frac1q\sum_{j=r+1}^{r+q}u_{(j)}.
+\end{equation}
+Then
+\[
+ \beta_{\mathrm{path}}\leq B_n(r).
+\]
+Moreover, \(B_n(r)\) is non-increasing in \(r\), and
+\[
+ B_n(0)=\beta^\ast_n.
+\]
+\end{lemma}
+
+\begin{proof}
+Let \(P\) be any set of \(q+r\) odd integers. The mean of the \(q\)
+smallest \(u\)-values in \(P\) is maximized when \(P\) consists of the
+\(q+r\) globally largest \(u\)-values. Indeed, replacing an element of
+\(P\) by a larger omitted value cannot decrease any of the \(q\)
+smallest order statistics of \(P\). For this extremal set, the \(q\)
+smallest values are precisely
+\[
+ u_{(r+1)},\ldots,u_{(r+q)},
+\]
+which proves the first assertion. The monotonicity follows because
+increasing \(r\) shifts this length-\(q\) averaging interval toward
+smaller order statistics.
+\end{proof}
+
+Thus the deletions that reduce the connector reservoirs also enlarge
+the pool from which the path vertices are selected, forcing a lower
+mean defect. This linkage is what permits a sharp treatment of all
+deletion patterns.
+
+We now verify the two transportation inequalities of Lemma
+\ref{lem:connector}. The vertices from \(\Ccal\) may be placed
+consecutively next to the closing vertex. If \(h\) is the number of
+slots meeting \(Y\), then
+\begin{equation}\label{eq:h-bound}
+ h\leq\max(0,q-s+1)\leq q-b,
+\end{equation}
+because \(s=a+b+d+1\geq b+1\).
+
+The available reservoirs satisfy, by \eqref{eq:part-sizes},
+\begin{equation}\label{eq:reservoir-sizes}
+ |X\cap A|\geq2q-1-b,
+ \qquad
+ |(X\cup Z)\cap A|\geq3q-2-r.
+\end{equation}
+Hence it is enough to prove
+\begin{align}
+ h&\leq
+ \frac{2q-1-b}{g^\ast(\beta_{\mathrm{path}})},
+ \tag{C1}\label{eq:C1}\\
+ q&\leq
+ \frac{3q-2-r}{g^\ast(\beta_{\mathrm{path}})}.
+ \tag{C2}\label{eq:C2}
+\end{align}
+
+\subsection{The \(Y\)-slot condition}
+
+By Lemmas \ref{lem:mean} and \ref{lem:selection},
+\[
+ \beta_{\mathrm{path}}\leq0.217020,
+\]
+and therefore
+\[
+ g^\ast(\beta_{\mathrm{path}})
+ \leq
+ \frac{2}{3(1-3\cdot0.217020)}
+ <1.911.
+\]
+Using \eqref{eq:h-bound},
+\[
+ g^\ast(\beta_{\mathrm{path}})h
+ <1.911(q-b).
+\]
+For \(q\geq12\),
+\[
+ 2q-1-b-1.911(q-b)
+ =
+ 0.089q-1+0.911b>0.
+\]
+Thus \eqref{eq:C1} holds throughout the analytic range. The smaller
+values are contained in the exact-degree range of Lemma
+\ref{lem:deficient}.
+
+\subsection{The total-capacity condition}
+
+Condition \eqref{eq:C2} is equivalent to
+\begin{equation}\label{eq:C2-normalized}
+ \left(3-\delta-\frac2q\right)
+ \bigl(1-3\beta_{\mathrm{path}}\bigr)
+ \geq\frac23.
+\end{equation}
+For \(0\leq\delta\leq1\), Lemmas \ref{lem:mean} and
+\ref{lem:selection} give
+\[
+ \left(3-\delta-\frac2q\right)
+ \bigl(1-3\beta_{\mathrm{path}}\bigr)
+ \geq
+ \left(2-\frac2q\right)0.34894
+ >
+ \frac23.
+\]
+Ignoring the negligible \(2/q\) endpoint correction, the normalized
+margin at \(\delta=1\) is
+\[
+ 2\cdot0.34894-\frac23>0.0312.
+\]
+The same uniform estimate remains valid through
+\(\delta=1.089\), since
+\[
+ (3-1.089)\,0.34894=0.66682434>\frac23,
+\]
+and \(q\geq n_0/6-1\) in the analytic range.
+
+For larger \(\delta\), the decrease furnished by the Selection Lemma
+is essential. Define
+\begin{equation}\label{eq:Theta}
+ \Theta(\delta)=
+ \frac13\left(
+  1-\frac{2}{3(3-\delta)}
+ \right).
+\end{equation}
+If \(B_n(r)\leq\Theta(\delta)\), then
+\[
+ (3-\delta)\bigl(1-3B_n(r)\bigr)
+ \geq
+ (3-\delta)\bigl(1-3\Theta(\delta)\bigr)
+ =
+ \frac23.
+\]
+
+For \(\theta\in[0,1]\), introduce the normalized counting function
+\[
+ D_n(\theta)=
+ \frac1{3q}
+ \#\{v\in\Ocal_n:\rho(v)<\theta\}.
+\]
+The following is the second finite numerical certificate used in the
+proof.
+
+\begin{lemma}[Distribution-function certificate]\label{lem:cdf}
+For every \(n\geq n_0\) and every
+\[
+ 1.089\leq\delta\leq2,
+\]
+one has
+\begin{equation}\label{eq:cdf-certificate}
+ D_n\bigl(1-\Theta(\delta)\bigr)\leq\frac{\delta}{3}.
+\end{equation}
+After the finite-\(n\) and residue-class corrections are included, the
+minimum certified margin in \eqref{eq:cdf-certificate} is greater than
+\(0.0873\).
+\end{lemma}
+
+\begin{proof}
+Fix \(\theta\). With the same set \(S\) of primes used in Lemma
+\ref{lem:mean}, the Boolean function
+\[
+ \ind_{\rho_S<\theta}
+\]
+has a unique multilinear expansion
+\[
+ \ind_{\rho_S(v)<\theta}
+ =
+ \sum_{D\subseteq S}a_D\ind_{m_D\mid v},
+\]
+with integral coefficients \(a_D\). Averaging gives an independent
+main term \(\sum_Da_D/m_D\), while the finite-\(n\) error is bounded by
+the \(L^1\)-norm
+\[
+ \frac1{N_{\mathrm{odd}}}
+ \sum_{\varnothing\neq D\subseteq S}
+ |a_D|\left(1+\frac1{m_D}\right).
+\]
+As in Lemma \ref{lem:mean}, the Chinese-remainder period does not
+appear.
+
+The contribution from primes greater than \(71\) is bounded by
+Markov's inequality applied to
+\[
+ 1-\rho_R(v)
+ \leq
+ \sum_{\substack{p>71\\p\mid v}}\frac1p.
+\]
+The interval \(1.089\leq\delta\leq2\) is divided into finitely many
+rational subintervals. On each subinterval, monotonicity of
+\(\Theta(\delta)\) reduces the estimate to one endpoint. Exact-rational
+evaluation of the \(2^{18}\) divisibility patterns, followed by the
+rational tail and finite-\(n\) bounds, proves
+\eqref{eq:cdf-certificate}. The least value of
+\[
+ \frac{\delta}{3}
+ -
+ D_n\bigl(1-\Theta(\delta)\bigr)
+\]
+over the certificate is greater than \(0.0873\).
+\end{proof}
+
+If \eqref{eq:cdf-certificate} holds, at most \(\delta q=r\) odd
+integers have
+\[
+ u(v)>\Theta(\delta).
+\]
+Thus every order statistic in the interval
+\[
+ u_{(r+1)},\ldots,u_{(r+q)}
+\]
+is at most \(\Theta(\delta)\), and therefore
+\[
+ B_n(r)\leq\Theta(\delta).
+\]
+Lemma \ref{lem:cdf} consequently proves \eqref{eq:C2-normalized} for
+\(1.089\leq\delta\leq2\); its margin also absorbs the term \(2/q\).
+Together with the preceding uniform estimate, this proves
+\eqref{eq:C2} for every deletion pattern.
+
+We have therefore established both transportation conditions
+\eqref{eq:C1} and \eqref{eq:C2}.
+
+\section{Closing the cycle when \(1\) is absent}
+
+It remains to remove the use of the universal closing vertex \(1\).
+
+\begin{lemma}\label{lem:closer}
+Suppose \(1\notin A\). Then \(G(A)\) still contains a cycle of length
+\(2\ell+1\) for every \(1\leq\ell\leq q\).
+\end{lemma}
+
+\begin{proof}
+First suppose \(s=|A\cap\Ccal|=1\), and write
+\[
+ A\cap\Ccal=\{c\}.
+\]
+By Lemma \ref{lem:deletion}, there are no deletions from \(X\cup Y\cup
+Z\). Every odd cycle must pass through \(c\). For each prescribed
+\(\ell\), we construct
+\[
+ c,x_1,o_1,x_2,o_2,\ldots,x_\ell,o_\ell,c,
+\]
+where \(x_i\in X\), \(o_i\in Y\), the \(x_i\) are distinct, and the
+\(o_i\) are distinct. In addition to the usual connector conditions,
+we require
+\[
+ (c,x_1)=1,
+ \qquad
+ (c,o_\ell)=1.
+\]
+
+Mertens' estimate gives, uniformly for \(c\leq n\),
+\[
+ \rho(c)
+ \geq
+ \frac{3e^{-\gamma}+o(1)}{\log\log n}.
+\]
+Thus \(c\) has \(\gg n/\log\log n\) admissible neighbours in each
+eligible endpoint class. Reserve one even and one odd endpoint
+neighbour of \(c\), and apply the connector lemma to the remaining
+slots. The strict margin
+\[
+ \frac29-0.217020>0.005202
+\]
+absorbs these two reservations for \(n\geq n_0\). The range
+\(n<n_0\) follows from the exact-degree argument in Lemma
+\ref{lem:deficient}.
+
+If \(s\geq2\), reserve any \(c\in A\cap\Ccal\). Lemma
+\ref{lem:deletion} and the Selection Lemma apply unchanged to the
+remaining odd pool. The same endpoint reservation proves the result,
+with additional freedom coming from the other vertices of
+\(A\cap\Ccal\).
+\end{proof}
+
+\section{Proof of the main theorem}
+
+\begin{proof}[Proof of Theorem \ref{thm:main}]
+Reduce to \(|A|=T(n)+1\). The result is vacuous when \(q=0\).
+
+If \(n<n_0\), Lemma \ref{lem:deficient}, the exact residue-class degree
+count, and the Moon--Moser theorem produce the required alternating
+path; Lemma \ref{lem:deletion} supplies replacements for any deleted
+vertices.
+
+Assume henceforth that \(n\geq n_0\). Choose a closing vertex
+\(c\in A\cap\Ccal\), which exists because \(A\) has more than \(T(n)\)
+vertices. After reserving \(c\), Lemma \ref{lem:deletion} gives an odd
+pool of size \(q+b+d\). Select the \(q\) vertices with smallest defect
+and order them so that deficient vertices are nonconsecutive, as
+permitted by Lemma \ref{lem:deficient}. Lemma \ref{lem:selection}
+bounds their mean defect.
+
+The available connector reservoirs satisfy
+\eqref{eq:reservoir-sizes}. Condition \eqref{eq:C1} follows from the
+uniform upper-tail bound of Lemma \ref{lem:mean}. Condition
+\eqref{eq:C2} follows from the same bound for
+\(\delta\leq1.089\), and from Lemmas \ref{lem:selection} and
+\ref{lem:cdf} for \(1.089\leq\delta\leq2\). The Connector Lemma
+therefore supplies distinct connectors.
+
+If \(1\in A\), the resulting path has the form
+\eqref{eq:covering-cycle}, and its prefixes give \(C_{2\ell+1}\) for
+every \(1\leq\ell\leq q\). If \(1\notin A\), Lemma
+\ref{lem:closer} gives each length separately. Hence \(G(A)\) contains
+every odd cycle through \(C_{2q+1}\).
+
+Finally, Proposition \ref{prop:sharpness} proves that both the
+cardinality threshold and the ceiling \(2q+1\) are sharp.
+\end{proof}
+
+\section{Concluding remark}
+
+\begin{remark}
+The only computational inputs are the two numerical inequalities in
+Lemmas \ref{lem:mean} and \ref{lem:cdf}. Both are finite
+exact-rational inclusion--exclusion calculations over the
+\(2^{18}\) divisibility patterns generated by the primes from \(5\)
+through \(71\). The contribution of larger primes is bounded
+analytically, and the finite-\(n\) transfer is controlled by the
+\(L^1\)-norm of the multilinear coefficients rather than by the
+Chinese-remainder period. Every displayed decimal used in the proof is
+an outward-rounded rational bound.
+
+As independent checks, exhaustive search over all \(A\) was performed
+for \(n\leq17\), exact searches for a missing required odd length were
+performed through \(n=72\), and exact-gcd constructions were tested in
+the accessible extremal configurations through \(n=12000\). These
+checks are not used in the proof. The argument is not presently
+machine-formalized.
+\end{remark}
+
+\begin{thebibliography}{9}
+
+\bibitem{ES97}
+P.~Erd\H{o}s and G.~N.~S\'ark\"ozy,
+\emph{On cycles in the coprime graph of integers},
+Electron. J. Combin. \textbf{4} (1997), no.~2, Research Paper 8,
+11 pp.
+
+\bibitem{EW39}
+P.~Erd\H{o}s and A.~Wintner,
+\emph{Additive arithmetical functions and statistical independence},
+Amer. J. Math. \textbf{61} (1939), 713--721.
+
+\bibitem{MM63}
+J.~Moon and L.~Moser,
+\emph{On Hamiltonian bipartite graphs},
+Israel J. Math. \textbf{1} (1963), 163--165.
+
+\bibitem{RU00}
+R.~T. Rockafellar and S.~Uryasev,
+\emph{Optimization of conditional value-at-risk},
+J. Risk \textbf{2} (2000), no.~3, 21--41.
+
+\bibitem{S99}
+G.~N. S\'ark\"ozy,
+\emph{Complete tripartite subgraphs in the coprime graph of integers},
+Discrete Math. \textbf{202} (1999), 227--238.
+
+\end{thebibliography}
+
+\end{document}

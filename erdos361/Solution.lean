@@ -9,7 +9,7 @@ in `Challenge.lean` are DEFINITIONALLY EQUAL — which, since the development im
 The `#print axioms` lines are a redundant local audit; Comparator performs the authoritative
 check of the footprints against `Challenge.lean`. Expected footprints:
   • erdos361_cge1      : [propext, Classical.choice, Quot.sound]
-  • erdos361_irregular : [propext, Classical.choice, Quot.sound, Erdos361.Statement.alon_zero_sum]
+  • erdos361_irregular : [propext, Classical.choice, Quot.sound]
 -/
 import Erdos361
 import Erdos361.Statement

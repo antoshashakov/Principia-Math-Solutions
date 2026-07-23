@@ -1,7 +1,10 @@
 /-
-DEVELOPMENT — Erdős #361: the modular-dichotomy engine, the avoider model, and the two
+DEVELOPMENT — Erdős #361: the axiom-free modular-dichotomy engine (Alon 1987 Thm 1.1 is now
+PROVED, not postulated — via general-h Dias da Silva–Hamidoune from Mathlib's Combinatorial
+Nullstellensatz, restricted to the prime subsequence n = 2p), the avoider model, and the two
 headline theorems `erdos361_irregular` (Thm 4) and `erdos361_cge1` (c ≥ 1 exact formula).
-Imports the trusted `Erdos361.Statement` (its `Avoids`/`Avoiders`/`F`/`Fc`/`alon_zero_sum`).
+Imports the trusted `Erdos361.Statement` (its `Avoids`/`Avoiders`/`F`/`Fc`). No axioms beyond
+the standard three.
 -/
 import Erdos361.Statement
 set_option maxHeartbeats 4000000
@@ -9,30 +12,689 @@ set_option autoImplicit false
 set_option relaxedAutoImplicit false
 
 namespace Erdos361
-open Erdos361.Statement Finset Filter Topology
+open Erdos361.Statement MvPolynomial Finset Matrix Nat Filter Topology
 open scoped Classical
 
-lemma alon_uniform : ∀ kmax : ℕ, ∀ ε : ℝ, 0 < ε → ∃ N₀ : ℕ,
-    ∀ k : ℕ, 2 ≤ k → k ≤ kmax → ∀ N : ℕ, N₀ ≤ N →
-      ∀ A : Finset (ZMod N), ((1 / (k : ℝ) + ε) * N < A.card) →
-        ∃ B : Finset (ZMod N), B ⊆ A ∧ B.Nonempty ∧ B.card ≤ k ∧ (∑ b ∈ B, b) = 0 := by
+variable {h p : ℕ}
+
+
+/-- Falling-factorial Vandermonde determinant, over any integral domain `R`. -/
+theorem det_descFactorial {R : Type*} [CommRing R] [IsDomain R] {h : ℕ} (d : Fin h → ℕ) :
+    Matrix.det (Matrix.of fun i j => ((d i).descFactorial (j : ℕ) : R))
+      = ∏ i : Fin h, ∏ j ∈ Finset.Ioi i, ((d j : R) - (d i : R)) := by
+  set F : Matrix (Fin h) (Fin h) R := Matrix.of (fun i j => ((d i).descFactorial (j : ℕ) : R))
+    with hFdef
+  set V : Matrix (Fin h) (Fin h) R := Matrix.vandermonde (fun i => (d i : R)) with hV
+  set M : Matrix (Fin h) (Fin h) R :=
+    Matrix.of (fun l j => (descPochhammer R (j : ℕ)).coeff (l : ℕ)) with hM
+  have hF : F = V * M := by
+    ext i j
+    rw [hFdef, Matrix.of_apply, Matrix.mul_apply]
+    have hcast : ((d i).descFactorial (j : ℕ) : R) = (descPochhammer R (j : ℕ)).eval (d i : R) := by
+      rw [descPochhammer_eval_eq_descFactorial]
+    rw [hcast, Polynomial.eval_eq_sum_range' (n := h)
+      (by rw [descPochhammer_natDegree]; exact j.2)]
+    rw [← Fin.sum_univ_eq_sum_range (fun l => (descPochhammer R (j:ℕ)).coeff l * (d i : R) ^ l) h]
+    apply Finset.sum_congr rfl
+    intro l _
+    rw [hV, hM, Matrix.of_apply, Matrix.vandermonde_apply]
+    ring
+  rw [hF, Matrix.det_mul]
+  have hMdet : M.det = 1 := by
+    rw [Matrix.det_of_upperTriangular]
+    · apply Finset.prod_eq_one
+      intro i _
+      rw [hM, Matrix.of_apply]
+      have hmon : (descPochhammer R (i : ℕ)).Monic := monic_descPochhammer R _
+      have hnd : (descPochhammer R (i : ℕ)).natDegree = (i : ℕ) := descPochhammer_natDegree (R := R) _
+      have hc := hmon.coeff_natDegree
+      rwa [hnd] at hc
+    · intro i j hji
+      rw [hM, Matrix.of_apply]
+      apply Polynomial.coeff_eq_zero_of_natDegree_lt
+      rw [descPochhammer_natDegree (R := R)]
+      exact hji
+  rw [hMdet, mul_one, hV, Matrix.det_vandermonde]
+
+
+
+lemma vand_perm :
+    Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin h) (ZMod p))))
+      = ∑ σ : Equiv.Perm (Fin h),
+          ((Equiv.Perm.sign σ : ℤ) : MvPolynomial (Fin h) (ZMod p))
+            * ∏ j, (X j) ^ ((σ j : Fin h) : ℕ) := by
+  rw [Matrix.det_apply']
+  refine Fintype.sum_equiv (Equiv.inv (Equiv.Perm (Fin h))) _ _ (fun σ => ?_)
+  simp only [Equiv.inv_apply, Equiv.Perm.sign_inv]
+  congr 1
+  rw [← Equiv.prod_comp σ (fun j => (X j : MvPolynomial (Fin h) (ZMod p)) ^ ((σ⁻¹ j : Fin h) : ℕ))]
+  apply Finset.prod_congr rfl
+  intro i _
+  rw [Matrix.vandermonde_apply]
+  simp
+
+/-- The monomial exponent vector for permutation `σ`: `uσ j = σ j`. -/
+noncomputable def uperm (σ : Equiv.Perm (Fin h)) : Fin h →₀ ℕ :=
+  Finsupp.indicator univ (fun i _ => ((σ i : Fin h) : ℕ))
+
+lemma uperm_apply (σ : Equiv.Perm (Fin h)) (j : Fin h) : uperm σ j = ((σ j : Fin h) : ℕ) := by
+  rw [uperm, Finsupp.indicator_apply]; simp
+
+lemma coeff_vand_mul (P : MvPolynomial (Fin h) (ZMod p)) (t : Fin h →₀ ℕ) :
+    coeff t (Matrix.det (Matrix.vandermonde fun i => (X i : MvPolynomial (Fin h) (ZMod p))) * P)
+      = ∑ σ : Equiv.Perm (Fin h), ((Equiv.Perm.sign σ : ℤ) : ZMod p) *
+          (if uperm σ ≤ t then coeff (t - uperm σ) P else 0) := by
+  rw [vand_perm, Finset.sum_mul, coeff_sum]
+  apply Finset.sum_congr rfl
+  intro σ _
+  rw [mul_assoc,
+    show ((Equiv.Perm.sign σ : ℤ) : MvPolynomial (Fin h) (ZMod p))
+        = C ((Equiv.Perm.sign σ : ℤ) : ZMod p) from
+      (map_intCast (MvPolynomial.C (σ := Fin h) (R := ZMod p)) _).symm,
+    coeff_C_mul]
+  congr 1
+  rw [show (∏ j, (X j : MvPolynomial (Fin h) (ZMod p)) ^ ((σ j : Fin h) : ℕ)) = monomial (uperm σ) 1 by
+    rw [uperm]; exact prod_X_pow _ _, coeff_monomial_mul']
+  simp only [one_mul]
+
+
+
+
+lemma multinomial_univ_spec (ν : Fin h →₀ ℕ) :
+    ν.multinomial * ∏ i, (ν i)! = (ν.degree)! := by
+  rw [Finsupp.multinomial_eq]
+  have hprod : (∏ i, (ν i)!) = ∏ i ∈ ν.support, (ν i)! := by
+    symm; apply Finset.prod_subset (Finset.subset_univ _)
+    intro i _ hi; rw [Finsupp.notMem_support_iff.mp hi, Nat.factorial_zero]
+  rw [hprod, Finsupp.degree, mul_comm]; exact Nat.multinomial_spec ν.support ν
+
+lemma sum_perm_val (σ : Equiv.Perm (Fin h)) : ∑ i, ((σ i : Fin h) : ℕ) = ∑ i : Fin h, (i : ℕ) :=
+  Equiv.sum_comp σ (fun i => (i : ℕ))
+
+/-- Witness exponent vector `t i = (k-h)+i`. -/
+noncomputable def twit (h k : ℕ) : Fin h →₀ ℕ := Finsupp.equivFunOnFinite.symm (fun i => (k - h) + (i:ℕ))
+lemma twit_apply (h k : ℕ) (i : Fin h) : twit h k i = (k - h) + (i:ℕ) := rfl
+
+/-- **Per-permutation factorial identity.** -/
+lemma per_sigma (k : ℕ) (hhk : h ≤ k) (σ : Equiv.Perm (Fin h)) :
+    (if uperm σ ≤ twit h k then (twit h k - uperm σ).multinomial else 0) * ∏ i, ((twit h k) i)!
+      = (h * (k - h))! * ∏ i, ((twit h k) i).descFactorial ((σ i : Fin h) : ℕ) := by
+  by_cases hle : uperm σ ≤ twit h k
+  · rw [if_pos hle]
+    have hsle : ∀ i, ((σ i : Fin h) : ℕ) ≤ (twit h k) i := by
+      intro i; have := hle i; rwa [uperm_apply] at this
+    have hval : ∀ i, (twit h k - uperm σ) i = (twit h k) i - ((σ i : Fin h) : ℕ) := by
+      intro i; rw [Finsupp.tsub_apply, uperm_apply]
+    have hfac : ∀ i, ((twit h k) i)! = ((twit h k - uperm σ) i)! * ((twit h k) i).descFactorial ((σ i:Fin h):ℕ) := by
+      intro i; rw [hval i, ← Nat.factorial_mul_descFactorial (hsle i)]
+    have hdeg : (twit h k - uperm σ).degree = h * (k - h) := by
+      rw [Finsupp.degree_eq_sum]
+      set X := ∑ i : Fin h, (i:ℕ) with hX
+      have hs2 : ∑ i, ((σ i:Fin h):ℕ) = X := sum_perm_val σ
+      have hs3 : ∑ i : Fin h, (twit h k) i = h * (k - h) + X := by
+        simp only [twit_apply]
+        rw [Finset.sum_add_distrib, Finset.sum_const, Finset.card_fin, smul_eq_mul]
+      have hadd : (∑ i, (twit h k - uperm σ) i) + ∑ i, ((σ i:Fin h):ℕ) = ∑ i : Fin h, (twit h k) i := by
+        rw [← Finset.sum_add_distrib]
+        apply Finset.sum_congr rfl
+        intro i _
+        rw [hval i]
+        have := hsle i; omega
+      omega
+    calc (twit h k - uperm σ).multinomial * ∏ i, ((twit h k) i)!
+        = (twit h k - uperm σ).multinomial *
+            ∏ i, (((twit h k - uperm σ) i)! * ((twit h k) i).descFactorial ((σ i:Fin h):ℕ)) := by
+          rw [Finset.prod_congr rfl (fun i _ => hfac i)]
+      _ = ((twit h k - uperm σ).multinomial * ∏ i, ((twit h k - uperm σ) i)!)
+            * ∏ i, ((twit h k) i).descFactorial ((σ i:Fin h):ℕ) := by
+          rw [Finset.prod_mul_distrib]; ring
+      _ = (h * (k - h))! * ∏ i, ((twit h k) i).descFactorial ((σ i:Fin h):ℕ) := by
+          rw [multinomial_univ_spec, hdeg]
+  · rw [if_neg hle, zero_mul]
+    obtain ⟨i, hi⟩ : ∃ i, (twit h k) i < ((σ i:Fin h):ℕ) := by
+      by_contra hc; push_neg at hc
+      exact hle (fun i => by rw [uperm_apply]; exact hc i)
+    rw [Finset.prod_eq_zero (Finset.mem_univ i) (Nat.descFactorial_eq_zero_iff_lt.mpr hi), mul_zero]
+
+
+
+/-- Bridge: the sum used by `coeff_sum_X_pow_of_fintype` is `Finsupp.degree`. -/
+lemma sum_id_eq_degree (ν : Fin h →₀ ℕ) : ν.sum (fun _ m => m) = ν.degree := rfl
+
+/-- `∏_{s∈H}((∑ᵢXᵢ) - C s) = (∑ᵢXᵢ)^|H| + low`, where `low` has zero coefficient in every
+total degree `≥ |H|`. General-h version of the EH2 `prod_top`. -/
+lemma prod_top (H : Finset (ZMod p)) :
+    ∃ low : MvPolynomial (Fin h) (ZMod p),
+      (∏ s ∈ H, ((∑ i, X i) - C s)) = (∑ i, X i) ^ H.card + low ∧
+      ∀ μ : Fin h →₀ ℕ, H.card ≤ μ.degree → coeff μ low = 0 := by
+  classical
+  induction H using Finset.induction with
+  | empty => exact ⟨0, by simp, by simp⟩
+  | @insert s H' hs ih =>
+    obtain ⟨low', hlow'eq, hlow'coeff⟩ := ih
+    refine ⟨(∑ i, X i) * low' - C s * (∑ i, X i) ^ H'.card - C s * low', ?_, ?_⟩
+    · rw [Finset.prod_insert hs, hlow'eq, Finset.card_insert_of_notMem hs]; ring
+    · intro μ hμ
+      rw [Finset.card_insert_of_notMem hs] at hμ   -- H'.card + 1 ≤ μ.degree
+      rw [coeff_sub, coeff_sub]
+      -- term 1: (∑X) * low'
+      have ht1 : coeff μ ((∑ i, X i) * low') = 0 := by
+        rw [Finset.sum_mul, coeff_sum]
+        apply Finset.sum_eq_zero
+        intro i _
+        rw [coeff_X_mul']
+        split_ifs with hi
+        · apply hlow'coeff
+          have hi1 : 1 ≤ μ i := Nat.one_le_iff_ne_zero.mpr (Finsupp.mem_support_iff.mp hi)
+          have hle' : Finsupp.single i 1 ≤ μ := Finsupp.single_le_iff.mpr hi1
+          have hcancel : (μ - Finsupp.single i 1) + Finsupp.single i 1 = μ :=
+            tsub_add_cancel_of_le hle'
+          have hdd := AddMonoidHom.map_add Finsupp.degree (μ - Finsupp.single i 1)
+            (Finsupp.single i 1)
+          rw [hcancel, Finsupp.degree_single] at hdd
+          omega
+        · rfl
+      -- term 2: C s * (∑X)^|H'|
+      have ht2 : coeff μ (C s * (∑ i, X i) ^ H'.card) = 0 := by
+        rw [coeff_C_mul, coeff_sum_X_pow_of_fintype,
+          if_neg (show ¬ (μ.sum (fun _ m => m) = H'.card) by
+            rw [sum_id_eq_degree]; omega), Nat.cast_zero, mul_zero]
+      -- term 3: C s * low'
+      have ht3 : coeff μ (C s * low') = 0 := by
+        rw [coeff_C_mul, hlow'coeff μ (by omega), mul_zero]
+      rw [ht1, ht2, ht3]; ring
+
+/-- Top-degree coefficient: for `μ` of degree `|H|`, `coeff μ (∏(∑X-Cs)) = μ.multinomial`. -/
+lemma coeff_prod_top {H : Finset (ZMod p)} {μ : Fin h →₀ ℕ} (hμ : μ.degree = H.card) :
+    coeff μ (∏ s ∈ H, ((∑ i, X i) - C s)) = (μ.multinomial : ZMod p) := by
+  obtain ⟨low, hPeq, hlowc⟩ := prod_top H
+  rw [hPeq, coeff_add, hlowc μ hμ.ge, add_zero, coeff_sum_X_pow_of_fintype,
+    if_pos (show μ.sum (fun _ m => m) = H.card by rw [sum_id_eq_degree]; exact hμ)]
+
+
+/-- (A) degree of the shifted witness. -/
+lemma twit_sub_degree {h : ℕ} (k : ℕ) (σ : Equiv.Perm (Fin h)) (hle : uperm σ ≤ twit h k) :
+    (twit h k - uperm σ).degree = h * (k - h) := by
+  have hsle : ∀ i, ((σ i : Fin h) : ℕ) ≤ (twit h k) i := fun i => by
+    have := hle i; rwa [uperm_apply] at this
+  have hval : ∀ i, (twit h k - uperm σ) i = (twit h k) i - ((σ i : Fin h) : ℕ) := fun i => by
+    rw [Finsupp.tsub_apply, uperm_apply]
+  rw [Finsupp.degree_eq_sum]
+  set X := ∑ i : Fin h, (i:ℕ) with hX
+  have hs2 : ∑ i, ((σ i:Fin h):ℕ) = X := sum_perm_val σ
+  have hs3 : ∑ i : Fin h, (twit h k) i = h * (k - h) + X := by
+    simp only [twit_apply]
+    rw [Finset.sum_add_distrib, Finset.sum_const, Finset.card_fin, smul_eq_mul]
+  have hadd : (∑ i, (twit h k - uperm σ) i) + ∑ i, ((σ i:Fin h):ℕ) = ∑ i : Fin h, (twit h k) i := by
+    rw [← Finset.sum_add_distrib]; apply Finset.sum_congr rfl; intro i _; rw [hval i]
+    have := hsle i; omega
+  omega
+
+/-- (B) the per-σ inner coefficient is the multinomial (cast), under the `≤` guard. -/
+lemma coeff_sumpow_cast {h : ℕ} (k : ℕ) (σ : Equiv.Perm (Fin h)) :
+    (if uperm σ ≤ twit h k then
+        coeff (twit h k - uperm σ) ((∑ i, X i : MvPolynomial (Fin h) (ZMod p)) ^ (h * (k - h)))
+      else 0)
+      = (((if uperm σ ≤ twit h k then (twit h k - uperm σ).multinomial else 0) : ℕ) : ZMod p) := by
+  by_cases hle : uperm σ ≤ twit h k
+  · simp only [if_pos hle]
+    rw [coeff_sum_X_pow_of_fintype,
+      if_pos (show (twit h k - uperm σ).sum (fun _ m => m) = h * (k - h) by
+        rw [sum_id_eq_degree]; exact twit_sub_degree k σ hle)]
+  · rw [if_neg hle, if_neg hle, Nat.cast_zero]
+
+/-- (D) the signed permutation sum of descFactorials is the falling-factorial determinant. -/
+lemma det_perm_sum {h : ℕ} [Fact p.Prime] (k : ℕ) :
+    (∑ σ : Equiv.Perm (Fin h), ((Equiv.Perm.sign σ : ℤ) : ZMod p) *
+        ∏ i, (((twit h k) i).descFactorial ((σ i : Fin h) : ℕ) : ZMod p))
+      = ∏ i, ∏ j ∈ Ioi i, ((twit h k j : ZMod p) - (twit h k i : ZMod p)) := by
+  rw [← det_descFactorial (R := ZMod p) (fun i => twit h k i), ← Matrix.det_transpose,
+    Matrix.det_apply']
+  apply Finset.sum_congr rfl
+  intro σ _
+  simp only [Matrix.transpose_apply, Matrix.of_apply]
+
+/-- (C–E) The witness coefficient of `vand·(∑X)^m` is nonzero mod `p`. -/
+lemma coeff_top_ne_zero {h k : ℕ} [Fact p.Prime]
+    (hh : 1 ≤ h) (hhk : h ≤ k) (hkp : k ≤ p) (hmp : h * (k - h) < p) :
+    coeff (twit h k) (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin h) (ZMod p))))
+        * (∑ i, X i) ^ (h * (k - h))) ≠ 0 := by
+  have hident :
+      coeff (twit h k) (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin h) (ZMod p))))
+          * (∑ i, X i) ^ (h * (k - h))) * ∏ i, ((twit h k i)! : ZMod p)
+        = ((h * (k - h))! : ZMod p) * ∏ i, ∏ j ∈ Ioi i, ((twit h k j : ZMod p) - twit h k i) := by
+    rw [coeff_vand_mul, Finset.sum_mul, ← det_perm_sum k, Finset.mul_sum]
+    apply Finset.sum_congr rfl
+    intro σ _
+    rw [coeff_sumpow_cast]
+    have hkey : (((if uperm σ ≤ twit h k then (twit h k - uperm σ).multinomial else 0 : ℕ)) : ZMod p)
+          * ∏ i, ((twit h k i)! : ZMod p)
+        = ((h * (k - h))! : ZMod p) * ∏ i, (((twit h k i).descFactorial ((σ i:Fin h):ℕ)) : ZMod p) := by
+      rw [← Nat.cast_prod, ← Nat.cast_mul, per_sigma k hhk σ, Nat.cast_mul, Nat.cast_prod]
+    linear_combination ((Equiv.Perm.sign σ : ℤ) : ZMod p) * hkey
+  intro hC0
+  rw [hC0, zero_mul] at hident
+  -- RHS ≠ 0
+  have hfac_ne : ((h * (k - h))! : ZMod p) ≠ 0 := by
+    rw [Ne, CharP.cast_eq_zero_iff (ZMod p) p, (inferInstance : Fact p.Prime).out.dvd_factorial]
+    omega
+  have hprod_ne : (∏ i : Fin h, ∏ j ∈ Ioi i, ((twit h k j : ZMod p) - twit h k i)) ≠ 0 := by
+    rw [Finset.prod_ne_zero_iff]
+    intro i _
+    rw [Finset.prod_ne_zero_iff]
+    intro j hj
+    rw [sub_ne_zero, Ne]
+    intro heq
+    have hji : i < j := Finset.mem_Ioi.mp hj
+    have hji' : (i:ℕ) < (j:ℕ) := hji
+    have hib : (twit h k i) < p := by rw [twit_apply]; omega
+    have hjb : (twit h k j) < p := by rw [twit_apply]; omega
+    have : twit h k j = twit h k i := by
+      have h1 : ((twit h k j : ZMod p)).val = ((twit h k i : ZMod p)).val := by rw [heq]
+      rwa [ZMod.val_natCast_of_lt hjb, ZMod.val_natCast_of_lt hib] at h1
+    rw [twit_apply, twit_apply] at this
+    omega
+  exact (mul_ne_zero hfac_ne hprod_ne) hident.symm
+
+/-- restricted h-sumset. -/
+noncomputable def rsumH (h : ℕ) (A : Finset (ZMod p)) : Finset (ZMod p) :=
+  (A.powersetCard h).image (fun s => s.sum id)
+
+/-- (F) vanishing of the DSH polynomial (det form) on `A^h`. -/
+lemma dshPoly_vanish {h : ℕ} [Fact p.Prime] {A H : Finset (ZMod p)} (hHA : rsumH h A ⊆ H)
+    (s : Fin h → ZMod p) (hs : ∀ i, s i ∈ A) :
+    eval s (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin h) (ZMod p))))
+        * ∏ c ∈ H, ((∑ i, X i) - C c)) = 0 := by
+  rw [eval_mul]
+  by_cases hinj : Function.Injective s
+  · have himg : (univ.image s).card = h := by
+      rw [Finset.card_image_of_injective _ hinj, Finset.card_univ, Fintype.card_fin]
+    have hsub : univ.image s ⊆ A := by
+      intro a ha; rw [mem_image] at ha; obtain ⟨i, _, rfl⟩ := ha; exact hs i
+    have hmem : (univ.image s).sum id ∈ rsumH h A := by
+      rw [rsumH, mem_image]; exact ⟨univ.image s, by rw [mem_powersetCard]; exact ⟨hsub, himg⟩, rfl⟩
+    have hsum : (∑ i, s i) = (univ.image s).sum id := by
+      rw [Finset.sum_image (fun i _ j _ hij => hinj hij)]; rfl
+    have : eval s (∏ c ∈ H, ((∑ i, X i) - C c)) = 0 := by
+      rw [eval_prod]; apply Finset.prod_eq_zero (hHA (hsum ▸ hmem)); simp
+    rw [this, mul_zero]
+  · have hz : eval s (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin h) (ZMod p))))) = 0 := by
+      rw [RingHom.map_det]
+      have hmap : (MvPolynomial.eval s).mapMatrix (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin h) (ZMod p))))
+          = Matrix.vandermonde s := by
+        ext i j; simp [RingHom.mapMatrix_apply, Matrix.vandermonde_apply]
+      rw [hmap, Matrix.det_vandermonde_eq_zero_iff]
+      rw [Function.not_injective_iff] at hinj
+      obtain ⟨a, b, hab, hne⟩ := hinj
+      exact ⟨a, b, hab, hne⟩
+    rw [hz, zero_mul]
+
+/-- **General-h Dias da Silva–Hamidoune bound** (axiom-free replacement for Alon). -/
+theorem dsh {h : ℕ} [Fact p.Prime] (A : Finset (ZMod p)) (hh : 1 ≤ h) (hhA : h ≤ A.card)
+    (hp : h * (A.card - h) + 1 ≤ p) :
+    h * (A.card - h) + 1 ≤ (rsumH h A).card := by
+  by_contra hlt
+  push_neg at hlt
+  set k := A.card with hk
+  have hcardp : Fintype.card (ZMod p) = p := ZMod.card p
+  obtain ⟨H, hHsub, hHcard⟩ : ∃ H : Finset (ZMod p), rsumH h A ⊆ H ∧ H.card = h * (k - h) :=
+    Finset.exists_superset_card_eq (by omega) (by rw [hcardp]; omega)
+  have hkp : k ≤ p := by rw [← hcardp]; exact Finset.card_le_univ A
+  -- coefficient of the witness monomial is nonzero
+  have hcoeff : coeff (twit h k) (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin h) (ZMod p))))
+      * ∏ c ∈ H, ((∑ i, X i) - C c)) ≠ 0 := by
+    -- = coeff of vand·(∑X)^m  (low part contributes 0)
+    obtain ⟨low, hPeq, hlowc⟩ := prod_top (h := h) H
+    rw [hPeq, mul_add, coeff_add, hHcard]
+    have hlow0 : coeff (twit h k) (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin h) (ZMod p)))) * low) = 0 := by
+      rw [coeff_vand_mul]
+      apply Finset.sum_eq_zero
+      intro σ _
+      by_cases hle : uperm σ ≤ twit h k
+      · rw [if_pos hle, hlowc _ (le_of_eq (by rw [hHcard, twit_sub_degree k σ hle])), mul_zero]
+      · rw [if_neg hle, mul_zero]
+    rw [hlow0, add_zero]
+    exact coeff_top_ne_zero hh hhA hkp (by omega)
+  -- total degree
+  have hdeg_eq : (twit h k).degree = (∑ i : Fin h, (i:ℕ)) + h * (k - h) := by
+    rw [Finsupp.degree_eq_sum]; simp only [twit_apply]
+    rw [Finset.sum_add_distrib, Finset.sum_const, Finset.card_fin, smul_eq_mul]; ring
+  have htd : (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin h) (ZMod p))))
+      * ∏ c ∈ H, ((∑ i, X i) - C c)).totalDegree = (twit h k).degree := by
+    refine le_antisymm ?_ (MvPolynomial.le_totalDegree (s := twit h k) (by simpa using hcoeff))
+    refine le_trans (MvPolynomial.totalDegree_mul _ _) ?_
+    have hv : (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin h) (ZMod p))))).totalDegree
+        ≤ ∑ i : Fin h, (i:ℕ) := by
+      rw [vand_perm]
+      refine le_trans (MvPolynomial.totalDegree_finset_sum _ _) (Finset.sup_le ?_)
+      intro σ _
+      refine le_trans (MvPolynomial.totalDegree_mul _ _) ?_
+      have h1 : ((Equiv.Perm.sign σ : ℤ) : MvPolynomial (Fin h) (ZMod p)).totalDegree = 0 := by
+        rw [← map_intCast (MvPolynomial.C (σ := Fin h) (R := ZMod p))]; exact MvPolynomial.totalDegree_C _
+      have h2 : (∏ j, (X j : MvPolynomial (Fin h) (ZMod p)) ^ ((σ j : Fin h):ℕ)).totalDegree
+          ≤ ∑ i : Fin h, (i:ℕ) := by
+        refine le_trans (MvPolynomial.totalDegree_finset_prod _ _) ?_
+        rw [← sum_perm_val σ]
+        apply Finset.sum_le_sum
+        intro j _
+        exact le_trans (MvPolynomial.totalDegree_pow _ _) (le_of_eq (by rw [MvPolynomial.totalDegree_X, mul_one]))
+      rw [h1]; omega
+    have hp2 : (∏ c ∈ H, ((∑ i, X i : MvPolynomial (Fin h) (ZMod p)) - C c)).totalDegree ≤ h*(k-h) := by
+      refine le_trans (MvPolynomial.totalDegree_finset_prod _ _) ?_
+      refine le_trans (Finset.sum_le_sum (fun c _ => ?_)) (by rw [Finset.sum_const, hHcard, smul_eq_mul, mul_one])
+      refine le_trans (MvPolynomial.totalDegree_sub _ _) (max_le ?_ ?_)
+      · exact le_trans (MvPolynomial.totalDegree_finset_sum _ _)
+          (Finset.sup_le (fun i _ => by rw [MvPolynomial.totalDegree_X]))
+      · rw [MvPolynomial.totalDegree_C]; exact Nat.zero_le _
+    rw [hdeg_eq]; omega
+  -- each exponent < k
+  have hS : ∀ i, (twit h k) i < k := by
+    intro i; rw [twit_apply]; omega
+  obtain ⟨s, hsA, hne⟩ :=
+    combinatorial_nullstellensatz_exists_eval_nonzero _ (twit h k) hcoeff htd (fun _ => A) hS
+  exact hne (dshPoly_vanish hHsub s hsA)
+
+/-- General witness exponent vector for an arbitrary `d`. -/
+noncomputable def tg {h : ℕ} (d : Fin h → ℕ) : Fin h →₀ ℕ := Finsupp.equivFunOnFinite.symm d
+lemma tg_apply {h : ℕ} (d : Fin h → ℕ) (i : Fin h) : tg d i = d i := rfl
+/-- degree of the general witness minus the "staircase". -/
+def Mdeg {h : ℕ} (d : Fin h → ℕ) : ℕ := (∑ i : Fin h, d i) - (∑ i : Fin h, (i:ℕ))
+
+lemma tg_sub_degree_gen {h : ℕ} (d : Fin h → ℕ) (hge : ∀ i : Fin h, (i:ℕ) ≤ d i)
+    (σ : Equiv.Perm (Fin h)) (hle : uperm σ ≤ tg d) : (tg d - uperm σ).degree = Mdeg d := by
+  have hsle : ∀ i, ((σ i : Fin h) : ℕ) ≤ (tg d) i := fun i => by
+    have := hle i; rwa [uperm_apply] at this
+  have hval : ∀ i, (tg d - uperm σ) i = (tg d) i - ((σ i : Fin h) : ℕ) := fun i => by
+    rw [Finsupp.tsub_apply, uperm_apply]
+  rw [Finsupp.degree_eq_sum, Mdeg]
+  set X := ∑ i : Fin h, (i:ℕ) with hX
+  have hs2 : ∑ i, ((σ i:Fin h):ℕ) = X := sum_perm_val σ
+  have hs3 : ∑ i : Fin h, (tg d) i = ∑ i : Fin h, d i := by simp only [tg_apply]
+  have hgeX : X ≤ ∑ i : Fin h, d i := by rw [hX]; exact Finset.sum_le_sum (fun i _ => hge i)
+  have hadd : (∑ i, (tg d - uperm σ) i) + ∑ i, ((σ i:Fin h):ℕ) = ∑ i : Fin h, (tg d) i := by
+    rw [← Finset.sum_add_distrib]; apply Finset.sum_congr rfl; intro i _; rw [hval i]
+    have := hsle i; omega
+  omega
+
+lemma per_sigma_gen {h : ℕ} (d : Fin h → ℕ) (hge : ∀ i : Fin h, (i:ℕ) ≤ d i) (σ : Equiv.Perm (Fin h)) :
+    (if uperm σ ≤ tg d then (tg d - uperm σ).multinomial else 0) * ∏ i : Fin h, ((d i)!)
+      = (Mdeg d)! * ∏ i, (d i).descFactorial ((σ i : Fin h) : ℕ) := by
+  by_cases hle : uperm σ ≤ tg d
+  · rw [if_pos hle]
+    have hsle : ∀ i, ((σ i : Fin h) : ℕ) ≤ d i := fun i => by
+      have := hle i; rwa [uperm_apply] at this
+    have hval : ∀ i, (tg d - uperm σ) i = d i - ((σ i : Fin h) : ℕ) := fun i => by
+      rw [Finsupp.tsub_apply, uperm_apply, tg_apply]
+    have hfac : ∀ i, (d i)! = ((tg d - uperm σ) i)! * (d i).descFactorial ((σ i:Fin h):ℕ) := by
+      intro i; rw [hval i, ← Nat.factorial_mul_descFactorial (hsle i)]
+    calc (tg d - uperm σ).multinomial * ∏ i : Fin h, ((d i)!)
+        = (tg d - uperm σ).multinomial *
+            ∏ i : Fin h, (((tg d - uperm σ) i)! * (d i).descFactorial ((σ i:Fin h):ℕ)) := by
+          rw [Finset.prod_congr rfl (fun i _ => hfac i)]
+      _ = ((tg d - uperm σ).multinomial * ∏ i : Fin h, ((tg d - uperm σ) i)!)
+            * ∏ i, (d i).descFactorial ((σ i:Fin h):ℕ) := by rw [Finset.prod_mul_distrib]; ring
+      _ = (Mdeg d)! * ∏ i, (d i).descFactorial ((σ i:Fin h):ℕ) := by
+          rw [multinomial_univ_spec, tg_sub_degree_gen d hge σ hle]
+  · rw [if_neg hle, zero_mul]
+    obtain ⟨i, hi⟩ : ∃ i, d i < ((σ i:Fin h):ℕ) := by
+      by_contra hc; push_neg at hc
+      exact hle (fun i => by rw [uperm_apply, tg_apply]; exact hc i)
+    rw [Finset.prod_eq_zero (Finset.mem_univ i) (Nat.descFactorial_eq_zero_iff_lt.mpr hi), mul_zero]
+
+lemma coeff_sumpow_cast_gen {h : ℕ} (d : Fin h → ℕ) (hge : ∀ i : Fin h, (i:ℕ) ≤ d i)
+    (σ : Equiv.Perm (Fin h)) :
+    (if uperm σ ≤ tg d then
+        coeff (tg d - uperm σ) ((∑ i, X i : MvPolynomial (Fin h) (ZMod p)) ^ (Mdeg d)) else 0)
+      = (((if uperm σ ≤ tg d then (tg d - uperm σ).multinomial else 0) : ℕ) : ZMod p) := by
+  by_cases hle : uperm σ ≤ tg d
+  · simp only [if_pos hle]
+    rw [coeff_sum_X_pow_of_fintype,
+      if_pos (show (tg d - uperm σ).sum (fun _ m => m) = Mdeg d by
+        rw [sum_id_eq_degree]; exact tg_sub_degree_gen d hge σ hle)]
+  · rw [if_neg hle, if_neg hle, Nat.cast_zero]
+
+lemma det_perm_sum_gen {h : ℕ} [Fact p.Prime] (d : Fin h → ℕ) :
+    (∑ σ : Equiv.Perm (Fin h), ((Equiv.Perm.sign σ : ℤ) : ZMod p) *
+        ∏ i : Fin h, ((d i).descFactorial ((σ i : Fin h) : ℕ) : ZMod p))
+      = ∏ i, ∏ j ∈ Ioi i, ((d j : ZMod p) - (d i : ZMod p)) := by
+  rw [← det_descFactorial (R := ZMod p) d, ← Matrix.det_transpose, Matrix.det_apply']
+  apply Finset.sum_congr rfl
+  intro σ _
+  simp only [Matrix.transpose_apply, Matrix.of_apply]
+
+lemma coeff_top_ne_zero_gen {h : ℕ} [Fact p.Prime] (d : Fin h → ℕ)
+    (hge : ∀ i : Fin h, (i:ℕ) ≤ d i) (hinj : Function.Injective d) (hlt : ∀ i : Fin h, d i < p) (hMp : Mdeg d < p) :
+    coeff (tg d) (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin h) (ZMod p))))
+        * (∑ i, X i) ^ (Mdeg d)) ≠ 0 := by
+  have hident :
+      coeff (tg d) (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin h) (ZMod p))))
+          * (∑ i, X i) ^ (Mdeg d)) * ∏ i : Fin h, ((d i)! : ZMod p)
+        = ((Mdeg d)! : ZMod p) * ∏ i, ∏ j ∈ Ioi i, ((d j : ZMod p) - d i) := by
+    rw [coeff_vand_mul, Finset.sum_mul, ← det_perm_sum_gen d, Finset.mul_sum]
+    apply Finset.sum_congr rfl
+    intro σ _
+    rw [coeff_sumpow_cast_gen d hge]
+    have hkey : (((if uperm σ ≤ tg d then (tg d - uperm σ).multinomial else 0 : ℕ)) : ZMod p)
+          * ∏ i : Fin h, ((d i)! : ZMod p)
+        = ((Mdeg d)! : ZMod p) * ∏ i : Fin h, (((d i).descFactorial ((σ i:Fin h):ℕ)) : ZMod p) := by
+      rw [← Nat.cast_prod, ← Nat.cast_mul, per_sigma_gen d hge σ, Nat.cast_mul, Nat.cast_prod]
+    linear_combination ((Equiv.Perm.sign σ : ℤ) : ZMod p) * hkey
+  intro hC0
+  rw [hC0, zero_mul] at hident
+  have hfac_ne : ((Mdeg d)! : ZMod p) ≠ 0 := by
+    rw [Ne, CharP.cast_eq_zero_iff (ZMod p) p, (inferInstance : Fact p.Prime).out.dvd_factorial]
+    omega
+  have hprod_ne : (∏ i : Fin h, ∏ j ∈ Ioi i, ((d j : ZMod p) - d i)) ≠ 0 := by
+    rw [Finset.prod_ne_zero_iff]; intro i _
+    rw [Finset.prod_ne_zero_iff]; intro j hj
+    rw [sub_ne_zero, Ne]; intro heq
+    have : d j = d i := by
+      have h1 : ((d j : ZMod p)).val = ((d i : ZMod p)).val := by rw [heq]
+      rwa [ZMod.val_natCast_of_lt (hlt j), ZMod.val_natCast_of_lt (hlt i)] at h1
+    have hji : i < j := Finset.mem_Ioi.mp hj
+    exact absurd (hinj this) (by omega)
+  exact (mul_ne_zero hfac_ne hprod_ne) hident.symm
+
+/-- **DSH covering:** in the dense regime the k-fold restricted sumset is everything. -/
+theorem dsh_cover {k : ℕ} [Fact p.Prime] (A : Finset (ZMod p)) (hk : 1 ≤ k) (hkA : k ≤ A.card)
+    (hcov : p ≤ k * (A.card - k) + 1) : rsumH k A = Finset.univ := by
+  have hp2 : 2 ≤ p := (inferInstance : Fact p.Prime).out.two_le
+  by_contra hne
+  have hAp : A.card ≤ p := by
+    have := Finset.card_le_univ A; rwa [ZMod.card] at this
+  have hcard_lt : (rsumH k A).card < p := by
+    have h1 : rsumH k A ⊂ Finset.univ := Finset.ssubset_univ_iff.mpr hne
+    have h2 := Finset.card_lt_card h1
+    rwa [Finset.card_univ, ZMod.card] at h2
+  set q := (p-1)/k with hqdef
+  set r := (p-1)%k with hrdef
+  have hrk : r < k := Nat.mod_lt _ (by omega)
+  have hqr : k * q + r = p - 1 := by rw [hqdef, hrdef]; exact Nat.div_add_mod (p-1) k
+  set d : Fin k → ℕ := fun i => (i:ℕ) + q + (if k - r ≤ (i:ℕ) then 1 else 0) with hddef
+  have hqA : q ≤ A.card - k := by
+    have h2 : k * q ≤ k * (A.card - k) :=
+      le_trans (show k * q ≤ p - 1 by omega) (show p - 1 ≤ k * (A.card - k) by omega)
+    exact Nat.le_of_mul_le_mul_left h2 hk
+  have hge : ∀ i : Fin k, (i:ℕ) ≤ d i := fun i => by
+    show (i:ℕ) ≤ (i:ℕ) + q + (if k - r ≤ (i:ℕ) then 1 else 0)
+    exact le_trans (Nat.le_add_right _ _) (Nat.le_add_right _ _)
+  have hmono : ∀ i j : Fin k, (i:ℕ) < (j:ℕ) → d i < d j := by
+    intro i j hv
+    have hind : (if k - r ≤ (i:ℕ) then (1:ℕ) else 0) ≤ (if k - r ≤ (j:ℕ) then 1 else 0) := by
+      by_cases hc : k - r ≤ (i:ℕ)
+      · rw [if_pos hc, if_pos (show k - r ≤ (j:ℕ) by omega)]
+      · rw [if_neg hc]; exact Nat.zero_le _
+    show (i:ℕ) + q + (if k - r ≤ (i:ℕ) then 1 else 0) < (j:ℕ) + q + (if k - r ≤ (j:ℕ) then 1 else 0)
+    exact Nat.add_lt_add_of_lt_of_le (by omega) hind
+  have hinj : Function.Injective d := by
+    intro i j hij
+    rcases lt_trichotomy (i:ℕ) (j:ℕ) with hlt|heq|hgt
+    · exact absurd (hmono i j hlt) (by rw [hij]; exact lt_irrefl _)
+    · exact Fin.ext heq
+    · exact absurd (hmono j i hgt) (by rw [hij]; exact lt_irrefl _)
+  have hlt_A : ∀ i : Fin k, d i < A.card := by
+    intro i
+    have hik : (i:ℕ) < k := i.2
+    show (i:ℕ) + q + (if k - r ≤ (i:ℕ) then 1 else 0) < A.card
+    split_ifs with hcond
+    · have hr1 : 1 ≤ r := by omega
+      have hqlt : k * q < k * (A.card - k) :=
+        lt_of_le_of_lt (show k * q ≤ p - 2 by omega) (show p - 2 < k * (A.card - k) by omega)
+      have hq2 : q < A.card - k := Nat.lt_of_mul_lt_mul_left hqlt
+      omega
+    · omega
+  have hlt_p : ∀ i : Fin k, d i < p := fun i => lt_of_lt_of_le (hlt_A i) hAp
+  have hMd : Mdeg d = p - 1 := by
+    rw [Mdeg]
+    have hcount : ∑ i : Fin k, (if k - r ≤ (i:ℕ) then (1:ℕ) else 0) = r := by
+      rw [Fin.sum_univ_eq_sum_range (fun i => if k - r ≤ i then (1:ℕ) else 0) k, Finset.sum_boole]
+      rw [show (Finset.range k).filter (fun i => k - r ≤ i) = Finset.Ico (k - r) k by
+        ext x; simp [Finset.mem_Ico, Finset.mem_range]; omega]
+      simp [Nat.card_Ico]; omega
+    have hsum : ∑ i : Fin k, d i = (∑ i : Fin k, (i:ℕ)) + (k * q + r) := by
+      have hrw : ∀ i : Fin k, d i = ((i:ℕ) + q) + (if k - r ≤ (i:ℕ) then 1 else 0) := fun i => rfl
+      simp_rw [hrw, Finset.sum_add_distrib, Finset.sum_const, Finset.card_fin, smul_eq_mul, hcount]
+      ring
+    rw [hsum, Nat.add_sub_cancel_left]; exact hqr
+  have hMp : Mdeg d < p := by rw [hMd]; omega
+  obtain ⟨H, hHsub, hHcard⟩ : ∃ H : Finset (ZMod p), rsumH k A ⊆ H ∧ H.card = p - 1 :=
+    Finset.exists_superset_card_eq (by omega) (by rw [ZMod.card]; omega)
+  have hcoeff : coeff (tg d) (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin k) (ZMod p))))
+      * ∏ c ∈ H, ((∑ i, X i) - C c)) ≠ 0 := by
+    obtain ⟨low, hPeq, hlowc⟩ := prod_top (h := k) H
+    rw [hPeq, mul_add, coeff_add, hHcard]
+    have hlow0 : coeff (tg d) (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin k) (ZMod p)))) * low) = 0 := by
+      rw [coeff_vand_mul]; apply Finset.sum_eq_zero; intro σ _
+      by_cases hle : uperm σ ≤ tg d
+      · rw [if_pos hle, hlowc _ (le_of_eq (by rw [hHcard, tg_sub_degree_gen d hge σ hle, hMd])), mul_zero]
+      · rw [if_neg hle, mul_zero]
+    rw [hlow0, add_zero]
+    have hcz := coeff_top_ne_zero_gen d hge hinj hlt_p hMp
+    rwa [hMd] at hcz
+  have hdeg_eq : (tg d).degree = (∑ i : Fin k, (i:ℕ)) + (p - 1) := by
+    rw [Finsupp.degree_eq_sum]
+    have : ∑ i : Fin k, (tg d) i = ∑ i : Fin k, d i := by simp only [tg_apply]
+    rw [this]
+    have hMd' := hMd; rw [Mdeg] at hMd'
+    have hge2 : (∑ i : Fin k, (i:ℕ)) ≤ ∑ i : Fin k, d i := Finset.sum_le_sum (fun i _ => hge i)
+    omega
+  have htd : (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin k) (ZMod p))))
+      * ∏ c ∈ H, ((∑ i, X i) - C c)).totalDegree = (tg d).degree := by
+    refine le_antisymm ?_ (MvPolynomial.le_totalDegree (s := tg d) (by simpa using hcoeff))
+    refine le_trans (MvPolynomial.totalDegree_mul _ _) ?_
+    have hv : (Matrix.det (Matrix.vandermonde (fun i => (X i : MvPolynomial (Fin k) (ZMod p))))).totalDegree
+        ≤ ∑ i : Fin k, (i:ℕ) := by
+      rw [vand_perm]
+      refine le_trans (MvPolynomial.totalDegree_finset_sum _ _) (Finset.sup_le ?_)
+      intro σ _
+      refine le_trans (MvPolynomial.totalDegree_mul _ _) ?_
+      have h1 : ((Equiv.Perm.sign σ : ℤ) : MvPolynomial (Fin k) (ZMod p)).totalDegree = 0 := by
+        rw [← map_intCast (MvPolynomial.C (σ := Fin k) (R := ZMod p))]; exact MvPolynomial.totalDegree_C _
+      have h2 : (∏ j, (X j : MvPolynomial (Fin k) (ZMod p)) ^ ((σ j : Fin k):ℕ)).totalDegree
+          ≤ ∑ i : Fin k, (i:ℕ) := by
+        refine le_trans (MvPolynomial.totalDegree_finset_prod _ _) ?_
+        rw [← sum_perm_val σ]
+        apply Finset.sum_le_sum
+        intro j _
+        exact le_trans (MvPolynomial.totalDegree_pow _ _) (le_of_eq (by rw [MvPolynomial.totalDegree_X, mul_one]))
+      rw [h1]; omega
+    have hp2' : (∏ c ∈ H, ((∑ i, X i : MvPolynomial (Fin k) (ZMod p)) - C c)).totalDegree ≤ p - 1 := by
+      refine le_trans (MvPolynomial.totalDegree_finset_prod _ _) ?_
+      refine le_trans (Finset.sum_le_sum (fun c _ => ?_)) (by rw [Finset.sum_const, hHcard, smul_eq_mul, mul_one])
+      refine le_trans (MvPolynomial.totalDegree_sub _ _) (max_le ?_ ?_)
+      · exact le_trans (MvPolynomial.totalDegree_finset_sum _ _)
+          (Finset.sup_le (fun i _ => by rw [MvPolynomial.totalDegree_X]))
+      · rw [MvPolynomial.totalDegree_C]; exact Nat.zero_le _
+    rw [hdeg_eq]; omega
+  have hSlt : ∀ i, (tg d) i < A.card := fun i => by rw [tg_apply]; exact hlt_A i
+  obtain ⟨s, hsA, hnz⟩ :=
+    combinatorial_nullstellensatz_exists_eval_nonzero _ (tg d) hcoeff htd (fun _ => A) hSlt
+  exact hnz (dshPoly_vanish hHsub s hsA)
+
+
+/-- **Alon's Theorem 1.1 (ε-form) over a prime modulus** — proven axiom-free via `dsh_cover`. -/
+theorem alon_prime (k : ℕ) (hk : 2 ≤ k) (ε : ℝ) (hε : 0 < ε) :
+    ∃ N₀ : ℕ, ∀ p : ℕ, p.Prime → N₀ ≤ p → ∀ A : Finset (ZMod p),
+      ((1 / (k : ℝ) + ε) * p < A.card) →
+        ∃ B : Finset (ZMod p), B ⊆ A ∧ B.Nonempty ∧ B.card ≤ k ∧ (∑ b ∈ B, b) = 0 := by
+  refine ⟨max (k ^ 2 + 1) (⌈(k : ℝ) / ε⌉₊ + 1), ?_⟩
+  intro p hp hN₀ A hA
+  haveI : Fact p.Prime := ⟨hp⟩
+  have hkpos : (0 : ℝ) < k := by positivity
+  have hppos : (0 : ℝ) < p := by
+    have : 0 < p := by have := hp.pos; omega
+    exact_mod_cast this
+  have hpk2 : k ^ 2 + 1 ≤ p := le_trans (le_max_left _ _) hN₀
+  have hpke : ⌈(k : ℝ) / ε⌉₊ + 1 ≤ p := le_trans (le_max_right _ _) hN₀
+  -- p ≥ k²
+  have hk2p : (k : ℝ) ^ 2 ≤ p := by
+    have : (k ^ 2 : ℕ) ≤ p := by omega
+    exact_mod_cast this
+  -- k < ε p
+  have hkeps : (k : ℝ) < ε * p := by
+    have h1 : (k : ℝ) / ε ≤ ⌈(k : ℝ) / ε⌉₊ := Nat.le_ceil _
+    have h2 : ((⌈(k : ℝ) / ε⌉₊ : ℕ) : ℝ) < p := by
+      have : (⌈(k : ℝ) / ε⌉₊ : ℕ) + 1 ≤ p := hpke
+      have := (by exact_mod_cast this : ((⌈(k : ℝ) / ε⌉₊ : ℕ) : ℝ) + 1 ≤ (p : ℝ))
+      linarith
+    have : (k : ℝ) / ε < p := lt_of_le_of_lt h1 h2
+    rw [div_lt_iff₀ hε] at this; linarith
+  -- k ≤ |A|
+  have hkA : k ≤ A.card := by
+    have hlt : (k : ℝ) < A.card := by
+      have hkp : (k : ℝ) ≤ (1 / k) * p := by
+        rw [one_div, inv_mul_eq_div, le_div_iff₀ hkpos]
+        nlinarith [hk2p]
+      nlinarith [hA, hε, hppos]
+    have : k < A.card := by exact_mod_cast hlt
+    omega
+  -- p ≤ k(|A|-k)+1
+  have hcov : p ≤ k * (A.card - k) + 1 := by
+    have hsub : ((A.card - k : ℕ) : ℝ) = (A.card : ℝ) - k := by
+      rw [Nat.cast_sub hkA]
+    have hAk : (p : ℝ) + k * ε * p < k * A.card := by
+      have h := mul_lt_mul_of_pos_left hA hkpos
+      have hexp : k * ((1 / k + ε) * p) = p + k * ε * p := by
+        field_simp
+      linarith [hexp ▸ h]
+    have hk2eps : (k : ℝ) ^ 2 < k * ε * p := by nlinarith [hkeps, hkpos]
+    have hkey : (p : ℝ) < k * ((A.card : ℝ) - k) := by nlinarith [hAk, hk2eps]
+    have : (p : ℝ) < (k * (A.card - k) : ℕ) := by rw [Nat.cast_mul, hsub]; exact hkey
+    have : p < k * (A.card - k) := by exact_mod_cast this
+    omega
+  -- covering ⟹ 0 ∈ rsumH
+  have hcover := dsh_cover A (by omega) hkA hcov
+  have h0 : (0 : ZMod p) ∈ rsumH k A := by rw [hcover]; exact Finset.mem_univ _
+  rw [rsumH, Finset.mem_image] at h0
+  obtain ⟨s, hs, hsum⟩ := h0
+  rw [Finset.mem_powersetCard] at hs
+  refine ⟨s, hs.1, ?_, le_of_eq hs.2, ?_⟩
+  · rw [← Finset.card_pos, hs.2]; omega
+  · rw [← hsum]; rfl
+
+
+/-- Uniform-over-`k` Alon (ε-form) over prime moduli — the shape the dichotomy consumes. -/
+lemma alon_uniform_prime : ∀ kmax : ℕ, ∀ ε : ℝ, 0 < ε → ∃ N₀ : ℕ,
+    ∀ k : ℕ, 2 ≤ k → k ≤ kmax → ∀ p : ℕ, p.Prime → N₀ ≤ p →
+      ∀ A : Finset (ZMod p), ((1 / (k:ℝ) + ε) * p < A.card) →
+        ∃ B : Finset (ZMod p), B ⊆ A ∧ B.Nonempty ∧ B.card ≤ k ∧ (∑ b ∈ B, b) = 0 := by
   intro kmax
   induction kmax with
-  | zero =>
-    intro ε _
-    exact ⟨0, fun k hk2 hk0 _ _ _ _ => absurd hk0 (by omega)⟩
+  | zero => intro ε _; exact ⟨0, fun k hk2 hk0 _ _ _ _ _ => absurd hk0 (by omega)⟩
   | succ m ih =>
     intro ε hε
     obtain ⟨N₁, hN₁⟩ := ih ε hε
     by_cases hm : 2 ≤ m + 1
-    · obtain ⟨N₂, hN₂⟩ := alon_zero_sum (m + 1) hm ε hε
-      refine ⟨max N₁ N₂, fun k hk2 hkle N hN A hA => ?_⟩
+    · obtain ⟨N₂, hN₂⟩ := alon_prime (m + 1) hm ε hε
+      refine ⟨max N₁ N₂, fun k hk2 hkle p hp hN A hA => ?_⟩
       rcases Nat.lt_or_ge k (m + 1) with h | h
-      · exact hN₁ k hk2 (by omega) N (le_trans (le_max_left _ _) hN) A hA
+      · exact hN₁ k hk2 (by omega) p hp (le_trans (le_max_left _ _) hN) A hA
       · have hk : k = m + 1 := by omega
         subst hk
-        exact hN₂ N (le_trans (le_max_right _ _) hN) A hA
-    · exact ⟨N₁, fun k hk2 hkle _ _ _ _ => absurd hk2 (by omega)⟩
+        exact hN₂ p hp (le_trans (le_max_right _ _) hN) A hA
+    · exact ⟨N₁, fun k hk2 hkle _ _ _ _ _ => absurd hk2 (by omega)⟩
+
+open scoped Classical
 
 lemma sum_mem_two_q (q n : ℕ) (hq : 0 < q) (hdvd : q ∣ n) (hpos : 0 < n)
     (hlt : n < 3 * q) : n = q ∨ n = 2 * q := by
@@ -49,11 +711,8 @@ lemma sum_mem_two_q (q n : ℕ) (hq : 0 < q) (hdvd : q ∣ n) (hpos : 0 < n)
   · left; ring
   · right; ring
 
-/-- **Strictness `∑B < 3q`** via distinctness (the load-bearing step under `|B| ≤ K`):
-if `B ⊆ [1,E]`, `|B| ≤ K = ⌊3q/E⌋`, `3 ≤ K`, then `∑B < 3q`. Equality `∑B = 3q` would force
-`∑B = |B|·E = K·E` hence every element `= E`, so `|B| ≤ 1 < 3 ≤ K` — contradiction. -/
 lemma sum_lt_3q {E q K : ℕ} (hE : 0 < E) (hK3 : 3 ≤ K) (hKE : K * E ≤ 3 * q)
-    {B : Finset ℕ} (hB : B ⊆ Icc 1 E) (hcard : B.card ≤ K) :
+    {B : Finset ℕ} (hB : B ⊆ Finset.Icc 1 E) (hcard : B.card ≤ K) :
     (∑ b ∈ B, b) < 3 * q := by
   have hub : ∑ b ∈ B, b ≤ B.card * E := by
     calc ∑ b ∈ B, b ≤ ∑ _b ∈ B, E :=
@@ -87,7 +746,7 @@ lemma sum_lt_3q {E q K : ℕ} (hE : 0 < E) (hK3 : 3 ≤ K) (hKE : K * E ≤ 3 * 
     omega
 
 lemma cast_injOn (E q : ℕ) (h : E ≤ q) :
-    Set.InjOn (fun n : ℕ => (n : ZMod q)) (↑(Icc 1 E) : Set ℕ) := by
+    Set.InjOn (fun n : ℕ => (n : ZMod q)) (↑(Finset.Icc 1 E) : Set ℕ) := by
   intro a ha b hb hab
   simp only [Finset.coe_Icc, Set.mem_Icc] at ha hb
   rw [ZMod.natCast_eq_natCast_iff] at hab
@@ -101,9 +760,8 @@ lemma cast_injOn (E q : ℕ) (h : E ≤ q) :
     have := Nat.eq_zero_of_dvd_of_lt hdvd hlt
     omega
 
-/-- Filter-based preimage: a zero-sum subset of the image lifts to `B ⊆ S` with `q ∣ ∑B`. -/
 lemma exists_preimage_dvd (E q : ℕ) (hEq : E ≤ q) (hq0 : 0 < q)
-    (S : Finset ℕ) (hS : S ⊆ Icc 1 E)
+    (S : Finset ℕ) (hS : S ⊆ Finset.Icc 1 E)
     (B' : Finset (ZMod q)) (hB' : B' ⊆ S.image (fun n : ℕ => (n : ZMod q)))
     (hne : B'.Nonempty) (hsum : ∑ b ∈ B', b = 0) :
     ∃ B : Finset ℕ, B ⊆ S ∧ B.Nonempty ∧ B.card = B'.card ∧ q ∣ ∑ b ∈ B, b := by
@@ -143,24 +801,23 @@ lemma exists_preimage_dvd (E q : ℕ) (hEq : E ≤ q) (hq0 : 0 < q)
       rw [Nat.cast_sum]; exact key
     exact (CharP.cast_eq_zero_iff (ZMod q) q (∑ b ∈ B, b)).mp hcast
 
-/-- **Dichotomy core (Prop 2's finite claim).** Fix `ρ ≥ 2`, `δ > 0`. For all large `E`,
-uniformly for even `τ` with `2E ≤ τ ≤ ρE`, any `S ⊆ [1,E]` with
-`|S| > τ/(2⌊3τ/(2E)⌋) + δE` contains a subset summing to `τ`. -/
-theorem dichotomy_core (ρ : ℝ) (hρ : 2 ≤ ρ) (δ : ℝ) (hδ : 0 < δ) :
-    ∃ E₀ : ℕ, ∀ E : ℕ, E₀ ≤ E → ∀ τ : ℕ, Even τ → 2 * E ≤ τ → (τ : ℝ) ≤ ρ * E →
-      ∀ S : Finset ℕ, S ⊆ Icc 1 E →
+/-- Prime dichotomy core: `dichotomy_core` restricted to `q = τ/2` PRIME, using `alon_prime`. -/
+theorem dichotomy_core_prime (ρ : ℝ) (hρ : 2 ≤ ρ) (δ : ℝ) (hδ : 0 < δ) :
+    ∃ E₀ : ℕ, ∀ E : ℕ, E₀ ≤ E → ∀ τ : ℕ, Even τ → (τ / 2).Prime → 2 * E ≤ τ → (τ : ℝ) ≤ ρ * E →
+      ∀ S : Finset ℕ, S ⊆ Finset.Icc 1 E →
         (τ : ℝ) / (2 * ((3 * τ / (2 * E) : ℕ) : ℝ)) + δ * E < S.card →
         ∃ B ⊆ S, B.Nonempty ∧ (∑ b ∈ B, b) = τ := by
   have hρ0 : 0 < ρ := by linarith
   set Kmax : ℕ := (⌈(3 * ρ) / 2⌉).toNat with hKmaxdef
-  obtain ⟨N₀, hAlon⟩ := alon_uniform Kmax (δ / ρ) (by positivity)
+  obtain ⟨N₀, hAlon⟩ := alon_uniform_prime Kmax (δ / ρ) (by positivity)
   refine ⟨max (max N₀ 1) (⌈(Kmax : ℝ) * ρ / δ⌉.toNat + 1), ?_⟩
-  intro E hE τ hτeven hτlow hτhigh S hSsub hScard
+  intro E hE τ hτeven hqprime hτlow hτhigh S hSsub hScard
   have hN₀E : N₀ ≤ E := le_trans (le_trans (le_max_left _ _) (le_max_left _ _)) hE
   have h1E : 1 ≤ E := le_trans (le_trans (le_max_right _ _) (le_max_left _ _)) hE
   have hlossE : ⌈(Kmax : ℝ) * ρ / δ⌉.toNat + 1 ≤ E := le_trans (le_max_right _ _) hE
   have hE2pos : 0 < 2 * E := by omega
   set q : ℕ := τ / 2 with hqdef
+  have hqp : q.Prime := hqprime
   have hdvd2 : 2 ∣ τ := hτeven.two_dvd
   have h2q : 2 * q = τ := by omega
   have hqE : E ≤ q := by omega
@@ -170,7 +827,6 @@ theorem dichotomy_core (ρ : ℝ) (hρ : 2 ≤ ρ) (δ : ℝ) (hδ : 0 < δ) :
   have hE2R : (0:ℝ) < 2 * (E:ℝ) := by linarith
   have hτR : (2:ℝ) * (E:ℝ) ≤ (τ:ℝ) := by exact_mod_cast hτlow
   have hqR : (τ:ℝ) = 2 * (q:ℝ) := by exact_mod_cast h2q.symm
-  -- K = ⌊3τ/(2E)⌋ = 3*τ/(2*E)  (Nat division = floor)
   set K : ℕ := 3 * τ / (2 * E) with hKdef
   have hK3 : 3 ≤ K := by
     rw [hKdef, Nat.le_div_iff_mul_le hE2pos]; omega
@@ -211,7 +867,7 @@ theorem dichotomy_core (ρ : ℝ) (hρ : 2 ≤ ρ) (δ : ℝ) (hδ : 0 < δ) :
         = (1 / (K:ℝ)) * (q:ℝ) + (δ / ρ) * (q:ℝ) := by ring
     rw [expand, hterm]
     linarith [hScard, hstep]
-  obtain ⟨B₁', hB₁sub, hB₁ne, hB₁cardLe, hB₁sum⟩ := hAlon K h2K hKle q hN₀q Simg hdens1
+  obtain ⟨B₁', hB₁sub, hB₁ne, hB₁cardLe, hB₁sum⟩ := hAlon K h2K hKle q hqp hN₀q Simg hdens1
   obtain ⟨B₁, hB₁subS, hB₁neN, hB₁cardEq, hB₁dvd⟩ :=
     exists_preimage_dvd E q hqE hq0 S hSsub B₁' (hSimg ▸ hB₁sub) hB₁ne hB₁sum
   have hB₁pos : 0 < ∑ b ∈ B₁, b := by
@@ -265,7 +921,7 @@ theorem dichotomy_core (ρ : ℝ) (hρ : 2 ≤ ρ) (δ : ℝ) (hδ : 0 < δ) :
           = (1 / (K:ℝ)) * (q:ℝ) + (δ / ρ) * (q:ℝ) := by ring
       rw [expand, hterm]
       linarith [hScard, hqhalf, hKsmall, hB₁cardR]
-    obtain ⟨B₂', hB₂sub, hB₂ne, hB₂cardLe, hB₂sum⟩ := hAlon K h2K hKle q hN₀q Simg2 hdens2
+    obtain ⟨B₂', hB₂sub, hB₂ne, hB₂cardLe, hB₂sum⟩ := hAlon K h2K hKle q hqp hN₀q Simg2 hdens2
     obtain ⟨B₂, hB₂subSB₁, hB₂neN, hB₂cardEq, hB₂dvd⟩ :=
       exists_preimage_dvd E q hqE hq0 (S \ B₁) (Finset.sdiff_subset.trans hSsub)
         B₂' (hSimg2 ▸ hB₂sub) hB₂ne hB₂sum
@@ -294,22 +950,32 @@ theorem dichotomy_core (ρ : ℝ) (hρ : 2 ≤ ρ) (δ : ℝ) (hδ : 0 < δ) :
       omega
 
 
-/-- **Avoider density bound** (contrapositive of `dichotomy_core`). For all large `E`,
-every even `τ ∈ [2E, ρE]` and every avoider `A ⊆ [1,E]` of `τ` has
-`|A| ≤ τ/(2⌊3τ/(2E)⌋) + δE`. This is Proposition 2's engine in avoider form. -/
-theorem avoider_density_bound (ρ : ℝ) (hρ : 2 ≤ ρ) (δ : ℝ) (hδ : 0 < δ) :
-    ∃ E₀ : ℕ, ∀ E : ℕ, E₀ ≤ E → ∀ τ : ℕ, Even τ → 2 * E ≤ τ → (τ : ℝ) ≤ ρ * E →
-      ∀ A : Finset ℕ, A ⊆ Icc 1 E → Avoids A τ →
+/-- Avoider density bound (prime subsequence), contrapositive of `dichotomy_core_prime`. -/
+theorem avoider_density_bound_prime (ρ : ℝ) (hρ : 2 ≤ ρ) (δ : ℝ) (hδ : 0 < δ) :
+    ∃ E₀ : ℕ, ∀ E : ℕ, E₀ ≤ E → ∀ τ : ℕ, Even τ → (τ / 2).Prime → 2 * E ≤ τ → (τ : ℝ) ≤ ρ * E →
+      ∀ A : Finset ℕ, A ⊆ Finset.Icc 1 E → Avoids A τ →
         (A.card : ℝ) ≤ (τ : ℝ) / (2 * ((3 * τ / (2 * E) : ℕ) : ℝ)) + δ * E := by
-  obtain ⟨E₀, hdich⟩ := dichotomy_core ρ hρ δ hδ
+  obtain ⟨E₀, hdich⟩ := dichotomy_core_prime ρ hρ δ hδ
   refine ⟨E₀, ?_⟩
-  intro E hE τ hτeven hτlow hτhigh A hAsub hAvoid
+  intro E hE τ hτeven hqp hτlow hτhigh A hAsub hAvoid
   by_contra hlt
   push_neg at hlt
-  obtain ⟨B, hBsub, hBne, hBsum⟩ := hdich E hE τ hτeven hτlow hτhigh A hAsub hlt
+  obtain ⟨B, hBsub, hBne, hBsum⟩ := hdich E hE τ hτeven hqp hτlow hτhigh A hAsub hlt
   have hBempty : B = ∅ := hAvoid B hBsub hBsum
   exact absurd hBempty (Finset.nonempty_iff_ne_empty.mp hBne)
 
+
+open Filter Topology
+lemma subseq_upper_of_tendsto {g : ℕ → ℝ} {β L : ℝ} (ss : ℕ → ℕ)
+    (hss : Tendsto ss atTop atTop)
+    (hbound : ∀ᶠ k in atTop, g (ss k) ≤ β)
+    (hL : Tendsto g atTop (𝓝 L)) : L ≤ β :=
+  le_of_tendsto (hL.comp hss) hbound
+
+lemma tendsto_two_nthPrime : Tendsto (fun k => 2 * Nat.nth Nat.Prime k) atTop atTop := by
+  have hsm : StrictMono (Nat.nth Nat.Prime) := Nat.nth_strictMono Nat.infinite_setOf_prime
+  have h1 : Tendsto (Nat.nth Nat.Prime) atTop atTop := hsm.tendsto_atTop
+  exact tendsto_atTop_mono (fun k => Nat.le_mul_of_pos_left _ (by norm_num)) h1
 
 lemma Avoids.subset {A B : Finset ℕ} {n : ℕ} (hav : Avoids A n) (h : B ⊆ A) : Avoids B n :=
   fun C hC => hav C (hC.trans h)
@@ -535,23 +1201,24 @@ theorem even_half_le (c : ℝ) (hc0 : 0 < c) (hc12 : c ≤ 1 / 2) :
   intro L hL
   set ρ : ℝ := 2 / c with hρdef
   have hρ2 : 2 ≤ ρ := by rw [hρdef, le_div_iff₀ hc0]; linarith [hc12, hc0]
-  obtain ⟨E₀, hADB⟩ := avoider_density_bound ρ hρ2 δ hδpos
-  have hev : ∀ᶠ k : ℕ in atTop, (fun n : ℕ => (Fc c n : ℝ) / n) (2 * k + 2) ≤ β := by
+  obtain ⟨E₀, hADB⟩ := avoider_density_bound_prime ρ hρ2 δ hδpos
+  have hev : ∀ᶠ k : ℕ in atTop, (fun n : ℕ => (Fc c n : ℝ) / n) (2 * Nat.nth Nat.Prime k) ≤ β := by
     have hbig : ∀ᶠ k : ℕ in atTop,
-        E₀ ≤ ⌊c * ((2 * k + 2 : ℕ) : ℝ)⌋₊ ∧ (⌈2 / c⌉₊ + 2 : ℕ) ≤ (2 * k + 2 : ℕ) := by
+        E₀ ≤ ⌊c * ((2 * Nat.nth Nat.Prime k : ℕ) : ℝ)⌋₊ ∧ (⌈2 / c⌉₊ + 2 : ℕ) ≤ (2 * Nat.nth Nat.Prime k : ℕ) := by
       apply Filter.Eventually.and
-      · have hnat : Tendsto (fun k : ℕ => ((2 * k + 2 : ℕ) : ℝ)) atTop atTop :=
+      · have hnat : Tendsto (fun k : ℕ => ((2 * Nat.nth Nat.Prime k : ℕ) : ℝ)) atTop atTop :=
           tendsto_natCast_atTop_atTop.comp
-            (tendsto_atTop_atTop.2 (fun b => ⟨b, fun a ha => by omega⟩))
-        have hmul : Tendsto (fun k : ℕ => c * ((2 * k + 2 : ℕ) : ℝ)) atTop atTop :=
+            (tendsto_two_nthPrime)
+        have hmul : Tendsto (fun k : ℕ => c * ((2 * Nat.nth Nat.Prime k : ℕ) : ℝ)) atTop atTop :=
           Filter.Tendsto.const_mul_atTop hc0 hnat
-        have hto : Tendsto (fun k : ℕ => ⌊c * ((2 * k + 2 : ℕ) : ℝ)⌋₊) atTop atTop :=
+        have hto : Tendsto (fun k : ℕ => ⌊c * ((2 * Nat.nth Nat.Prime k : ℕ) : ℝ)⌋₊) atTop atTop :=
           tendsto_nat_floor_atTop.comp hmul
         exact hto.eventually_ge_atTop E₀
-      · exact (tendsto_atTop_atTop.2 (fun b => ⟨b, fun a ha => by omega⟩)).eventually_ge_atTop _
+      · exact (tendsto_two_nthPrime).eventually_ge_atTop _
     filter_upwards [hbig] with k hk
     obtain ⟨hkE₀, hkbig⟩ := hk
-    set n : ℕ := 2 * k + 2 with hn
+    set n : ℕ := 2 * Nat.nth Nat.Prime k with hn
+    have hnp2 : 2 ≤ Nat.nth Nat.Prime k := (Nat.prime_nth_prime k).two_le
     set E : ℕ := ⌊c * (n : ℝ)⌋₊ with hE
     have hnpos : 0 < n := by omega
     have hnR : (0:ℝ) < (n:ℝ) := by exact_mod_cast hnpos
@@ -572,10 +1239,12 @@ theorem even_half_le (c : ℝ) (hc0 : 0 < c) (hc12 : c ≤ 1 / 2) :
       rw [hρdef, div_mul_eq_mul_div, le_div_iff₀ hc0]
       have hEfloor : (c * n : ℝ) - 1 < (E:ℝ) := by rw [hE]; exact Nat.sub_one_lt_floor _
       nlinarith [hEfloor, hnc2, hc0, hnR]
-    have hEeven : Even n := ⟨k + 1, by rw [hn]; ring⟩
+    have hEeven : Even n := ⟨Nat.nth Nat.Prime k, by rw [hn]; ring⟩
+    have hnprime : (n / 2).Prime := by
+      rw [hn, Nat.mul_div_cancel_left _ (by norm_num : (0:ℕ) < 2)]; exact Nat.prime_nth_prime k
     have hFb := F_le_of_bound E n
         ((n : ℝ) / (2 * ((3 * n / (2 * E) : ℕ) : ℝ)) + δ * E)
-        (fun A hAsub hAv => hADB E hkE₀ n hEeven hEeven_ok hτρ A hAsub hAv)
+        (fun A hAsub hAv => hADB E hkE₀ n hEeven hnprime hEeven_ok hτρ A hAsub hAv)
     have hKden : J ≤ (3 * n / (2 * E) : ℕ) := by
       rw [Nat.le_div_iff_mul_le (by omega : 0 < 2 * E)]
       have hJ2c : (J:ℝ) * (2 * c) ≤ 3 := by
@@ -606,7 +1275,7 @@ theorem even_half_le (c : ℝ) (hc0 : 0 < c) (hc12 : c ≤ 1 / 2) :
       rw [add_mul]; congr 1; rw [div_mul_eq_mul_div, one_mul]
     rw [hexp]
     linarith [hFb, hA, hB]
-  exact even_upper_of_tendsto hev hL
+  exact subseq_upper_of_tendsto (fun k => 2 * Nat.nth Nat.Prime k) tendsto_two_nthPrime hev hL
 theorem even_half_le_high (c : ℝ) (hc12 : 1 / 2 < c) (hc1 : c < 1) :
     ∃ β : ℝ, β < c / 2 ∧
       ∀ L : ℝ, Tendsto (fun n : ℕ => (Fc c n : ℝ) / n) atTop (𝓝 L) → L ≤ β := by
@@ -644,14 +1313,15 @@ theorem even_half_le_high (c : ℝ) (hc12 : 1 / 2 < c) (hc1 : c < 1) :
   intro L hL
   set ρ : ℝ := 2 / d with hρdef
   have hρ2 : 2 ≤ ρ := by rw [hρdef, le_div_iff₀ hd0]; linarith [hd12, hd0]
-  obtain ⟨E₀, hADB⟩ := avoider_density_bound ρ hρ2 δ hδpos
+  obtain ⟨E₀, hADB⟩ := avoider_density_bound_prime ρ hρ2 δ hδpos
   -- big threshold on n
   set T : ℝ := (E₀ + 3) / d + 4 / (2 * c - 1) + 2 / η + 4 with hT
-  have hev : ∀ᶠ k : ℕ in atTop, (fun n : ℕ => (Fc c n : ℝ) / n) (2 * k + 2) ≤ β := by
-    have hbig : ∀ᶠ k : ℕ in atTop, ⌈T⌉₊ ≤ (2 * k + 2 : ℕ) :=
-      (tendsto_atTop_atTop.2 (fun b => ⟨b, fun a ha => by omega⟩)).eventually_ge_atTop _
+  have hev : ∀ᶠ k : ℕ in atTop, (fun n : ℕ => (Fc c n : ℝ) / n) (2 * Nat.nth Nat.Prime k) ≤ β := by
+    have hbig : ∀ᶠ k : ℕ in atTop, ⌈T⌉₊ ≤ (2 * Nat.nth Nat.Prime k : ℕ) :=
+      (tendsto_two_nthPrime).eventually_ge_atTop _
     filter_upwards [hbig] with k hkbig
-    set n : ℕ := 2 * k + 2 with hn
+    set n : ℕ := 2 * Nat.nth Nat.Prime k with hn
+    have hnp2 : 2 ≤ Nat.nth Nat.Prime k := (Nat.prime_nth_prime k).two_le
     set M : ℕ := ⌊c * (n : ℝ)⌋₊ with hM
     set D : ℕ := n - M with hDdef
     have hnpos : 0 < n := by omega
@@ -703,7 +1373,9 @@ theorem even_half_le_high (c : ℝ) (hc12 : 1 / 2 < c) (hc1 : c < 1) :
         have hn2Mr : (n:ℝ) ≤ 2 * M := by exact_mod_cast hn2M
         nlinarith [hn2Mr]
       exact_mod_cast hr
-    have hEeven : Even n := ⟨k + 1, by rw [hn]; ring⟩
+    have hEeven : Even n := ⟨Nat.nth Nat.Prime k, by rw [hn]; ring⟩
+    have hnprime : (n / 2).Prime := by
+      rw [hn, Nat.mul_div_cancel_left _ (by norm_num : (0:ℕ) < 2)]; exact Nat.prime_nth_prime k
     have hτρ : (n : ℝ) ≤ ρ * ((D - 1 : ℕ):ℝ) := by
       rw [hρdef, div_mul_eq_mul_div, le_div_iff₀ hd0, hDm1R, ← hnDR]
       nlinarith [hnd3, hnd, hMle, (Nat.cast_nonneg E₀ : (0:ℝ) ≤ (E₀:ℝ))]
@@ -718,7 +1390,7 @@ theorem even_half_le_high (c : ℝ) (hc12 : 1 / 2 < c) (hc1 : c < 1) :
         intro a ha; simp only [hAlo, mem_inter] at ha; exact ha.2
       have hAloAv : Avoids Alo n := Avoids.subset hAv (by
         intro a ha; simp only [hAlo, mem_inter] at ha; exact ha.1)
-      have hlow := hADB (D - 1) hE₀le n hEeven hEeven_ok hτρ Alo hAloSub hAloAv
+      have hlow := hADB (D - 1) hE₀le n hEeven hnprime hEeven_ok hτρ Alo hAloSub hAloAv
       have hcastsplit : (A.card : ℝ)
           ≤ (Alo.card : ℝ) + (((M - D + 2) / 2 : ℕ) : ℝ) := by exact_mod_cast hsplit
       have : (Alo.card : ℝ)
@@ -773,7 +1445,7 @@ theorem even_half_le_high (c : ℝ) (hc12 : 1 / 2 < c) (hc1 : c < 1) :
       rw [add_mul, add_mul, add_mul]; congr 2; rw [div_mul_eq_mul_div, one_mul]
     rw [hexp]
     linarith [hFb, hA1, hA2, hMval]
-  exact even_upper_of_tendsto hev hL
+  exact subseq_upper_of_tendsto (fun k => 2 * Nat.nth Nat.Prime k) tendsto_two_nthPrime hev hL
 
 /-- **Erdős #361 (irregularity, c ∈ (0,1)).** `f_c(n)/n` does not converge. -/
 theorem erdos361_irregular (c : ℝ) (hc0 : 0 < c) (hc1 : c < 1) :
@@ -930,5 +1602,7 @@ theorem erdos361_cge1 (M n : ℕ) (hn : 1 ≤ n) (hM : n ≤ M) :
       exact ⟨extremal_subset hn hM, extremal_avoids hn hM⟩
     calc M - (n + 1) / 2 = (extremal M n).card := (extremal_card hn hM).symm
       _ ≤ (Avoiders M n).sup Finset.card := Finset.le_sup hmem
+
+
 
 end Erdos361

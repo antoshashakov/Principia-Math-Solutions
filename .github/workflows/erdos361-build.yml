@@ -35,11 +35,11 @@ jobs:
       - name: Build Challenge and Solution
         run: lake build Challenge Solution
 
-      # No unproved placeholders, no native_decide anywhere; and the ONLY axiom in the whole
-      # solution is the single trusted, cited external theorem `alon_zero_sum` (Alon 1987,
-      # Thm 1.1) declared in Erdos361/Statement.lean. Challenge.lean's two `sorry`s are the
+      # No unproved placeholders, no native_decide anywhere, and NO axiom declarations at all
+      # (the former Alon 1987 postulate is now proved from Mathlib's Combinatorial
+      # Nullstellensatz — see VERIFICATION.md §4). Challenge.lean's two `sorry`s are the
       # Comparator fixture and are checked separately below.
-      - name: No sorry / native_decide; exactly one intended Alon axiom
+      - name: No sorry / native_decide / axiom
         run: |
           if grep -rn "sorry\|native_decide" Erdos361/*.lean Solution.lean; then
             echo "::error::unproved placeholder or native_decide found"; exit 1
@@ -47,13 +47,10 @@ jobs:
           total=$(grep -rh "^axiom " Erdos361/*.lean Solution.lean Challenge.lean | wc -l)
           echo "axiom declarations found: $total"
           grep -rn "^axiom " Erdos361/*.lean Solution.lean Challenge.lean || true
-          if [ "$total" -ne 1 ]; then
-            echo "::error::expected exactly one axiom (alon_zero_sum), found $total"; exit 1
+          if [ "$total" -ne 0 ]; then
+            echo "::error::expected zero axioms, found $total"; exit 1
           fi
-          if ! grep -q "^axiom alon_zero_sum" Erdos361/Statement.lean; then
-            echo "::error::the one axiom must be alon_zero_sum in Statement.lean"; exit 1
-          fi
-          echo "clean (one trusted axiom: alon_zero_sum = Alon 1987 Thm 1.1)"
+          echo "clean (axiom-free: Alon 1987 Thm 1.1 is now proved, not postulated)"
 
       # Challenge.lean must have exactly two intentional sorries — one per main result.
       - name: Challenge.lean has exactly two intentional sorries

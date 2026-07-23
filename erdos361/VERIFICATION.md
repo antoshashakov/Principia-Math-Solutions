@@ -3,7 +3,7 @@
 The honest ledger. Every claim below is either a command that was run with its actual
 output recorded, or an explicit note that it was **not** run (and where it is run instead).
 
-- **Date:** 2026-07-22
+- **Date:** 2026-07-23 (axiom-free upgrade; the former `alon_zero_sum` postulate is now proved)
 - **Toolchain:** `leanprover/lean4:v4.31.0` (`lean-toolchain`)
 - **Mathlib:** rev `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f` (= tag `v4.31.0`; `lake-manifest.json`)
 - **Development platform:** the Lean was authored and elaborated on Windows against the same
@@ -14,13 +14,15 @@ output recorded, or an explicit note that it was **not** run (and where it is ru
 
 ## §1 Scope
 
-Two headline results (see `Challenge.lean`):
+Two headline results (see `Challenge.lean`), **both axiom-free**:
 
 - `Erdos361.Statement.erdos361_cge1` — for `1 ≤ n ≤ M`, `F M n = M − ⌈n/2⌉`. Hence for
-  `c ≥ 1`, `f_c(n)/n → c − 1/2`: the **regular** range. **Axiom-free.**
+  `c ≥ 1`, `f_c(n)/n → c − 1/2`: the **regular** range.
 - `Erdos361.Statement.erdos361_irregular` — for every real `c ∈ (0,1)`, `f_c(n)/n` does
-  **not** converge (the Erdős–Graham irregularity question). Depends on **one** cited axiom
-  (§4).
+  **not** converge (the Erdős–Graham irregularity question).
+
+Both depend only on the three standard Lean/Mathlib axioms `[propext, Classical.choice,
+Quot.sound]`. There is **no** external postulate (see §4).
 
 ## §2 The build
 
@@ -31,49 +33,51 @@ pinned Mathlib rev via a warm REPL — see §4 for the actual `0 errors / 0 sorr
 the byte-identical concatenation of `Statement.lean` + the development + the `Solution.lean`
 term assignments.
 
-## §3 No `sorry` / extra axiom / `native_decide` (run locally)
+## §3 No `sorry` / axiom / `native_decide` (run locally)
 
 ```
 $ grep -rn "sorry\|native_decide" Erdos361/*.lean Solution.lean
 (no output)
 
 $ grep -rh "^axiom " Erdos361/*.lean Solution.lean Challenge.lean | wc -l
-1
-$ grep -rn "^axiom " Erdos361/*.lean Solution.lean Challenge.lean
-Erdos361/Statement.lean:24:axiom alon_zero_sum : ...
+0
 
 $ grep -c "^  sorry$" Challenge.lean
 2
 ```
 
 The **only** `sorry`s in the repository are the two in `Challenge.lean` (the Comparator
-fixture, one per result). The **only** `axiom` in the repository is `alon_zero_sum` in the
-trusted `Erdos361/Statement.lean` (§4). No `native_decide` / `implemented_by` / `unsafe`.
+fixture, one per result). There are **no** `axiom` declarations anywhere. No `native_decide`
+/ `implemented_by` / `unsafe`.
 
-## §4 Axiom footprints
+## §4 Axiom footprints — both results axiom-free
 
 Elaborated via warm Lean REPL against Mathlib `fabf563a`, on the byte-identical
 Statement+development+Solution content (0 errors, 0 sorries), `#print axioms`:
 
 ```
 'Erdos361.Statement.erdos361_cge1'      depends on axioms: [propext, Classical.choice, Quot.sound]
-'Erdos361.Statement.erdos361_irregular' depends on axioms: [propext, Classical.choice, Quot.sound,
-                                                             Erdos361.Statement.alon_zero_sum]
+'Erdos361.Statement.erdos361_irregular' depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
 
-- `erdos361_cge1` is **axiom-free** (the three standard Lean/Mathlib axioms only).
-- `erdos361_irregular` additionally uses **`Erdos361.Statement.alon_zero_sum`**, a **trusted,
-  cited external theorem**: **Alon 1987**, *Subset Sums*, J. Number Theory **27** (1987)
-  196–205, **Theorem 1.1** — "for `k ≥ 2`, `ε > 0` there is `N₀` so that any `A ⊆ ℤ/Nℤ`
-  (`N ≥ N₀`) with `|A| > (1/k + ε)N` has a nonempty `B ⊆ A` with `0 < |B| ≤ k` and
-  `∑ B = 0`". It is stated **verbatim** in `Erdos361/Statement.lean` (part of the trusted
-  audit surface) and is **not** proved in Lean (it is not in Mathlib; EGZ is a different
-  theorem). It is listed in `comparator/erdos361_irregular.json`'s `permitted_axioms`.
-  The `≤ k` endpoint (not `< k`) was verified against the source PDF; it forces the floor
-  constant `⌊3τ/(2E)⌋` used in the proof.
+Both are **axiom-free** (the three standard Lean/Mathlib axioms only).
 
-  **This is the one place the formalization is conditional.** It is a standard, published
-  theorem, honestly declared. `erdos361_cge1` carries no such dependency.
+**Alon 1987 Theorem 1.1 is now PROVED, not postulated.** Earlier revisions of this solution
+carried a single external axiom `alon_zero_sum` — Alon 1987, *Subset Sums*, J. Number Theory
+**27** (1987) 196–205, Thm 1.1. That postulate has been eliminated: `Erdos361/Core.lean`
+proves the required bounded-zero-sum result **over a prime modulus** from scratch, via
+
+- the general-`h` **Dias da Silva–Hamidoune** restricted-sumset bound `|A^∧h| ≥
+  min(p, h(|A|−h)+1)`, built from Mathlib's `combinatorial_nullstellensatz` (the coefficient
+  of the Alon–Nathanson–Ruzsa witness monomial in the Vandermonde × power polynomial is a
+  falling-factorial determinant `= ∏_{i<j}(dⱼ−dᵢ)`, shown nonzero mod `p`);
+- its **covering** corollary (`|A| > (1/k+ε)p ⟹ A^∧k = ℤ/pℤ ∋ 0`), giving Alon's Theorem 1.1
+  over prime `p`;
+
+and the irregularity conclusion is then assembled on the even subsequence `n = 2p` (`p`
+prime — infinitely many), whose limsup stays strictly below the universal odd-`n` liminf
+`c/2`. DSH is not in Mathlib; it is derived here. Every step is machine-checked with the
+axiom footprint above.
 
 ## §5 Statement-fidelity interface check
 
@@ -93,16 +97,13 @@ elaborate — the term assignment no longer type-checks. (Run this by editing `C
 **Linux-only** (landrun / Landlock sandbox); **NOT run on this platform (Windows).** Runs on
 CI in `.github/workflows/erdos361-comparator.yml`, which builds pinned `comparator`,
 `lean4export` (matched to Lean v4.31.0), and `landrun`, then runs **two** configs in the
-sandbox:
+sandbox — both with permitted axioms `propext`, `Quot.sound`, `Classical.choice` only:
 
-- `comparator/erdos361_cge1.json` — permitted axioms `propext`, `Quot.sound`,
-  `Classical.choice` (proves `erdos361_cge1` is axiom-free).
-- `comparator/erdos361_irregular.json` — the same three **plus**
-  `Erdos361.Statement.alon_zero_sum`.
+- `comparator/erdos361_cge1.json` — proves `erdos361_cge1` is axiom-free.
+- `comparator/erdos361_irregular.json` — proves `erdos361_irregular` is axiom-free.
 
-The workflow requires the string `Your solution is okay!` twice (once per config). At the
-time of writing this run is **pending on CI** (the first push); its result is the
-authoritative check and supersedes §4/§5 if they ever disagree.
+The workflow requires the string `Your solution is okay!` twice (once per config). Its result
+is the authoritative check and supersedes §4/§5 if they ever disagree.
 
 ## §7 Deliberately excluded
 

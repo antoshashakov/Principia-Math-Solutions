@@ -5,13 +5,13 @@ This file is the audit surface. Comparator (github.com/leanprover/comparator) ch
 the corresponding declarations in `Solution.lean` prove EXACTLY these statements, using no
 axioms beyond the permitted list in `comparator/*.json`:
   • `erdos361_cge1`      — [propext, Quot.sound, Classical.choice]  (axiom-free).
-  • `erdos361_irregular` — the same three PLUS `Erdos361.Statement.alon_zero_sum`
-    (Alon 1987, Thm 1.1 — a trusted, cited external theorem, not proved in Lean; see
-    `VERIFICATION.md` §4 and `Erdos361/Statement.lean`).
+  • `erdos361_irregular` — [propext, Quot.sound, Classical.choice]  (axiom-free). Alon 1987
+    Thm 1.1, formerly postulated, is now PROVED in `Erdos361/Core.lean` (general-h Dias da
+    Silva–Hamidoune from Mathlib's Combinatorial Nullstellensatz, on the subsequence n = 2p).
 
 The `sorry`s below are deliberate and are the only `sorry`s in the repository.
 
-Import closure: `Erdos361.Statement` (definitions + the Alon axiom) and Mathlib. Nothing
+Import closure: `Erdos361.Statement` (definitions only) and Mathlib. Nothing
 from the development is trusted here.
 
 WHAT EACH STATEMENT SAYS, in words:

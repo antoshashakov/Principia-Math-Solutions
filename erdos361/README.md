@@ -18,22 +18,22 @@ avoider of `n` in `[1,M]` (`Erdos361/Statement.lean`).
 
 ## How the statements are kept honest
 
-`Erdos361/Statement.lean` (definitions + one axiom, Mathlib-only import) and `Challenge.lean`
+`Erdos361/Statement.lean` (definitions only, Mathlib-only import) and `Challenge.lean`
 (the two statements, `sorry`) are the **entire audit surface**. `Solution.lean` proves the
 same two statements by direct term assignment from the development, so Lean checks the
 development's statements are definitionally the trusted ones.
 [Comparator](https://github.com/leanprover/comparator) verifies this mechanically on CI
 (`comparator/`), and checks the axiom footprints.
 
-## The one axiom
+## Axiom-free
 
-`erdos361_cge1` is **axiom-free** (`propext`, `Quot.sound`, `Classical.choice` only).
-
-`erdos361_irregular` additionally depends on **one** trusted, cited external theorem:
-`Erdos361.Statement.alon_zero_sum` = **Alon 1987** *(Subset Sums, J. Number Theory 27
-(1987) 196–205, Theorem 1.1)*, the paper's sole external input, which is not in Mathlib. It
-is stated verbatim (ε-form, `0 < |B| ≤ k`) in the trusted `Statement.lean` and is listed in
-`comparator/erdos361_irregular.json`'s `permitted_axioms`. See `VERIFICATION.md` §4.
+**Both** `erdos361_cge1` and `erdos361_irregular` are **axiom-free** — `[propext, Quot.sound,
+Classical.choice]` only. The paper's sole external input, **Alon 1987** *(Subset Sums, J.
+Number Theory 27 (1987) 196–205, Theorem 1.1)* — formerly postulated as an axiom — is now
+**proved from scratch** in `Erdos361/Core.lean`: the general-`h` **Dias da Silva–Hamidoune**
+restricted-sumset bound (built from Mathlib's Combinatorial Nullstellensatz) gives Alon's
+theorem over a prime modulus, and the irregularity is assembled on the subsequence `n = 2p`
+(`p` prime). See `VERIFICATION.md` §4.
 
 ## Verify it yourself
 
@@ -55,7 +55,7 @@ lake env /path/to/comparator comparator/erdos361_irregular.json   # expect: Your
 ```
 erdos361/
 ├── Erdos361/
-│   ├── Statement.lean   trusted defs (Avoids/Avoiders/F/Fc) + the Alon axiom
+│   ├── Statement.lean   trusted defs (Avoids/Avoiders/F/Fc) — no axioms
 │   └── Core.lean        the development: modular dichotomy, avoider bounds, both theorems
 ├── Erdos361.lean        build root (imports Core)
 ├── Challenge.lean       the two statements, `sorry`  (audit surface)

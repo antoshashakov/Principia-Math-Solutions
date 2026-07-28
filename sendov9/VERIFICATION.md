@@ -198,6 +198,38 @@ The workflow requires the string `Your solution is okay!` twice. That job delibe
 has not been compiled beforehand. **Its result is the authoritative check and supersedes
 §2/§4/§5 if they ever disagree.**
 
+**Result: PASSED**, on commit `e547beb`
+([run 30390230659](https://github.com/antoshashakov/Principia-Math-Solutions/actions/runs/30390230659),
+2026-07-28, 21 minutes). Every step succeeded, including the sandbox self-test:
+
+```
+landrun denies out-of-policy writes (rc=2)
+=== comparator on comparator/sendov9_general.json ===
+Your solution is okay!
+=== comparator on comparator/sendov9_monic.json ===
+Your solution is okay!
+comparator 'okay' count: 2 (expected 2 — general + monic)
+comparator accepted both configs
+```
+
+The sandbox self-test matters: if landrun silently no-opped, a Comparator pass would mean
+nothing, so the workflow refuses to trust the result unless an out-of-policy write is
+actually denied first.
+
+**Note on the companion `sendov9-build` run for `e547beb`:** it reported *failure*, and the
+failure was in this repository's own CI assertion, not in the Lean. Every substantive step
+passed there — the library built, `Solution` built, no declaration used `sorry`, and all 744
+footprints were inside `{propext, Classical.choice, Quot.sound}`, with
+
+```
+'Sendov9.Statement.sendov_degree_nine'         depends on axioms: [propext, Classical.choice, Quot.sound]
+'Sendov9.Statement.sendov_degree_nine_general' depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
+The failing step asserted that `solution.log` holds exactly two footprint lines; it holds
+372, because `lake build Solution` replays the cached info messages of every dependency.
+Fixed in the following commit by matching on the declaration name instead of counting.
+
 ## §8 The paper
 
 Committed as supplied by the author and pinned by sha256:

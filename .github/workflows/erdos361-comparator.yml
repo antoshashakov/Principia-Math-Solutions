@@ -117,7 +117,8 @@ jobs:
           run_cfg comparator/erdos361_cge1.json
           # erdos361_irregular: permitted axioms additionally include the cited Alon 1987 theorem.
           run_cfg comparator/erdos361_irregular.json
-          # basile71_unconditional (Part 1): axiom-free; Freiman 3k-3 is a hypothesis, not an axiom.
+          # basile71_unconditional (Part 1): axiom-free AND fully unconditional (Freiman 3k-3 now
+          # proved in-project, neither axiom nor hypothesis).
           run_cfg comparator/erdos361_basile.json
 
       - name: Require the success string

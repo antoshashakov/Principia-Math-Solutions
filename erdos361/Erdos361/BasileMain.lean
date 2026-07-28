@@ -1,6 +1,7 @@
 import Erdos361.BasileGlue
 import Erdos361.BasileGreedy
 import Erdos361.BasileCovering
+import Erdos361.BasileFreiman
 open scoped Pointwise
 
 /-!
@@ -54,5 +55,20 @@ theorem basile71_unconditional (ε : ℝ) (hε : 0 < ε)
   exact basile71_glue E t A hAsub ht2 ht3 htlo hthi G hgood ⟨h, by omega, hrep⟩
 
 #print axioms basile71_unconditional
+
+/-- **Basile 7.1 (snd = 3 linear case), FULLY unconditional.** Same statement as
+`basile71_unconditional`, but with `hFreiman` discharged by the in-project, from-scratch,
+axiom-free `Erdos361Freiman.freiman_3k3` (Freiman's `3k-3` theorem). No cited hypothesis remains —
+the only inputs are Mathlib and the three standard axioms. A candidate pending expert referee; it
+does not claim the full erdosproblems.com #361. -/
+theorem basile71_fully_unconditional (ε : ℝ) (hε : 0 < ε) :
+    ∃ E₀ : ℕ, ∀ E : ℕ, E₀ ≤ E → ∀ A : Finset ℕ, A ⊆ Finset.Icc 1 E →
+      (1 / 3 + ε) * E ≤ (A.card : ℝ) →
+      ∀ t : ℕ, 2 * E < t → t < 3 * E → 2 ∣ t → ¬ 3 ∣ t → ¬ Avoids A t :=
+  basile71_unconditional ε hε
+    (fun B' L' hsub h0 hL hk hL2 hgcd =>
+      Erdos361Freiman.freiman_3k3 B' L' hsub h0 hL hk hgcd hL2)
+
+#print axioms basile71_fully_unconditional
 
 end Erdos361BasileMaster

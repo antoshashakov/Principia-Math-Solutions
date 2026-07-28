@@ -3,7 +3,8 @@
 The honest ledger. Every claim below is either a command that was run with its actual
 output recorded, or an explicit note that it was **not** run (and where it is run instead).
 
-- **Date:** 2026-07-23 (axiom-free upgrade; the former `alon_zero_sum` postulate is now proved)
+- **Date:** 2026-07-28 (Part 1 fully unconditional: Freiman `3k-3` now proved in-project, the
+  former `hFreiman` hypothesis dropped). Prior: 2026-07-23 (the `alon_zero_sum` postulate proved).
 - **Toolchain:** `leanprover/lean4:v4.31.0` (`lean-toolchain`)
 - **Mathlib:** rev `fabf563a7c95a166b8d7b6efca11c8b4dc9d911f` (= tag `v4.31.0`; `lake-manifest.json`)
 - **Development platform:** the Lean was authored and elaborated on Windows against the same
@@ -23,15 +24,17 @@ Three headline results (see `Challenge.lean`), **all axiom-free**:
 - `Erdos361.Statement.basile71_unconditional` — **Part 1 (the size question), Basile's
   Problem 7.1** (linear regime `c ∈ (1/3,1/2)` = Alon's Conjecture 4.3 at `m ≍ n`): for every
   `ε > 0` there is `E₀` with, for all `E ≥ E₀`, every `A ⊆ [1,E]` of density `≥ 1/3+ε`
-  representing every even `n ∈ (2E,3E)`, `3∤n`. **Axiom-free**, carrying Freiman's `3k-3`
-  theorem as the hypothesis `hFreiman` (a standard published result, **not** an axiom). Alon's
-  Prop 2.5 good core and the located covering are *proved* in-development (`good_core_exists`,
-  `hLev_covering` — the latter avoids Lev 1997 entirely). A **candidate pending expert
-  referee**; it does **not** claim to resolve the full erdosproblems.com #361 as stated.
+  representing every even `n ∈ (2E,3E)`, `3∤n`. **Axiom-free and FULLY unconditional** — Freiman's
+  `3k-3` theorem, which earlier revisions carried as the hypothesis `hFreiman`, is now **proved from
+  scratch in-project** (`Erdos361/BasileFreiman.lean`, `Erdos361Freiman.freiman_3k3`; Nathanson's
+  Kneser-free large-diameter induction — no Mathlib port exists). Alon's Prop 2.5 good core and the
+  located covering are likewise *proved* in-development (`good_core_exists`, `hLev_covering` — the
+  latter avoids Lev 1997 entirely). A **candidate pending expert referee**; it does **not** claim to
+  resolve the full erdosproblems.com #361 as stated.
 
 All three depend only on the three standard Lean/Mathlib axioms `[propext, Classical.choice,
-Quot.sound]`. There is **no** external postulate (see §4). (The only literature *input* to Part 1
-is Freiman `3k-3`, and it lives in the theorem statement as a hypothesis, in plain view.)
+Quot.sound]`. There is **no** external postulate and (as of 2026-07-28) **no** cited hypothesis
+either — Part 1's only former literature *input*, Freiman `3k-3`, is now proved in-project (§4).
 
 ## §2 The build
 
@@ -70,10 +73,13 @@ Statement+development+Solution content (0 errors, 0 sorries), `#print axioms`:
 'Erdos361.Statement.basile71_unconditional' depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
 
-All three are **axiom-free** (the three standard Lean/Mathlib axioms only). For
-`basile71_unconditional`, Freiman's `3k-3` theorem is the one non-Mathlib input and it appears as
-the *hypothesis* `hFreiman` in the statement — so the footprint stays the standard three, with the
-literature dependency in plain sight rather than hidden in an axiom.
+All three are **axiom-free** (the three standard Lean/Mathlib axioms only). `basile71_unconditional`
+is now **fully unconditional**: Freiman's `3k-3` theorem — its former sole non-Mathlib input,
+carried as the hypothesis `hFreiman` — is **proved from scratch** in `Erdos361/BasileFreiman.lean`
+(`Erdos361Freiman.freiman_3k3`, footprint `[propext, Classical.choice, Quot.sound]`). So the
+statement has no cited hypothesis and no axiom beyond the standard three. (The development also
+exposes `Erdos361BasileMaster.basile71_fully_unconditional`, the explicit hypothesis-free form the
+statement layer is proved from.)
 
 **Alon 1987 Theorem 1.1 is now PROVED, not postulated.** Earlier revisions of this solution
 carried a single external axiom `alon_zero_sum` — Alon 1987, *Subset Sums*, J. Number Theory
@@ -114,8 +120,8 @@ sandbox — all with permitted axioms `propext`, `Quot.sound`, `Classical.choice
 
 - `comparator/erdos361_cge1.json` — proves `erdos361_cge1` is axiom-free.
 - `comparator/erdos361_irregular.json` — proves `erdos361_irregular` is axiom-free.
-- `comparator/erdos361_basile.json` — proves `basile71_unconditional` is axiom-free (Freiman
-  `3k-3` is a hypothesis, not an axiom).
+- `comparator/erdos361_basile.json` — proves `basile71_unconditional` is axiom-free and fully
+  unconditional (Freiman `3k-3` now proved in-project, neither axiom nor hypothesis).
 
 The workflow requires the string `Your solution is okay!` three times (once per config). Its result
 is the authoritative check and supersedes §4/§5 if they ever disagree.

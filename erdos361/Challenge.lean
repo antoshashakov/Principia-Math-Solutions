@@ -42,14 +42,13 @@ theorem erdos361_irregular (c : ℝ) (hc0 : 0 < c) (hc1 : c < 1) :
 
 /-- **Erdős #361, Part 1 — Basile's Problem 7.1 (snd = 3 linear case).** For every `ε > 0` there is an
 `E₀` such that for all `E ≥ E₀`, every `A ⊆ [1,E]` of density `≥ 1/3 + ε` represents every even
-`t ∈ (2E, 3E)` with `3 ∤ t` (i.e. `¬ Avoids A t`). The single hypothesis `hFreiman` is Freiman's
-`3k-3` theorem (`|B+B| ≥ min{L,2|B|-3}+|B|`, here in the range `L ≥ 2|B|-3` and for gcd-`1` sets) —
-a standard published result not in Mathlib, carried as a hypothesis, never an axiom. The Lean is
-otherwise fully axiom-free; in particular Alon's Prop 2.5 good core and the located covering are
-*proved* in-development (`good_core_exists`, `hLev_covering`), the latter avoiding Lev 1997 entirely. -/
-theorem basile71_unconditional (ε : ℝ) (hε : 0 < ε)
-    (hFreiman : ∀ (B' : Finset ℕ) (L' : ℕ), B' ⊆ Finset.Icc 0 L' → 0 ∈ B' → L' ∈ B' →
-      3 ≤ B'.card → 2 * B'.card - 3 ≤ L' → B'.gcd id = 1 → 3 * B'.card - 3 ≤ (B' + B').card) :
+`t ∈ (2E, 3E)` with `3 ∤ t` (i.e. `¬ Avoids A t`). **Fully unconditional and axiom-free** — no cited
+hypothesis: Freiman's `3k-3` theorem (`|B+B| ≥ min{L,2|B|-3}+|B|`), which earlier revisions carried as
+the hypothesis `hFreiman`, is now **proved from scratch** in `Erdos361/BasileFreiman.lean`
+(`Erdos361Freiman.freiman_3k3`, Nathanson's Kneser-free induction, no Mathlib port exists). Alon's
+Prop 2.5 good core and the located covering are likewise *proved* in-development (`good_core_exists`,
+`hLev_covering`), the latter avoiding Lev 1997 entirely. -/
+theorem basile71_unconditional (ε : ℝ) (hε : 0 < ε) :
     ∃ E₀ : ℕ, ∀ E : ℕ, E₀ ≤ E → ∀ A : Finset ℕ, A ⊆ Finset.Icc 1 E →
       (1 / 3 + ε) * E ≤ (A.card : ℝ) →
       ∀ t : ℕ, 2 * E < t → t < 3 * E → 2 ∣ t → ¬ 3 ∣ t → ¬ Avoids A t := by

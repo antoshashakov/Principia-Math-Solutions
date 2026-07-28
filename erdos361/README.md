@@ -20,10 +20,12 @@
 `A ⊆ [1,E]` with `|A| ≥ (1/3+ε)E` has `n ∈ Σ(A)` for every even `n ∈ (2E,3E)` with `3 ∤ n` — i.e.
 such a dense set *cannot* avoid those `n`. This answers the located inverse question posed on the
 forum by **Basile Beyer de Ryke as Problem 7.1** (equivalently **Alon's Conjecture 4.3** in the
-linear regime). It is **axiom-free**, carrying **only Freiman's `3k-3` theorem as a hypothesis**
-(`hFreiman`, a standard published result not in Mathlib — never an axiom). Notably, Alon's Prop 2.5
-good core and the located covering are *proved* in-development (`good_core_exists`, `hLev_covering`),
-the latter by an elementary route that **avoids Lev 1997 entirely**.
+linear regime). It is **axiom-free and fully unconditional**: Freiman's `3k-3` theorem — which
+earlier revisions carried as the hypothesis `hFreiman` — is now **proved from scratch in-project**
+(`Erdos361/BasileFreiman.lean`, `Erdos361Freiman.freiman_3k3`; Nathanson's Kneser-free
+large-diameter induction, no Mathlib port exists). Alon's Prop 2.5 good core and the located
+covering are likewise *proved* in-development (`good_core_exists`, `hLev_covering`), the latter by an
+elementary route that **avoids Lev 1997 entirely**. No cited hypothesis remains.
 
 **Status:** a machine-checked *candidate*, **pending expert referee**. It answers Basile 7.1 / the
 `c ∈ (1/3,1/2)` size question; it does **not** claim to resolve the full erdosproblems.com #361 as
@@ -71,11 +73,16 @@ lake env /path/to/comparator comparator/erdos361_irregular.json   # expect: Your
 ```
 erdos361/
 ├── Erdos361/
-│   ├── Statement.lean   trusted defs (Avoids/Avoiders/F/Fc) — no axioms
-│   └── Core.lean        the development: modular dichotomy, avoider bounds, both theorems
-├── Erdos361.lean        build root (imports Core)
-├── Challenge.lean       the two statements, `sorry`  (audit surface)
-├── Solution.lean        the two statements, proved by term assignment + #print axioms
+│   ├── Statement.lean       trusted defs (Avoids/Avoiders/F/Fc) — no axioms
+│   ├── Core.lean            c≥1 formula + irregularity: modular dichotomy, DSH, avoider bounds
+│   ├── BasileGlue.lean      Part 1: distinctification + Represents ↔ ¬Avoids
+│   ├── BasileGreedy.lean    Part 1: Alon Prop 2.5 good core (good_core_exists)
+│   ├── BasileCovering.lean  Part 1: the located covering (hLev_covering), avoids Lev 1997
+│   ├── BasileFreiman.lean   Part 1: Freiman 3k-3 from scratch (freiman_3k3) — the former hFreiman
+│   └── BasileMain.lean      Part 1: assembly → basile71_(fully_)unconditional
+├── Erdos361.lean        build root (imports Core + BasileMain)
+├── Challenge.lean       the three statements, `sorry`  (audit surface)
+├── Solution.lean        the three statements, proved by term assignment + #print axioms
 ├── comparator/          all.json + one config per result
 ├── paper/erdos361.pdf   the manuscript (Theorem 4), sha256-pinned in VERIFICATION.md
 ├── formalization.yaml   mathlib-initiative metadata + alignment

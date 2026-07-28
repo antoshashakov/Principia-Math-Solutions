@@ -85,11 +85,25 @@ jobs:
           echo "every footprint is within {propext, Classical.choice, Quot.sound}"
 
       # The two headline results specifically must carry the full clean triple.
+      #
+      # Match BY DECLARATION NAME, not by counting clean lines: `lake build Solution`
+      # replays the cached info messages of every dependency, so `solution.log` carries
+      # the whole development's footprints (372 of them) and not just Solution's two.
+      # The trailing quote in the pattern matters — `sendov_degree_nine` is a proper
+      # prefix of `sendov_degree_nine_general`.
       - name: Solution's two results are axiom-free
         run: |
-          n=$(grep -c "depends on axioms: \[propext, Classical.choice, Quot.sound\]$" solution.log)
-          echo "clean footprints in Solution: $n (expected 2 — the monic and the general form)"
-          test "$n" -eq 2
+          check() {
+            n=$(grep -c "'$1' depends on axioms: \[propext, Classical.choice, Quot.sound\]$" solution.log || true)
+            echo "$1 -> $n clean footprint(s)"
+            if [ "$n" -lt 1 ]; then
+              echo "::error::$1 is missing a clean [propext, Classical.choice, Quot.sound] footprint"
+              grep "'$1' depends on axioms" solution.log || echo "  (no footprint line at all)"
+              exit 1
+            fi
+          }
+          check Sendov9.Statement.sendov_degree_nine
+          check Sendov9.Statement.sendov_degree_nine_general
 
       - name: No native_decide / implemented_by / unsafe / axiom declarations
         run: |

@@ -17,6 +17,7 @@ set_option autoImplicit false
 
 namespace Erdos361.Statement
 open Filter Topology
+open scoped Pointwise
 
 /-- **Erdős #361, regular range.** -/
 theorem erdos361_cge1 (M n : ℕ) (hn : 1 ≤ n) (hM : n ≤ M) :
@@ -28,7 +29,19 @@ theorem erdos361_irregular (c : ℝ) (hc0 : 0 < c) (hc1 : c < 1) :
     ¬ ∃ L : ℝ, Tendsto (fun n : ℕ => (Fc c n : ℝ) / n) atTop (nhds L) :=
   Erdos361.erdos361_irregular c hc0 hc1
 
+/-- **Erdős #361, Part 1 — Basile's Problem 7.1.** Proved by direct term assignment from the
+development's `Erdos361BasileMaster.basile71_unconditional`; the trusted `Avoids` here and the
+development's `Avoids` are definitionally equal, so Lean checks the two statements agree. -/
+theorem basile71_unconditional (ε : ℝ) (hε : 0 < ε)
+    (hFreiman : ∀ (B' : Finset ℕ) (L' : ℕ), B' ⊆ Finset.Icc 0 L' → 0 ∈ B' → L' ∈ B' →
+      3 ≤ B'.card → 2 * B'.card - 3 ≤ L' → B'.gcd id = 1 → 3 * B'.card - 3 ≤ (B' + B').card) :
+    ∃ E₀ : ℕ, ∀ E : ℕ, E₀ ≤ E → ∀ A : Finset ℕ, A ⊆ Finset.Icc 1 E →
+      (1 / 3 + ε) * E ≤ (A.card : ℝ) →
+      ∀ t : ℕ, 2 * E < t → t < 3 * E → 2 ∣ t → ¬ 3 ∣ t → ¬ Avoids A t :=
+  Erdos361BasileMaster.basile71_unconditional ε hε hFreiman
+
 #print axioms erdos361_cge1
 #print axioms erdos361_irregular
+#print axioms basile71_unconditional
 
 end Erdos361.Statement

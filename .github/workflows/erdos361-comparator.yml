@@ -105,7 +105,7 @@ jobs:
       # and `--wait` propagates the unit's exit status. The `RestrictAddressFamilies`
       # property is the part that actually matters for safety and is kept verbatim; it
       # guards a landrun vulnerability fixed only in Linux 7.1.
-      - name: "Run comparator (cge1 axiom-free then irregular Alon-conditional)"
+      - name: "Run comparator (cge1 axiom-free, irregular Alon-conditional, basile axiom-free)"
         timeout-minutes: 120
         run: |
           set -o pipefail
@@ -117,13 +117,15 @@ jobs:
           run_cfg comparator/erdos361_cge1.json
           # erdos361_irregular: permitted axioms additionally include the cited Alon 1987 theorem.
           run_cfg comparator/erdos361_irregular.json
+          # basile71_unconditional (Part 1): axiom-free; Freiman 3k-3 is a hypothesis, not an axiom.
+          run_cfg comparator/erdos361_basile.json
 
       - name: Require the success string
         run: |
           n=$(grep -c "Your solution is okay!" comparator.log)
-          echo "comparator 'okay' count: $n (expected 2 — cge1 axiom-free + irregular Alon-conditional)"
-          test "$n" -eq 2
-          echo "comparator accepted both configs"
+          echo "comparator 'okay' count: $n (expected 3 — cge1 + irregular + basile)"
+          test "$n" -eq 3
+          echo "comparator accepted all three configs"
 
       - uses: actions/upload-artifact@v4
         if: always()

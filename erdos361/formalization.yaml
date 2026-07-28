@@ -33,6 +33,28 @@ sources:
       irregularity proof. It is NOT in Mathlib and is NOT re-proved here; it is assumed as
       the axiom `Erdos361.Statement.alon_zero_sum` (stated verbatim, ε-form 0 < |B| ≤ k) and
       declared in the trusted statement layer. This is the one literature dependency.
+  - title: "On addition of two distinct sets of integers"
+    authors:
+      - "Vsevolod F. Lev"
+      - "Pavel Y. Smeliansky"
+    id: "Acta Arith. 70 (1995) 85–91, Theorem 1 (attrib. Freiman, the 3k-3 theorem)"
+    type: "literature"
+    license: "n/a"
+    author_contacted: "n/a"
+    note: >-
+      Freiman's 3k-3 lower bound |B+B| ≥ min{L,2|B|-3}+|B| for finite integer sets. The SOLE
+      non-Mathlib input to `basile71_unconditional`, carried as the hypothesis `hFreiman`
+      (gcd-1 form), NOT an axiom. Not in Mathlib; not re-proved here.
+  - title: "Erdős Problem 361, forum comment (Problem 7.1)"
+    authors:
+      - "Basile Beyer de Ryke"
+    id: "erdosproblems.com/361 discussion — the located inverse statement (Problem 7.1)"
+    type: "problem-statement"
+    license: "n/a"
+    author_contacted: "n/a"
+    note: >-
+      `basile71_unconditional` is a Lean answer to this forum-posed inverse question
+      (equivalently Alon's Conjecture 4.3 in the linear regime). Candidate, pending expert referee.
 
 status:
   scope: >-
@@ -65,6 +87,23 @@ status:
       comparator_config: "comparator/erdos361_irregular.json"
       literature_dependencies:
         - "Alon 1987, Subset Sums, J. Number Theory 27, Theorem 1.1 (bounded zero-sum in ℤ/Nℤ)"
+    - declaration: "Erdos361BasileMaster.basile71_unconditional"
+      file: "Erdos361/BasileMain.lean  (statement layer: Erdos361.Statement.basile71_unconditional)"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator/erdos361_basile.json"
+      literature_dependencies:
+        - >-
+          Freiman's 3k-3 theorem (|B+B| ≥ min{L,2|B|-3}+|B|; Lev–Smeliansky, Acta Arith. 70
+          (1995) 85–91, Thm 1, attrib. Freiman). Carried as the HYPOTHESIS `hFreiman` (gcd-1
+          form), NOT an axiom — the theorem is axiom-free. This is the only non-Mathlib input.
+      note: >-
+        Erdős #361 Part 1 (the size question) in the linear regime c ∈ (1/3,1/2) = Basile Beyer de
+        Ryke's forum Problem 7.1 = Alon's Conjecture 4.3 at m ≍ n. Alon's Prop 2.5 good core and the
+        located covering are PROVED in-development (good_core_exists on Mathlib's Roth theorem;
+        hLev_covering by an elementary route that avoids Lev 1997 entirely) — only Freiman 3k-3
+        remains, as a hypothesis. CANDIDATE pending expert referee; does NOT claim to resolve the
+        full erdosproblems.com #361 as stated.
 
 automation:
   proof_assistant: "Lean 4"
@@ -80,8 +119,9 @@ fidelity:
 review:
   comparator: >-
     Runs on CI (.github/workflows/erdos361-comparator.yml), Linux-only, in a landrun/Landlock
-    sandbox: comparator/erdos361_cge1.json (axiom-free) and comparator/erdos361_irregular.json
-    (permits alon_zero_sum). Pending on the first push.
+    sandbox: comparator/erdos361_cge1.json (axiom-free), comparator/erdos361_irregular.json
+    (permits alon_zero_sum), and comparator/erdos361_basile.json (axiom-free — Freiman 3k-3 is a
+    hypothesis, not an axiom). All three must report "Your solution is okay!".
 
 alignment:
   statements:
@@ -93,6 +133,10 @@ alignment:
       lean_name: "Erdos361.Statement.erdos361_irregular"
       module: "Challenge.lean / Solution.lean (proved from Erdos361/Core.lean)"
       status: "proved, conditional on alon_zero_sum (Alon 1987 Thm 1.1)"
+    - paper_result: "Part 1 (size) — Basile 7.1 / Alon Conj 4.3 in the linear regime c ∈ (1/3,1/2)"
+      lean_name: "Erdos361.Statement.basile71_unconditional"
+      module: "Challenge.lean / Solution.lean (proved from Erdos361/BasileMain.lean)"
+      status: "proved, axiom-free; Freiman 3k-3 carried as a hypothesis; candidate pending expert referee"
 
 acknowledgements: >-
   Modular-dichotomy and divisor-sensitive arguments from the ChatGPT/GPT-5 collaboration

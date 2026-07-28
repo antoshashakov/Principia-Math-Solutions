@@ -12,6 +12,22 @@
 | --- | --- | --- | --- |
 | Regular range (`c ≥ 1`) | `F M n = M − ⌈n/2⌉` for `1 ≤ n ≤ M` | `Erdos361.Statement.erdos361_cge1` | `Erdos361/Core.lean` |
 | **Theorem 4 (irregularity)** | `∀ c ∈ (0,1)`, `f_c(n)/n` has no limit | `Erdos361.Statement.erdos361_irregular` | `Erdos361/Core.lean` |
+| **Part 1 (size) — Basile 7.1** | dense `A ⊆ [1,E]` represents every even `t ∈ (2E,3E)`, `3∤t` | `Erdos361.Statement.basile71_unconditional` | `Erdos361/BasileMain.lean` |
+
+### Part 1 — Basile's Problem 7.1 (the *size* question, linear regime `c ∈ (1/3,1/2)`)
+
+`basile71_unconditional`: for every `ε > 0` there is an `E₀` such that for all `E ≥ E₀`, every
+`A ⊆ [1,E]` with `|A| ≥ (1/3+ε)E` has `n ∈ Σ(A)` for every even `n ∈ (2E,3E)` with `3 ∤ n` — i.e.
+such a dense set *cannot* avoid those `n`. This answers the located inverse question posed on the
+forum by **Basile Beyer de Ryke as Problem 7.1** (equivalently **Alon's Conjecture 4.3** in the
+linear regime). It is **axiom-free**, carrying **only Freiman's `3k-3` theorem as a hypothesis**
+(`hFreiman`, a standard published result not in Mathlib — never an axiom). Notably, Alon's Prop 2.5
+good core and the located covering are *proved* in-development (`good_core_exists`, `hLev_covering`),
+the latter by an elementary route that **avoids Lev 1997 entirely**.
+
+**Status:** a machine-checked *candidate*, **pending expert referee**. It answers Basile 7.1 / the
+`c ∈ (1/3,1/2)` size question; it does **not** claim to resolve the full erdosproblems.com #361 as
+stated.
 
 `f_c(n)` is modelled by `Fc c n = F ⌊c·n⌋ n`, where `F M n` is the max cardinality of an
 avoider of `n` in `[1,M]` (`Erdos361/Statement.lean`).

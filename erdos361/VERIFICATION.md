@@ -14,15 +14,24 @@ output recorded, or an explicit note that it was **not** run (and where it is ru
 
 ## §1 Scope
 
-Two headline results (see `Challenge.lean`), **both axiom-free**:
+Three headline results (see `Challenge.lean`), **all axiom-free**:
 
 - `Erdos361.Statement.erdos361_cge1` — for `1 ≤ n ≤ M`, `F M n = M − ⌈n/2⌉`. Hence for
   `c ≥ 1`, `f_c(n)/n → c − 1/2`: the **regular** range.
 - `Erdos361.Statement.erdos361_irregular` — for every real `c ∈ (0,1)`, `f_c(n)/n` does
   **not** converge (the Erdős–Graham irregularity question).
+- `Erdos361.Statement.basile71_unconditional` — **Part 1 (the size question), Basile's
+  Problem 7.1** (linear regime `c ∈ (1/3,1/2)` = Alon's Conjecture 4.3 at `m ≍ n`): for every
+  `ε > 0` there is `E₀` with, for all `E ≥ E₀`, every `A ⊆ [1,E]` of density `≥ 1/3+ε`
+  representing every even `n ∈ (2E,3E)`, `3∤n`. **Axiom-free**, carrying Freiman's `3k-3`
+  theorem as the hypothesis `hFreiman` (a standard published result, **not** an axiom). Alon's
+  Prop 2.5 good core and the located covering are *proved* in-development (`good_core_exists`,
+  `hLev_covering` — the latter avoids Lev 1997 entirely). A **candidate pending expert
+  referee**; it does **not** claim to resolve the full erdosproblems.com #361 as stated.
 
-Both depend only on the three standard Lean/Mathlib axioms `[propext, Classical.choice,
-Quot.sound]`. There is **no** external postulate (see §4).
+All three depend only on the three standard Lean/Mathlib axioms `[propext, Classical.choice,
+Quot.sound]`. There is **no** external postulate (see §4). (The only literature *input* to Part 1
+is Freiman `3k-3`, and it lives in the theorem statement as a hypothesis, in plain view.)
 
 ## §2 The build
 
@@ -56,11 +65,15 @@ Elaborated via warm Lean REPL against Mathlib `fabf563a`, on the byte-identical
 Statement+development+Solution content (0 errors, 0 sorries), `#print axioms`:
 
 ```
-'Erdos361.Statement.erdos361_cge1'      depends on axioms: [propext, Classical.choice, Quot.sound]
-'Erdos361.Statement.erdos361_irregular' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos361.Statement.erdos361_cge1'         depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos361.Statement.erdos361_irregular'    depends on axioms: [propext, Classical.choice, Quot.sound]
+'Erdos361.Statement.basile71_unconditional' depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
 
-Both are **axiom-free** (the three standard Lean/Mathlib axioms only).
+All three are **axiom-free** (the three standard Lean/Mathlib axioms only). For
+`basile71_unconditional`, Freiman's `3k-3` theorem is the one non-Mathlib input and it appears as
+the *hypothesis* `hFreiman` in the statement — so the footprint stays the standard three, with the
+literature dependency in plain sight rather than hidden in an axiom.
 
 **Alon 1987 Theorem 1.1 is now PROVED, not postulated.** Earlier revisions of this solution
 carried a single external axiom `alon_zero_sum` — Alon 1987, *Subset Sums*, J. Number Theory
@@ -96,13 +109,15 @@ elaborate — the term assignment no longer type-checks. (Run this by editing `C
 
 **Linux-only** (landrun / Landlock sandbox); **NOT run on this platform (Windows).** Runs on
 CI in `.github/workflows/erdos361-comparator.yml`, which builds pinned `comparator`,
-`lean4export` (matched to Lean v4.31.0), and `landrun`, then runs **two** configs in the
-sandbox — both with permitted axioms `propext`, `Quot.sound`, `Classical.choice` only:
+`lean4export` (matched to Lean v4.31.0), and `landrun`, then runs **three** configs in the
+sandbox — all with permitted axioms `propext`, `Quot.sound`, `Classical.choice` only:
 
 - `comparator/erdos361_cge1.json` — proves `erdos361_cge1` is axiom-free.
 - `comparator/erdos361_irregular.json` — proves `erdos361_irregular` is axiom-free.
+- `comparator/erdos361_basile.json` — proves `basile71_unconditional` is axiom-free (Freiman
+  `3k-3` is a hypothesis, not an axiom).
 
-The workflow requires the string `Your solution is okay!` twice (once per config). Its result
+The workflow requires the string `Your solution is okay!` three times (once per config). Its result
 is the authoritative check and supersedes §4/§5 if they ever disagree.
 
 ## §7 Deliberately excluded

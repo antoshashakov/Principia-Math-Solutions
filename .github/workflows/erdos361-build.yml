@@ -37,7 +37,7 @@ jobs:
 
       # No unproved placeholders, no native_decide anywhere, and NO axiom declarations at all
       # (the former Alon 1987 postulate is now proved from Mathlib's Combinatorial
-      # Nullstellensatz — see VERIFICATION.md §4). Challenge.lean's two `sorry`s are the
+      # Nullstellensatz — see VERIFICATION.md §4). Challenge.lean's three `sorry`s are the
       # Comparator fixture and are checked separately below.
       - name: No sorry / native_decide / axiom
         run: |
@@ -52,9 +52,9 @@ jobs:
           fi
           echo "clean (axiom-free: Alon 1987 Thm 1.1 is now proved, not postulated)"
 
-      # Challenge.lean must have exactly two intentional sorries — one per main result.
-      - name: Challenge.lean has exactly two intentional sorries
+      # Challenge.lean must have exactly three intentional sorries — one per main result.
+      - name: Challenge.lean has exactly three intentional sorries
         run: |
           n=$(grep -c "^  sorry$" Challenge.lean)
           echo "found $n"
-          test "$n" -eq 2
+          test "$n" -eq 3

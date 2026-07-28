@@ -3,7 +3,8 @@
     "solution_module": "Solution",
     "theorem_names": [
         "Erdos361.Statement.erdos361_cge1",
-        "Erdos361.Statement.erdos361_irregular"
+        "Erdos361.Statement.erdos361_irregular",
+        "Erdos361.Statement.basile71_unconditional"
     ],
     "permitted_axioms": [
         "propext",

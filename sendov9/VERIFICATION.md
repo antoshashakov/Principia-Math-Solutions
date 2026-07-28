@@ -132,19 +132,40 @@ project-specific definitions at all** — only `Polynomial.roots`, `Polynomial.d
 `comparator/all.json` carries no `definition_names` entry and why there is no
 `Statement.lean`: `Challenge.lean` plus Mathlib is the entire audit surface.
 
-**(b) Negative control — written and committed, but NOT completed at the time of this
-commit.** `_negcontrol.lean` (gitignored, reproduced verbatim in §10's command) asserts
-three deliberately wrong variants that must fail to elaborate: radius `1/2` instead of `1`;
-strict `<` instead of `≤`; and dropping the degree hypothesis. It was launched locally and
-was still in its cold `import Mathlib` when this commit was made, so **no output is
-recorded here** — this ledger does not claim it passed.
+**(b) Negative control — RUN, three failures as required.** Three deliberately wrong
+variants must fail to elaborate: radius `1/2` instead of `1`; strict `<` instead of `≤`;
+and dropping the degree hypothesis. Run against the development tree (`lake env lean` on
+the probe reproduced as `_negcontrol.lean`), the actual output was **exactly three
+errors**:
 
-It is worth being clear about what that check would and would not add. Its outcome is
-already determined by (a): the two signatures are character-identical, so a variant whose
-conclusion reads `≤ 1/2` cannot unify with one reading `≤ 1`, and the assignment cannot
-type-check. The negative control tests the reasoning in (a), not the artifact. The
-substantive fidelity evidence is (a) plus Comparator (§7), which checks the same property
-mechanically and adversarially.
+```
+NegControlProbe.lean:17:2: error: Type mismatch
+  Sendov9.Final.sendov_degree_nine_general hdeg hroots ha
+has type
+  ∃ z ∈ (derivative p).roots, ‖a - z‖ ≤ 1
+but is expected to have type
+  ∃ z ∈ (derivative p).roots, ‖a - z‖ ≤ 1 / 2
+
+NegControlProbe.lean:23:2: error: Type mismatch
+  Sendov9.Final.sendov_degree_nine_general hdeg hroots ha
+has type
+  ∃ z ∈ (derivative p).roots, ‖a - z‖ ≤ 1
+but is expected to have type
+  ∃ z ∈ (derivative p).roots, ‖a - z‖ < 1
+
+NegControlProbe.lean:29:43: error: Application type mismatch: The argument
+  hroots
+has type
+  ∀ w ∈ p.roots, ‖w‖ ≤ 1
+but is expected to have type
+  natDegree ?m.42 = 9
+```
+
+So the constant `1`, the direction of the inequality, and the degree hypothesis are each
+load-bearing: no coercion or defeq silently weakens the statement. Note that this check
+tests the *reasoning* in (a) rather than adding independent evidence — its outcome was
+already fixed by the signatures being character-identical. The adversarial check is
+Comparator (§7).
 
 ## §6 Non-vacuity
 

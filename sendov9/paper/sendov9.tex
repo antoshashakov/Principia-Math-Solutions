@@ -1,0 +1,605 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,array,float}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\D}{\mathbb D}
+\newcommand{\C}{\mathbb C}
+\newcommand{\e}{\mathrm e}
+\newcommand{\Pol}{\operatorname{Pol}}
+
+\title{Sendov's Conjecture in Degree Nine}
+\author{Anton Shakov}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We prove Sendov's conjecture for polynomials of degree nine.  After fixing a zero
+$a\in[0,1]$, a hypothetical counterexample gives two reciprocal configurations,
+one formed from the remaining zeros and one from the critical points.  Their
+common first moment yields a strong localization inequality.  A symmetric
+integral identity then reduces the remaining argument to positivity of explicit
+polynomials.  The range $a\le 9/20$ is elementary; the interval
+$9/20\le a\le 9/10$ is covered by eighteen exact Bernstein certificates; and
+the boundary range $9/10\le a\le1$ is handled by a rescaled single certificate.
+All finite computations are performed in exact rational arithmetic.
+\end{abstract}
+
+\section{Introduction}
+
+Sendov's conjecture asserts that if all zeros of a complex polynomial lie in the
+closed unit disk, then the closed unit disk centered at each zero contains a
+zero of the derivative.  We prove the degree-nine case.
+
+\begin{theorem}\label{thm:main}
+Let
+\[
+ p(z)=\prod_{k=1}^{9}(z-z_k),\qquad |z_k|\le1.
+\]
+For every zero $a$ of $p$, there is a zero $\zeta$ of $p'$ such that
+\[
+ |a-\zeta|\le1.
+\]
+\end{theorem}
+
+The proof is computer-assisted only at two finite positivity checks.  Both are
+certified by expanding explicit rational polynomials in tensor-product
+Bernstein bases and checking every coefficient by exact arithmetic.  The
+analytic reduction and the certificate polynomials are given below; the
+ancillary verifier contains no floating-point operations.
+
+By rotation we may take the distinguished zero to be a real number
+$a\in[0,1]$.  We argue by contradiction, assuming throughout that every zero
+of $p'$ has distance strictly greater than $1$ from $a$.
+
+\section{Two preliminary lemmas}
+
+We use the Grace--Walsh--Szeg\H{o} coincidence theorem in its standard form:
+if a symmetric multi-affine polynomial is evaluated at points in a convex
+circular region, then the same value is attained on the diagonal at a point of
+that region; see, for example, \cite[Proposition~1]{BrandenWagner}.
+
+\begin{lemma}[separation from a zero]\label{lem:separation}
+Let $P$ be a polynomial of degree $n\ge2$, let $\alpha$ be a zero of $P$, and
+suppose that
+\[
+ |\alpha-\zeta|>\rho
+\]
+for every zero $\zeta$ of $P'$.  Then $\alpha$ is simple and every other zero
+$\beta$ of $P$ satisfies
+\[
+ |\beta-\alpha|>2\rho\sin\frac{\pi}{n}.
+\]
+\end{lemma}
+
+\begin{proof}
+The simplicity of $\alpha$ is immediate.  Write the zeros of $P'$ as
+$\zeta_1,\ldots,\zeta_{n-1}$ and set $w=\beta-\alpha$.  Since
+$P(\beta)=P(\alpha)$,
+\[
+ 0=\int_0^1\frac{P'(\alpha+tw)}{P'(\alpha)}\,dt
+  =\int_0^1\prod_{j=1}^{n-1}(1-tu_j)\,dt,
+ \qquad
+ u_j=-\frac{w}{\alpha-\zeta_j}.
+\]
+The symmetric multi-affine polynomial
+\[
+ F(u_1,\ldots,u_{n-1})=\int_0^1\prod_{j=1}^{n-1}(1-tu_j)\,dt
+\]
+has diagonal
+\[
+ F(u,\ldots,u)=\frac{1-(1-u)^n}{nu},
+\]
+with the value $1$ at $u=0$.  Its diagonal zeros are
+$1-\e^{2\pi i k/n}$, $1\le k<n$, and hence have modulus at least
+$2\sin(\pi/n)$.  The coincidence theorem therefore implies that $F$ is
+nonzero whenever all $|u_j|<2\sin(\pi/n)$.  If
+$|w|\le2\rho\sin(\pi/n)$, then the strict critical-point separation gives
+$|u_j|<2\sin(\pi/n)$ for every $j$, a contradiction.
+\end{proof}
+
+The second lemma is a one-dimensional convexity estimate.
+
+\begin{lemma}\label{lem:sigma}
+Let $0<m<M$, let $r_1,\ldots,r_N\in[m,M]$, and suppose
+\[
+ \prod_{k=1}^N r_k\ge C>m^N.
+\]
+Let $\nu$ be the least integer such that $M^\nu m^{N-\nu}\ge C$.  Then
+\[
+ \sum_{k=1}^N\frac1{r_k^2}
+ \le
+ \frac{N-\nu}{m^2}+\frac{\nu-1}{M^2}
+ +\left(\frac{M^{\nu-1}m^{N-\nu}}{C}\right)^2.
+\]
+\end{lemma}
+
+\begin{proof}
+Put $r_k=\e^{t_k}$.  Since $t\mapsto\e^{-2t}$ is decreasing, we may first
+reduce $\sum t_k$ to $\log C$.  On the resulting section of the box
+$[\log m,\log M]^N$, the convex function $\sum\e^{-2t_k}$ is maximized at an
+extreme point.  Thus all but at most one coordinate are endpoints.  By the
+definition of $\nu$, the maximizing configuration has $N-\nu$ entries equal
+to $m$, $\nu-1$ entries equal to $M$, and one entry equal to
+$C/(M^{\nu-1}m^{N-\nu})$.  Substitution gives the result.
+\end{proof}
+
+\section{The reciprocal reduction}
+
+Write
+\[
+ p(z)=(z-a)\prod_{k=1}^{8}(z-z_k),
+ \qquad
+ p'(z)=9\prod_{j=1}^{8}(z-\zeta_j),
+\]
+where multiplicities are retained.  A counterexample has $a$ simple.  Set
+\[
+ X_k=\frac1{a-z_k},\qquad Y_j=\frac1{a-\zeta_j},\qquad
+ \mu=\frac18\sum_{j=1}^{8}Y_j=u+iv.
+\]
+Evaluation of $p'$ and $p''/p'$ at $a$ gives the two identities
+\begin{equation}\label{eq:anchors}
+ 9\prod_{j=1}^{8}(a-\zeta_j)=\prod_{k=1}^{8}(a-z_k),
+ \qquad
+ \sum_{j=1}^{8}Y_j=2\sum_{k=1}^{8}X_k.
+\end{equation}
+In particular,
+\begin{equation}\label{eq:mu}
+ \mu=\frac14\sum_{k=1}^{8}X_k,
+ \qquad |\mu|<1.
+\end{equation}
+
+Put
+\[
+ r_k=|a-z_k|,
+ \qquad
+ \sigma=\sum_{k=1}^{8}r_k^{-2}.
+\]
+By Lemma~\ref{lem:separation} and the unit-disk hypothesis,
+\begin{equation}\label{eq:annulus}
+ 2\sin\frac{\pi}{9}<r_k\le1+a.
+\end{equation}
+Moreover, \eqref{eq:anchors} and the assumed critical-point separation imply
+\begin{equation}\label{eq:product}
+ \prod_{k=1}^{8}r_k>9.
+\end{equation}
+For exact arithmetic we use
+\begin{equation}\label{eq:m0}
+ m_0:=\frac{681}{1000}<2\sin\frac{\pi}{9}.
+\end{equation}
+Indeed, $T=2\sin(\pi/9)$ is the root in $(0,1)$ of
+$3T-T^3=\sqrt3$, the function $3t-t^3$ is increasing on $[0,1]$, and
+\[
+ 3-\left(3m_0-m_0^3\right)^2
+ =\frac{16853534459219919}{10^{18}}>0.
+\]
+
+The unit-disk condition also controls the real part of $\mu$.  Since
+$z_k=a-X_k^{-1}$,
+\[
+ 2a\Re X_k+(1-a^2)|X_k|^2
+ =1+(1-|z_k|^2)|X_k|^2\ge1.
+\]
+Summing and using \eqref{eq:mu}, we obtain the basic localization inequality
+\begin{equation}\label{eq:localization}
+ 8au+(1-a^2)\sigma\ge8.
+\end{equation}
+
+We shall also need a uniform expansion about the mean $\mu$.  Put
+\[
+ \eta^2=1-|\mu|^2,
+ \qquad
+ D_j=Y_j-\mu.
+\]
+Then $\sum_jD_j=0$ and
+\[
+ \sum_{j=1}^{8}|D_j|^2
+ =\sum_{j=1}^{8}|Y_j|^2-8|\mu|^2\le8\eta^2.
+\]
+If $e_m(D)$ denotes the $m$th elementary symmetric function of the $D_j$, then
+\begin{equation}\label{eq:em-bounds}
+ |e_m(D)|\le c_m\eta^m\qquad(2\le m\le8),
+\end{equation}
+where
+\begin{equation}\label{eq:constants}
+ (c_2,\ldots,c_8)=
+ \left(4,\frac{264}{35},24,56,28,8,1\right),
+ \qquad
+ (\ell_2,\ldots,\ell_8)=(3,2,2,1,1,0,0).
+\end{equation}
+For completeness, Newton's identities give
+$|e_2|\le4\eta^2$, $|e_3|\le16\sqrt2\eta^3/3<264\eta^3/35$, and
+$|e_4|\le24\eta^4$.  For $m\ge5$, Maclaurin's inequality applied to
+$|D_1|,\ldots,|D_8|$, followed by Cauchy--Schwarz, gives
+$|e_m(D)|\le\binom8m\eta^m$.
+
+Finally, define
+\begin{equation}\label{eq:I}
+ G(t)=\prod_{j=1}^{8}(1-tY_j)=\frac{p'(a-t)}{p'(a)},
+ \qquad
+ I=\int_0^aG(t)\,dt.
+\end{equation}
+Then
+\begin{equation}\label{eq:I-upper}
+ I=-\frac{p(0)}{p'(a)},
+ \qquad
+ |I|<\frac a9,
+\end{equation}
+because $|p(0)|\le a$ and $|p'(a)|>9$.  The remainder of the proof derives
+the opposite inequality.
+
+\section{The range \texorpdfstring{$0\le a\le9/20$}{0 <= a <= 9/20}}
+
+The case $a=0$ is already impossible: \eqref{eq:product} contradicts
+$r_k=|z_k|\le1$.  Suppose $0<a\le9/20$.  Apply
+Lemma~\ref{lem:sigma} with $N=8$, $C=9$, $m=m_0$, and $M=29/20$.  Here
+$\nu=7$, and exact arithmetic gives
+\begin{equation}\label{eq:small-sigma}
+ \sigma\le
+ \frac1{m_0^2}+\frac6{(29/20)^2}
+ +\left(\frac{(29/20)^6m_0}{9}\right)^2
+ <\frac{1101}{200}=:S_0.
+\end{equation}
+By \eqref{eq:localization},
+\[
+ u>\frac{8-S_0(1-a^2)}{8a}.
+\]
+The right-hand side exceeds $1$ precisely when
+\[
+ S_0a^2-8a+8-S_0>0.
+\]
+This quadratic is decreasing on $[0,9/20]$, and at $a=9/20$ it equals
+$781/80000$.  Thus $u>1$, contradicting $|\mu|<1$.
+
+\section{The range \texorpdfstring{$9/20\le a\le9/10$}{9/20 <= a <= 9/10}}
+
+We first isolate the analytic statement certified on each subinterval.  For
+$S>4$ set
+\[
+ L_S(a)=\frac{8-S(1-a^2)}{8a},
+\]
+and, for $0\le v\le1$, define
+\begin{align}
+ q_S(a,\eta;v)
+ &=1-\frac{8-S+Sa^2}{4}v+a^2(1-\eta^2)v^2,\label{eq:qS}\\
+ h_S(a,\eta)
+ &=\left(\frac S4-1\right)(1-a^2)-a^2\eta^2.\label{eq:hS}
+\end{align}
+Using the constants in \eqref{eq:constants}, put
+\begin{equation}\label{eq:ES}
+ E_S(a,\eta)=
+ \sum_{m=2}^{8}c_m a^{m+1}\eta^m
+ \int_0^1 v^m q_S(a,\eta;v)^{\ell_m}\,dv
+\end{equation}
+and
+\begin{equation}\label{eq:PS}
+ P_{S,\lambda}(a,\eta)=
+ \frac{1-a}{9}+\frac{\eta^2}{18}
+ -\frac{h_S(a,\eta)^4}{9\lambda}-E_S(a,\eta).
+\end{equation}
+Since the exponents $\ell_m$ are nonnegative integers,
+$P_{S,\lambda}$ is a polynomial with rational coefficients whenever
+$S$ and $\lambda$ are rational.
+
+\begin{proposition}[interval certificate]\label{prop:interval}
+Let $0<\alpha\le\beta<1$, and let $S,\lambda,Y$ be positive numbers such that,
+for every $a\in[\alpha,\beta]$,
+\begin{equation}\label{eq:interval-hyp}
+ \sigma\le S,
+ \qquad L_S(a)\ge\lambda,
+ \qquad Y^2\ge1-\lambda^2,
+ \qquad 2\lambda\ge\beta,
+ \qquad
+ 0\le\left(\frac S4-1\right)(1-\alpha^2)\le1.
+\end{equation}
+If
+\[
+ P_{S,\lambda}(a,\eta)>0
+ \qquad
+ (\alpha\le a\le\beta,\ 0\le\eta\le Y),
+\]
+then no counterexample exists with $a\in[\alpha,\beta]$.
+\end{proposition}
+
+\begin{proof}
+By \eqref{eq:localization}, $u\ge L_S(a)\ge\lambda$, and hence
+$0\le\eta^2=1-|\mu|^2\le1-\lambda^2\le Y^2$.
+Let
+\[
+ J=\int_0^a(1-t\mu)^8\,dt.
+\]
+For $0\le t\le a$, we have
+\[
+ |1-t\mu|^2=1-2tu+(1-\eta^2)t^2
+ \le1-2tL_S(a)+(1-\eta^2)t^2.
+\]
+After $t=av$, the expression on the right is $q_S(a,\eta;v)$.  It is
+nonnegative, and
+\[
+ q_S(a,\eta;v)-1
+ \le av(-2\lambda+\beta)\le0.
+\]
+Thus $0\le q_S\le1$.  Expanding
+\[
+ G(t)=(1-t\mu)^8+
+ \sum_{m=2}^{8}(-t)^m e_m(D)(1-t\mu)^{8-m}
+\]
+and using \eqref{eq:em-bounds}, with half-integral powers rounded down by
+$q_S^{5/2}\le q_S^2$, $q_S^{3/2}\le q_S$, and
+$q_S^{1/2}\le1$, gives
+\begin{equation}\label{eq:IJ-middle}
+ |I-J|\le E_S(a,\eta).
+\end{equation}
+
+Since
+\[
+ J=\frac{1-(1-a\mu)^9}{9\mu},
+\]
+write $R=|1-a\mu|$.  The bound $u\ge L_S(a)$ gives
+\[
+ R^2\le h_S(a,\eta).
+\]
+For a feasible pair $(a,\eta)$, this implies $h_S\ge0$, while
+\eqref{eq:interval-hyp} gives $h_S\le1$.  Therefore
+\[
+ |J|\ge\frac{1-R^9}{9|\mu|}
+ \ge\frac1{9\sqrt{1-\eta^2}}-
+ \frac{h_S(a,\eta)^4}{9\lambda}
+ \ge\frac19+\frac{\eta^2}{18}-
+ \frac{h_S(a,\eta)^4}{9\lambda}.
+\]
+Together with \eqref{eq:IJ-middle}, this yields
+\[
+ |I|-\frac a9\ge P_{S,\lambda}(a,\eta)>0,
+\]
+contrary to \eqref{eq:I-upper}.
+\end{proof}
+
+We now give the exact finite certificate.  In each row of
+Table~\ref{tab:middle}, Lemma~\ref{lem:sigma}, with $M=1+\beta$, gives
+$\sigma\le S$.  The inequality $L_S(a)\ge\lambda$ is equivalent to
+\[
+ Sa^2-8\lambda a+8-S\ge0,
+\]
+which is checked exactly on the indicated interval.  The remaining elementary
+conditions in \eqref{eq:interval-hyp} are direct rational inequalities.
+
+\begin{table}[H]
+\centering
+\small
+\renewcommand{\arraystretch}{1.18}
+\caption{Exact constants for the middle range.}
+\label{tab:middle}
+\begin{tabular}{@{}c c c c@{}}
+\toprule
+$[\alpha,\beta]$ & $S$ & $\lambda$ & $Y$\\
+\midrule
+$[9/20,19/40]$ & $11043/2000$ & $49/50$ & $199/1000$\\
+$[19/40,1/2]$ & $2783/500$ & $239/250$ & $587/2000$\\
+$[1/2,21/40]$ & $2257/400$ & $1863/2000$ & $91/250$\\
+$[21/40,11/20]$ & $1151/200$ & $1811/2000$ & $849/2000$\\
+$[11/20,23/40]$ & $11819/2000$ & $879/1000$ & $477/1000$\\
+$[23/40,3/5]$ & $764/125$ & $1699/2000$ & $66/125$\\
+$[3/5,5/8]$ & $637/100$ & $817/1000$ & $577/1000$\\
+$[5/8,13/20]$ & $13093/2000$ & $401/500$ & $239/400$\\
+$[13/20,27/40]$ & $13113/2000$ & $81/100$ & $1173/2000$\\
+$[27/40,7/10]$ & $3289/500$ & $409/500$ & $1151/2000$\\
+$[7/10,29/40]$ & $529/80$ & $413/500$ & $141/250$\\
+$[29/40,3/4]$ & $6661/1000$ & $1669/2000$ & $1103/2000$\\
+$[3/4,31/40]$ & $1681/250$ & $843/1000$ & $269/500$\\
+$[31/40,4/5]$ & $1701/250$ & $213/250$ & $131/250$\\
+$[4/5,33/40]$ & $2761/400$ & $1723/2000$ & $127/250$\\
+$[33/40,17/20]$ & $14041/2000$ & $109/125$ & $49/100$\\
+$[17/20,7/8]$ & $7161/1000$ & $221/250$ & $187/400$\\
+$[7/8,9/10]$ & $3663/500$ & $359/400$ & $883/2000$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{lemma}[middle-range certificate]\label{lem:middle-cert}
+For every row $(\alpha,\beta,S,\lambda,Y)$ of
+Table~\ref{tab:middle},
+\[
+ P_{S,\lambda}(a,\eta)>\frac1{2100}
+ \qquad
+ (\alpha\le a\le\beta,\ 0\le\eta\le Y).
+\]
+\end{lemma}
+
+\begin{proof}
+Substitute
+\[
+ a=\alpha+(\beta-\alpha)U,
+ \qquad
+ \eta=YV,
+ \qquad 0\le U,V\le1.
+\]
+The resulting polynomial has bidegree at most $(9,8)$.  Its exact
+Bernstein expansion is
+\[
+ \sum_{i=0}^{9}\sum_{j=0}^{8}b_{ij}
+ \binom9iU^i(1-U)^{9-i}
+ \binom8jV^j(1-V)^{8-j}.
+\]
+Across all eighteen rows and all $1620$ coefficients, the least coefficient is
+\[
+ \frac{1525995182936088798318336809}
+ {3199338912963867187500000000000}
+ >\frac1{2100}.
+\]
+The Bernstein basis functions are nonnegative and sum to $1$, proving the
+claim.  The expansion and all preceding interval inequalities are verified in
+exact rational arithmetic by the ancillary file.
+\end{proof}
+
+Proposition~\ref{prop:interval} and Lemma~\ref{lem:middle-cert} exclude the
+entire interval $9/20\le a\le9/10$.
+
+\section{The boundary range \texorpdfstring{$9/10\le a\le1$}{9/10 <= a <= 1}}
+
+At $a=1$, \eqref{eq:localization} gives $u\ge1$, contradicting
+$|\mu|<1$.  Suppose henceforth that $9/10\le a<1$, and put
+\[
+ \delta=1-a.
+\]
+Applying Lemma~\ref{lem:sigma} with $M=2$ gives
+\begin{equation}\label{eq:end-sigma}
+ \sigma\le\frac3{m_0^2}+1+\frac{256m_0^6}{81}<\frac{39}{5}.
+\end{equation}
+It follows from \eqref{eq:localization} that
+\begin{equation}\label{eq:end-u}
+ 1-u\le\delta\frac{39a-1}{40a}\le\frac{19}{20}\delta.
+\end{equation}
+Consequently
+\begin{equation}\label{eq:end-eta}
+ 0<\eta^2=1-|\mu|^2
+ \le\frac{19}{10}\delta-\frac{361}{400}\delta^2.
+\end{equation}
+
+Write
+\[
+ \delta=x^2,
+ \qquad
+ \eta=xy.
+\]
+Then
+\begin{equation}\label{eq:end-box}
+ 0<x<\frac8{25},
+ \qquad
+ 0\le y<\frac75.
+\end{equation}
+For $0\le t\le1-x^2$, set
+\begin{equation}\label{eq:end-q}
+ q(x,y;t)=(1-t)^2+x^2t\left(\frac{19}{10}-y^2t\right).
+\end{equation}
+By \eqref{eq:end-u},
+$|1-t\mu|^2\le q(x,y;t)$, and the same elementary calculation as before gives
+$0\le q\le1$ on the feasible set.  Define
+\begin{equation}\label{eq:end-E}
+ \mathcal E(x,y)=
+ \sum_{m=2}^{8}c_mx^{m-2}y^m
+ \int_0^{1-x^2}t^m q(x,y;t)^{\ell_m}\,dt.
+\end{equation}
+The centered expansion and \eqref{eq:em-bounds} yield
+\begin{equation}\label{eq:end-IJ}
+ |I-J|\le\delta\mathcal E(x,y),
+ \qquad
+ J=\int_0^a(1-t\mu)^8\,dt.
+\end{equation}
+
+Let $R=|1-a\mu|$.  From \eqref{eq:end-u},
+\[
+ R^2\le
+ \delta^2+\frac{19}{10}(1-\delta)\delta-(1-\delta)^2\eta^2
+ \le\frac{19}{10}\delta.
+\]
+Also $|\mu|\ge181/200$.  Hence
+\[
+ |J|
+ \ge\frac19+\frac{\eta^2}{18}-\frac{R^9}{9|\mu|}
+ \ge\frac19+\frac{\eta^2}{18}-\frac{\delta}{1000}.
+\]
+For the last inequality, it is enough, by monotonicity in
+$0<\delta\le1/10$, to check
+\[
+ \frac{200}{1629}\left(\frac{19}{10}\right)^{9/2}
+ \left(\frac1{10}\right)^{7/2}\le\frac1{1000};
+\]
+after squaring this is the exact integer inequality
+\[
+ 200^2 19^9<1629^2 10^{10}.
+\]
+Combining this with \eqref{eq:end-IJ} gives
+\begin{equation}\label{eq:end-final-reduction}
+ |I|-\frac a9
+ \ge\delta\,\mathcal P(x,y),
+\end{equation}
+where
+\begin{equation}\label{eq:end-P}
+ \mathcal P(x,y)=
+ \frac19+\frac{y^2}{18}-\frac1{1000}-\mathcal E(x,y).
+\end{equation}
+This is a rational polynomial of bidegree $(24,8)$.
+
+\begin{lemma}[boundary certificate]\label{lem:end-cert}
+For
+\[
+ 0\le x\le\frac8{25},
+ \qquad
+ 0\le y\le\frac75,
+\]
+one has
+\[
+ \mathcal P(x,y)>\frac1{100}.
+\]
+\end{lemma}
+
+\begin{proof}
+Put $x=(8/25)U$ and $y=(7/5)V$.  In the tensor-product Bernstein basis of
+bidegree $(24,8)$, all $225$ coefficients are at least
+\[
+ \frac{139392070260030830922829855080988292511}
+ {11102230246251565404236316680908203125000}
+ >\frac1{100}.
+\]
+As in Lemma~\ref{lem:middle-cert}, positivity follows from the partition of
+unity property of the Bernstein basis.  The coefficients are computed exactly
+in the ancillary verifier.
+\end{proof}
+
+Equations \eqref{eq:I-upper} and \eqref{eq:end-final-reduction}, together with
+Lemma~\ref{lem:end-cert}, are contradictory.  Thus no counterexample exists
+for $9/10\le a\le1$.
+
+\section{Completion of the proof}
+
+The ranges $0\le a\le9/20$, $9/20\le a\le9/10$, and
+$9/10\le a\le1$ have all been excluded under the assumption that every
+critical point is farther than $1$ from $a$.  This proves
+Theorem~\ref{thm:main}.
+
+\appendix
+\section{Exact Bernstein verification}
+
+For reference, if
+\[
+ R(U,V)=\sum_{k=0}^{N}\sum_{\ell=0}^{M}a_{k\ell}U^kV^\ell,
+\]
+then its tensor-product Bernstein coefficients of bidegree $(N,M)$ are
+\[
+ b_{ij}=
+ \sum_{k\le i}\sum_{\ell\le j}
+ a_{k\ell}
+ \frac{\binom{i}{k}}{\binom{N}{k}}
+ \frac{\binom{j}{\ell}}{\binom{M}{\ell}}.
+\]
+This identity gives an especially short exact certificate: once all $b_{ij}$
+are positive, $R$ is positive on $[0,1]^2$.  The accompanying verifier builds
+the integrals in \eqref{eq:ES} and \eqref{eq:end-E} symbolically, performs the
+affine substitutions, applies the displayed conversion formula using rational
+numbers, and checks the stated coefficient minima.  A second implementation
+independently reconstructs each polynomial from its Bernstein expansion.
+
+\begin{thebibliography}{9}
+
+\bibitem{BrandenWagner}
+P.~Br\"and\'en and D.~G.~Wagner,
+\newblock A converse to the Grace--Walsh--Szeg\H{o} theorem,
+\newblock \emph{Math. Proc. Cambridge Philos. Soc.} \textbf{147} (2009),
+447--453.
+
+\end{thebibliography}
+
+\end{document}

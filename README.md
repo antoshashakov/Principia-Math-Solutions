@@ -7,6 +7,7 @@ self-contained Lake project with its own paper, build, and verification record.
 | --- | --- | --- |
 | [`erdos123/`](erdos123/) | [Erdős Problem 123](https://www.erdosproblems.com/123) — for pairwise-coprime `a,b,c ≥ 2`, every large integer is a subset sum of a divisibility antichain in `{aᵏbˡcᵐ}` — together with a local central limit theorem for the subset sums of a short multiplicative band | Complete, `sorry`-free; **Comparator-certified on CI** |
 | [`erdos1054/`](erdos1054/) | [Erdős Problem 1054](https://www.erdosproblems.com/1054) — the limsup part: for every `A ≥ 1` the represented `N` with `f(N) > A·N` have positive lower density, so `f(N)/N` is unbounded — together with an unconditional formalization of the almost-all binary Goldbach theorem it rests on | Complete, `sorry`-free; Comparator **not yet run** (see [`erdos1054/VERIFICATION.md`](erdos1054/VERIFICATION.md) §5) |
+| [`sendov9/`](sendov9/) | **Sendov's conjecture in degree nine** — every complex polynomial of degree nine with all zeros in the closed unit disk has, for each zero `a`, a zero of the derivative within distance `1` of `a`. Degree nine was the open case (Brown–Xiang settled `n ≤ 8`; Tao all sufficiently large `n`) | `sorry`-free & **axiom-free**, no carried hypotheses; Grace–Walsh–Szegő, Grace's apolarity theorem and Laguerre's theorem are **proved here, not assumed**; **Comparator-certified on CI** |
 | [`erdos361/`](erdos361/) | [Erdős Problem 361](https://www.erdosproblems.com/361) — for `f_c(n) = max{\|A\| : A ⊆ [1,⌊cn⌋], n ∉ Σ(A)}`, the sequence `f_c(n)/n` converges **iff `c ≥ 1`**: the `c ≥ 1` exact formula `⌊cn⌋ − ⌈n/2⌉` and, for every `c ∈ (0,1)`, non-convergence — the Erdős–Graham irregularity question | both results `sorry`-free & **axiom-free** (Alon 1987 Thm 1.1 is proved via general-`h` Dias da Silva–Hamidoune from Mathlib's Combinatorial Nullstellensatz, not postulated — see [`erdos361/VERIFICATION.md`](erdos361/VERIFICATION.md) §4); **Comparator-certified on CI** |
 
 ## Conventions
@@ -22,7 +23,9 @@ without reading the whole tree:
   declaration that proves it.
 - **`Challenge.lean` + a definition-only statement module** — the trusted statements,
   with a deliberately tiny import closure. This pair is the entire audit surface: read
-  it and you have read everything you must trust.
+  it and you have read everything you must trust. (`sendov9/` has no statement module at
+  all: its statement is phrased entirely in Mathlib's own vocabulary, so `Challenge.lean`
+  plus Mathlib is the whole surface.)
 - **`Solution.lean`** — the same statements, proved. (`erdos1054/` has three:
   one bridge per master, since the same statements are proved by two independent
   routes plus a standalone Goldbach master.)

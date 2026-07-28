@@ -1,0 +1,130 @@
+name: sendov9-build
+
+# Scoped to the sendov9 solution; other solutions get their own workflow.
+on:
+  push:
+    branches: [main]
+    paths: ['sendov9/**', '.github/workflows/sendov9-*.yml']
+  pull_request:
+    paths: ['sendov9/**', '.github/workflows/sendov9-*.yml']
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: sendov9
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      # Unpacking the Mathlib olean cache needs several GB and the runner's free space
+      # varies between runs; reclaim the preinstalled tooling this job never uses.
+      - name: Free disk space
+        working-directory: .
+        run: |
+          echo "before:"; df -h / | tail -1
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/local/.ghcup /opt/hostedtoolcache/CodeQL \
+                      /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          echo "after:"; df -h / | tail -1
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Cache Mathlib oleans
+        run: lake exe cache get
+
+      # `Sendov9/CertData.lean` discharges nineteen exact positivity certificates by
+      # `decide` over integer-scaled coefficient tables; it is the slow module here.
+      - name: Build the development library
+        run: |
+          set -o pipefail
+          lake build 2>&1 | tee build.log
+
+      - name: Build Solution
+        run: |
+          set -o pipefail
+          lake build Solution 2>&1 | tee solution.log
+
+      # The authoritative check that nothing is stubbed. A failed tactic injects `sorryAx`
+      # into DOWNSTREAM theorems while the file still reports zero sorries, so a textual
+      # search is not sufficient — Lean's own warning is.
+      - name: No declaration in Sendov9 or Solution uses sorry
+        run: |
+          if grep -n "declaration uses 'sorry'" build.log solution.log; then
+            echo "::error::a declaration in the development library or Solution.lean uses sorry"
+            exit 1
+          fi
+          echo "no sorry-using declarations in Sendov9 / Solution"
+
+      # `#print axioms` runs on every headline theorem of the development too, so
+      # `build.log` carries a few hundred footprints. Rather than pin a count there, assert
+      # that across BOTH logs no axiom name outside the permitted set ever appears — this
+      # also catches `sorryAx`. A footprint may legitimately be a strict SUBSET of the
+      # permitted three (`Sendov9.Top.radical_ineq` needs only `propext`), so a literal
+      # match on the full triple would be wrong at this level.
+      - name: No axiom outside {propext, Classical.choice, Quot.sound} anywhere
+        run: |
+          grep -h "depends on axioms" build.log solution.log > all_axioms.txt
+          test -s all_axioms.txt || { echo "::error::no axiom lines found"; exit 1; }
+          echo "footprint lines: $(wc -l < all_axioms.txt)"
+          bad=$(sed 's/.*depends on axioms: \[//; s/\]$//' all_axioms.txt \
+                  | tr ',' '\n' | sed 's/^ *//; s/ *$//' | sort -u \
+                  | grep -v -x -e propext -e Classical.choice -e Quot.sound || true)
+          if [ -n "$bad" ]; then
+            echo "::error::unexpected axiom(s): $bad"; exit 1
+          fi
+          echo "every footprint is within {propext, Classical.choice, Quot.sound}"
+
+      # The two headline results specifically must carry the full clean triple.
+      - name: Solution's two results are axiom-free
+        run: |
+          n=$(grep -c "depends on axioms: \[propext, Classical.choice, Quot.sound\]$" solution.log)
+          echo "clean footprints in Solution: $n (expected 2 — the monic and the general form)"
+          test "$n" -eq 2
+
+      - name: No native_decide / implemented_by / unsafe / axiom declarations
+        run: |
+          # NOTE: a bare `grep sorry` is NOT used here — two module headers discuss the
+          # `sorry` this development superseded, and prose must not fail the build. The
+          # Lean-level check above is the real one.
+          if grep -rn "native_decide\|implemented_by\|\bunsafe\b" Sendov9/*.lean Solution.lean Challenge.lean; then
+            echo "::error::kernel-bypassing feature found"; exit 1
+          fi
+          total=$(grep -rh "^axiom " Sendov9/*.lean Solution.lean Challenge.lean | wc -l)
+          echo "axiom declarations found: $total"
+          if [ "$total" -ne 0 ]; then
+            echo "::error::expected zero axioms, found $total"; exit 1
+          fi
+          echo "clean"
+
+      - name: Build Challenge (the audit fixture) and check its two sorries
+        run: |
+          set -o pipefail
+          lake build Challenge 2>&1 | tee challenge.log
+          n=$(grep -c "^  sorry$" Challenge.lean)
+          echo "intentional sorries in Challenge.lean: $n"
+          test "$n" -eq 2
+
+      # Non-vacuity: the main theorem applied to p = X^9 yields an actual critical point,
+      # so its hypotheses are satisfiable. This exists because the one real defect found
+      # during the formalization was a VACUOUSLY TRUE carried hypothesis, which
+      # `#print axioms` cannot detect (see Sendov9/GWSFix.lean).
+      - name: Non-vacuity check builds
+        run: lake build Sendov9.NonVacuous
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sendov9-build-log
+          path: |
+            sendov9/build.log
+            sendov9/solution.log

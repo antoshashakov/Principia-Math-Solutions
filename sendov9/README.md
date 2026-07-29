@@ -16,7 +16,7 @@ carried hypotheses, no literature axioms, and no `sorry`** anywhere in the 46 mo
 the `Sendov9` library — the only `sorry`s in this directory are the two deliberate
 placeholders in `Challenge.lean`, which is the audit surface.
 
-The mathematics is **Anton Shakov's** (`paper/sendov9.tex`). The contribution of this
+The mathematics is **Principia Math's** (`paper/sendov9.tex`). The contribution of this
 directory is the machine-checked verification.
 
 ## Why degree nine

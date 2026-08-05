@@ -1,0 +1,2 @@
+'IntegrationCheck.covering' depends on axioms: [propext, Classical.choice, Quot.sound]
+'IntegrationCheck.sendov10_of_reduction' depends on axioms: [propext, Classical.choice, Quot.sound]

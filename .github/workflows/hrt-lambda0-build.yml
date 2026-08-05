@@ -1,0 +1,120 @@
+name: hrt-lambda0-build
+
+# Scoped to the hrt-lambda0 solution; other solutions get their own workflow.
+on:
+  push:
+    branches: [main]
+    paths: ['hrt-lambda0/**', '.github/workflows/hrt-lambda0-*.yml']
+  pull_request:
+    paths: ['hrt-lambda0/**', '.github/workflows/hrt-lambda0-*.yml']
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: hrt-lambda0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      # Unpacking the Mathlib olean cache needs several GB and the runner's free space
+      # varies between runs; reclaim the preinstalled tooling this job never uses.
+      - name: Free disk space
+        working-directory: .
+        run: |
+          echo "before:"; df -h / | tail -1
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/local/.ghcup /opt/hostedtoolcache/CodeQL \
+                      /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          echo "after:"; df -h / | tail -1
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Cache Mathlib oleans
+        run: lake exe cache get
+
+      - name: Build the development library
+        run: |
+          set -o pipefail
+          lake build 2>&1 | tee build.log
+
+      - name: Build Solution
+        run: |
+          set -o pipefail
+          lake build Solution 2>&1 | tee solution.log
+
+      # The authoritative check that nothing is stubbed. A failed tactic injects `sorryAx`
+      # into DOWNSTREAM theorems while the file still reports zero sorries, so a textual
+      # search is not sufficient — Lean's own warning is.
+      - name: No declaration in HRTLambda0 or Solution uses sorry
+        run: |
+          if grep -n "declaration uses 'sorry'" build.log solution.log; then
+            echo "::error::a declaration in the development library or Solution.lean uses sorry"
+            exit 1
+          fi
+          echo "no sorry-using declarations in HRTLambda0 / Solution"
+
+      # Assert that across BOTH logs no axiom name outside the permitted set ever appears
+      # (this also catches sorryAx). A footprint may legitimately be a strict SUBSET of
+      # the permitted three (`degree_identity_kills` needs only [propext, Quot.sound]).
+      - name: No axiom outside {propext, Classical.choice, Quot.sound} anywhere
+        run: |
+          grep -h "depends on axioms" build.log solution.log > all_axioms.txt
+          test -s all_axioms.txt || { echo "::error::no axiom lines found"; exit 1; }
+          echo "footprint lines: $(wc -l < all_axioms.txt)"
+          bad=$(sed 's/.*depends on axioms: \[//; s/\]$//' all_axioms.txt \
+                  | tr ',' '\n' | sed 's/^ *//; s/ *$//' | sort -u \
+                  | grep -v -x -e propext -e Classical.choice -e Quot.sound || true)
+          if [ -n "$bad" ]; then
+            echo "::error::unexpected axiom(s): $bad"; exit 1
+          fi
+          echo "every footprint is within {propext, Classical.choice, Quot.sound}"
+
+      # The headline (conditional) result must carry a clean footprint. Match BY NAME:
+      # `lake build Solution` replays the cached info messages of every dependency.
+      - name: Solution's result is axiom-clean
+        run: |
+          n=$(grep -c "'HRTLambda0.Statement.lambda0_independent_of_reduction' depends on axioms: \[propext, Classical.choice, Quot.sound\]$" solution.log || true)
+          echo "clean footprint(s) for the headline result: $n"
+          if [ "$n" -lt 1 ]; then
+            echo "::error::lambda0_independent_of_reduction is missing a clean footprint"
+            grep "lambda0_independent_of_reduction' depends on axioms" solution.log || echo "  (no footprint line at all)"
+            exit 1
+          fi
+
+      - name: No native_decide / implemented_by / unsafe / axiom declarations
+        run: |
+          if grep -rn "native_decide\|implemented_by\|\bunsafe\b" HRTLambda0/*.lean HRTLambda0.lean Solution.lean Challenge.lean; then
+            echo "::error::kernel-bypassing feature found"; exit 1
+          fi
+          total=$(grep -rh "^axiom " HRTLambda0/*.lean HRTLambda0.lean Solution.lean Challenge.lean | wc -l)
+          echo "axiom declarations found: $total"
+          if [ "$total" -ne 0 ]; then
+            echo "::error::expected zero axioms, found $total"; exit 1
+          fi
+          echo "clean"
+
+      - name: Build Challenge (the audit fixture) and check its one sorry
+        run: |
+          set -o pipefail
+          lake build Challenge 2>&1 | tee challenge.log
+          n=$(grep -c "^  sorry$" Challenge.lean)
+          echo "intentional sorries in Challenge.lean: $n"
+          test "$n" -eq 1
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: hrt-lambda0-build-log
+          path: |
+            hrt-lambda0/build.log
+            hrt-lambda0/solution.log

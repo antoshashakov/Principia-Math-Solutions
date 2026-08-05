@@ -1,0 +1,28 @@
+name = "HRTLambda0"
+defaultTargets = ["HRTLambda0"]
+
+# These are the development environment's options verbatim
+# (PrincipiaAI `Principia Application/LeanSandbox/lakefile.toml` / the certification
+# playground), so that this standalone project elaborates the same file under the same
+# settings that gated it.
+[leanOptions]
+pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4.git"
+rev = "v4.31.0"
+
+[[lean_lib]]
+name = "HRTLambda0"
+
+# Comparator (github.com/leanprover/comparator) requires the trusted statement file and
+# the claimed proof to be separate libraries.
+[[lean_lib]]
+name = "Challenge"
+
+[[lean_lib]]
+name = "Solution"

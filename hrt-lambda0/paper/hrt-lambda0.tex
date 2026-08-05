@@ -1,0 +1,257 @@
+\documentclass[11pt]{amsart}
+\usepackage{amsmath,amssymb,amsthm}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\T}{\mathbb{T}}
+\newcommand{\C}{\mathbb{C}}
+
+\title{Linear independence of four time--frequency translates
+at a resonant non-lattice configuration}
+
+\begin{document}
+\begin{abstract}
+Let $Z$ denote the Zak transform. We prove that if $g\in L^2(\R)$ is nonzero and $Zg$ has a continuous
+representative --- in particular if $g$ is a nonzero Schwartz function --- then the four translates
+$g(x)$, $g(x-1)$, $e^{2\pi i x}g(x)$, $e^{2\pi i \sqrt2 x}g(x-\sqrt2)$ are linearly independent. This
+settles the case $\Lambda_0=\{(0,0),(1,0),(0,1),(\sqrt2,\sqrt2)\}$ of the Heil--Ramanathan--Topiwala
+conjecture, listed as Conjecture~2 in the survey of Heil and Speegle. More generally we prove
+independence for $\{(0,0),(1,0),(0,1),(\alpha,\alpha+j)\}$ for every irrational $\alpha$ and every integer
+$j\notin\{-1,1\}$, and we show that $j=\pm1$ is precisely where the method saturates.
+
+The configuration $\Lambda_0$ is \emph{resonant}: $-\sqrt2+\sqrt2=0$, so the relevant translation of
+$\T^2$ is not ergodic and $\T^2$ fibres into invariant circles. This fibration, the resulting dichotomy,
+and the value of the fibre winding number are due to Oussa \cite{Oussa}; see the Attribution section for a
+precise account. Our contribution is the endgame: we read the winding value as a root count, and then
+extract from Jensen's formula a quantity that is \emph{constant across fibres} and contradict that
+constancy by Vieta's relations.
+\end{abstract}
+\maketitle
+
+\section{Introduction}
+The HRT conjecture asserts that for every nonzero $f\in L^2(\R)$ and every finite set of distinct points
+$\{(a_k,b_k)\}\subset\R^2$ the functions $e^{2\pi i b_k x}f(x-a_k)$ are linearly independent. It is known
+for at most three points \cite{HRT}, for subsets of a lattice \cite{Lin}, for configurations lying on two
+parallel lines \cite{Dem,DZ}, for almost every $(1,3)$ configuration \cite{Liu}, and for various restricted
+window classes \cite{BS,MP}. The smallest configuration resisting all of these is
+\[
+\Lambda_0=\{(0,0),(1,0),(0,1),(\sqrt2,\sqrt2)\},
+\]
+singled out as Conjecture~2 (``the HRT subconjecture'') in the survey of Heil and Speegle \cite{HS}, and
+open for Schwartz windows. Our main result settles it.
+
+\begin{theorem}\label{thm:main}
+Let $g\in L^2(\R)$, $g\neq0$, and suppose the quasi-periodic extension of $Zg$ given by \eqref{eq:quasi}
+is continuous on all of $\R^2$. Then the four functions
+$g(x)$, $g(x-1)$, $e^{2\pi ix}g(x)$, $e^{2\pi i\sqrt2 x}g(x-\sqrt2)$ are linearly independent. In
+particular this holds for every nonzero Schwartz $g$, and more generally for $g$ in the Wiener amalgam
+$W(C,\ell^1)$.
+\end{theorem}
+
+\begin{theorem}\label{thm:general}
+Let $\alpha$ be irrational and $j\in\Z$ with $j\neq\pm1$. Then for every nonzero $g$ with continuous Zak
+transform, the translates indexed by $\{(0,0),(1,0),(0,1),(\alpha,\alpha+j)\}$ are linearly independent.
+\end{theorem}
+
+\begin{remark}
+$\Lambda_0$ is not reachable from the solved cases. Affine symplectic maps preserve HRT dependences, and
+the difference vectors of $\Lambda_0$ have symplectic invariants $1,\sqrt2,-\sqrt2$; membership in a
+lattice would force these into a common $d\Z$, impossible since $1/\sqrt2$ is irrational. Parallelism and
+collinearity are affine invariants and fail for $\Lambda_0$. Hence Linnell's theorem, the two-parallel-line
+results, and the collinear results cannot be applied after any change of coordinates.
+\end{remark}
+
+\section{Reduction}
+Normalise $Zg(t,\omega)=\sum_{n\in\Z}g(t-n)e^{2\pi i n\omega}$, so that
+\begin{equation}\label{eq:quasi}
+Zg(t+1,\omega)=e^{2\pi i\omega}Zg(t,\omega),\qquad Zg(t,\omega+1)=Zg(t,\omega),
+\end{equation}
+$Z$ is unitary onto $L^2(\T^2)$, and $Z(M_bT_ag)(t,\omega)=e^{2\pi i bt}Zg(t-a,\omega-b)$.
+
+Assume a nontrivial dependence with coefficients $c_1,\dots,c_4$ for the configuration
+$\{(0,0),(1,0),(0,1),(\alpha,\alpha+j)\}$. If some $c_i=0$ the dependence is supported on at most three
+points; for one or two points this is immediate, for three collinear points it is the theorem of
+Heil--Ramanathan--Topiwala, and for three points in general position an element of $SL(2,\R)$ carries the
+difference vectors to $(1,0)$ and $(0,s)$ with $s=\omega(u_2,u_3)\neq0$, placing the configuration inside
+the lattice $\Z\times s\Z$, where Linnell's theorem applies. Metaplectic operators are unitary on $L^2$,
+preserve the Schwartz class, and carry time--frequency translates to time--frequency translates up to
+unimodular factors, so dependences correspond. We may therefore assume all $c_i\neq0$.
+
+Writing $G=Zg$ and using \eqref{eq:quasi} together with $j\in\Z$, the dependence becomes
+\begin{equation}\label{eq:FE}
+p(t,\omega)G(t,\omega)=-c_4e^{2\pi i(\alpha+j)t}G(t-\alpha,\omega-\alpha),\qquad
+p=c_1+c_2e^{-2\pi i\omega}+c_3e^{2\pi it}.
+\end{equation}
+Note that $j$ has disappeared from the shift and survives only in the prefactor.
+
+The translation $\gamma=(-\alpha,-\alpha)$ of $\T^2$ is \emph{not} ergodic: $e^{2\pi i(\omega-t)}$ is a
+nonconstant invariant character. Its ergodic components are the circles $L_c=\{\omega=t+c\}$, on which
+$\gamma$ acts as rotation by $\alpha$; the parameter $c=\omega-t \bmod 1$ is well defined on $\T^2$, and
+each $L_c$ is a single circle. Set $G_c(t)=G(t,t+c)$ and $z=e^{2\pi it}$. Then \eqref{eq:quasi} and
+\eqref{eq:FE} restrict to
+\begin{align}
+G_c(t+1)&=e^{2\pi i(t+c)}G_c(t),\label{eq:Q}\\
+G_c(t-\alpha)&=-c_4^{-1}e^{-2\pi i(\alpha+j)t}P_c(t)G_c(t),\qquad
+P_c(t)=z^{-1}Q_c(z),\label{eq:FEc}
+\end{align}
+where
+\begin{equation}\label{eq:Q_c}
+Q_c(z)=c_3z^2+c_1z+c_2e^{-2\pi ic}.
+\end{equation}
+Only the phase of the constant term of $Q_c$ depends on $c$; this drives everything below.
+
+\section{The fibre dichotomy}
+\begin{lemma}\label{lem:dichotomy}
+Each fibre satisfies either $G_c\equiv0$ or $G_c(t)\neq0$ for all $t$. The set
+$C_1=\{c: G_c \text{ nowhere zero}\}$ is open, and if it is empty then $g=0$. Consequently, for a nonzero
+$g$, $C_1$ contains an interval, and $P_c$ is zero free on the circle for every $c\in C_1$.
+\end{lemma}
+
+\begin{proof}
+By \eqref{eq:FEc}, $G_c(t_0)=0$ forces $G_c(t_0-\alpha)=0$, hence $G_c(t_0-n\alpha)=0$ for all $n\geq0$;
+no division occurs. Since $\alpha$ is irrational this orbit is dense modulo $1$, and $|G_c|$ is
+$1$-periodic by \eqref{eq:Q}, so continuity gives $G_c\equiv0$. By \eqref{eq:quasi} the modulus $|G|$ is a
+well-defined continuous function on $\T^2$, so $\{|G|>0\}$ is open; $C_1$ is its image under the bundle
+projection $\T^2\to\T$, $(t,\omega)\mapsto\omega-t$, which is an open map. If $C_1=\emptyset$ then
+$G\equiv0$, so $g=0$. A nonempty open subset of $\T$ contains an interval. The last claim follows from
+\eqref{eq:FEc}, since $G_c$ is nowhere zero.
+\end{proof}
+
+\section{The degree identity}
+\begin{lemma}\label{lem:degree}
+For every $c\in C_1$ the polynomial $Q_c$ has exactly $j+1$ roots in the open unit disc. In particular
+$C_1=\emptyset$, and hence $g=0$, whenever $j\notin\{-1,0,1\}$.
+\end{lemma}
+
+\begin{proof}
+Let $m_c(t)=e^{2\pi ict}e^{\pi it(t-1)}$, so that $m_c(t+1)/m_c(t)=e^{2\pi i(t+c)}$ and
+$v_c=G_c/m_c$ is $1$-periodic by \eqref{eq:Q}. From
+$t(t-1)-(t-\alpha)(t-\alpha-1)=2\alpha t-\alpha^2-\alpha$ we get
+$m_c(t)/m_c(t-\alpha)=e^{2\pi ic\alpha}e^{2\pi i\alpha t}e^{-\pi i(\alpha^2+\alpha)}$, and the
+non-periodic exponentials cancel:
+$e^{-2\pi i(\alpha+j)t}\cdot e^{2\pi i\alpha t}=e^{-2\pi ijt}$. Hence \eqref{eq:FEc} becomes
+\begin{equation}\label{eq:cocycle}
+v_c(t-\alpha)=R_c(t)v_c(t),\qquad R_c(t)=\Lambda_ce^{-2\pi ijt}P_c(t),
+\end{equation}
+with $\Lambda_c$ a nonzero constant and $R_c$ continuous, $1$-periodic and zero free.
+
+Put $w_c=v_c/|v_c|$ and $\eta_c=R_c/|R_c|$, continuous maps $\T\to\T$, so
+$w_c(t-\alpha)=\eta_c(t)w_c(t)$. Taking degrees, and using that precomposition with a rotation does not
+change the degree of a circle map, gives $\deg w_c=\deg\eta_c+\deg w_c$, whence
+\begin{equation}\label{eq:deg}
+\deg\eta_c=0 .
+\end{equation}
+Since $\deg\eta_c=-j+\deg(P_c/|P_c|)$ and, by the argument principle applied to $P_c=z^{-1}Q_c$ on the
+zero-free circle, $\deg(P_c/|P_c|)=-1+N(c)$ with $N(c)$ the number of roots of $Q_c$ in the disc, we get
+$N(c)=j+1$. As $Q_c$ is quadratic, $N(c)\in\{0,1,2\}$, which is impossible for $j\notin\{-1,0,1\}$.
+\end{proof}
+
+\section{Cross-fibre constancy and the contradiction}
+From here take $j=0$, so $N(c)=1$ for all $c\in C_1$: $Q_c$ has one root $\zeta_{\mathrm{in}}(c)$ inside
+and one root $\zeta_{\mathrm{out}}(c)$ outside the unit circle, and both depend continuously on $c$ on
+$C_1$ because the two roots stay separated.
+
+\begin{lemma}\label{lem:jensen}
+$|\zeta_{\mathrm{out}}(c)|=|c_4|/|c_3|$ for every $c\in C_1$.
+\end{lemma}
+
+\begin{proof}
+On a fibre in $C_1$ the function $\log|G_c|$ is continuous and, by \eqref{eq:Q}, $1$-periodic. Taking
+$\log|\cdot|$ in \eqref{eq:FEc} and integrating over a period, the $G$ terms cancel by translation
+invariance of Lebesgue measure alone, leaving $\int_0^1\log|P_c|=\log|c_4|$. Since $\int_0^1\log|z^{-1}|=0$,
+Jensen's formula gives $\int_0^1\log|P_c|=\log|c_3|+\log|\zeta_{\mathrm{out}}(c)|$.
+\end{proof}
+
+\begin{proof}[Proof of Theorems \ref{thm:main} and \ref{thm:general}]
+Theorem~\ref{thm:general} for $j\neq\pm1$ is Lemma~\ref{lem:degree}. For $j=0$ suppose a nontrivial
+dependence exists; by Lemma~\ref{lem:dichotomy} we may work on an interval $I\subseteq C_1$. Write
+$r=|c_4|/|c_3|$ and $S=-c_1/c_3$. By Vieta,
+$\zeta_{\mathrm{in}}+\zeta_{\mathrm{out}}=S$ is constant on $I$ and
+$\zeta_{\mathrm{in}}\zeta_{\mathrm{out}}=(c_2/c_3)e^{-2\pi ic}$. By Lemma~\ref{lem:jensen},
+$|\zeta_{\mathrm{out}}|\equiv r$, hence also
+$|\zeta_{\mathrm{in}}|=|c_2|/(|c_3|r)$ is constant, and therefore
+$|\zeta_{\mathrm{out}}-S|=|\zeta_{\mathrm{in}}|$ is a positive constant $r'$ (positive because
+$\zeta_{\mathrm{in}}\zeta_{\mathrm{out}}\neq0$, as $c_2\neq0$). Thus $\zeta_{\mathrm{out}}(c)$ lies in
+\[
+\{|z|=r\}\cap\{|z-S|=r'\},
+\]
+the intersection of two circles with distinct centres, since $S\neq0$ as $c_1\neq0$. This set has at most
+two points. A continuous function on the interval $I$ with values in a finite set is constant, so
+$\zeta_{\mathrm{out}}$, and hence $\zeta_{\mathrm{in}}$, is constant on $I$; therefore the product
+$(c_2/c_3)e^{-2\pi ic}$ is constant on $I$, which is false since $c_2\neq0$ and $I$ has positive length.
+Theorem~\ref{thm:main} is the case $\alpha=\sqrt2$, $j=0$, after the shift $(\sqrt2,\sqrt2)$.
+\end{proof}
+
+\section{Why $j=\pm1$ saturates the method}
+For $j=\pm1$ Lemma~\ref{lem:degree} gives $N(c)\in\{0,2\}$: both roots lie on the same side of the circle.
+Jensen's formula then returns $\log|c_3|$ (if $N=2$) or $\log|c_2|$ (if $N=0$), so Lemma~\ref{lem:jensen}
+degenerates to the single $c$-independent condition $|c_3|=|c_4|$, respectively $|c_2|=|c_4|$, and the
+rigidity argument has nothing to act on.
+
+Two further routes are unavailable. First, the degree-based obstructions for cocycles over irrational
+rotations (Anzai; Iwanik--Lema\'nczyk--Rudolph) require a cocycle of nonzero degree, whereas
+\eqref{eq:deg} pins $\deg\eta_c=0$ for \emph{every} $j$: the degree is forced by the mere existence of a
+continuous $1$-periodic solution. (For merely measurable windows there is no degree, nothing forces $0$,
+and these theorems do apply --- which is how the $L^2$ statement is reached by a different argument.)
+Second, no single fibre obstructs: for $N=2$ one has
+$R_c=\Lambda_cc_3(1-\zeta_1/z)(1-\zeta_2/z)$, so $\log R_c$ has Fourier support in nonpositive frequencies
+with geometrically decaying coefficients, and the cohomological equations
+$\hat\theta(n)(e^{2\pi in\alpha}-1)=\hat\psi(n)$ are solvable for all $n\neq0$, the mean condition
+$\hat\psi(0)=0$ being exactly Lemma~\ref{lem:jensen}. For badly approximable $\alpha$ the small divisors
+are dominated by the geometric decay. Root location is likewise unobstructed: with $\zeta_1+\zeta_2=S$
+fixed and $|\zeta_1\zeta_2|$ constant, the Schur--Cohn conditions are satisfiable on a short interval.
+
+Consequently a proof for $j=\pm1$ must use global input that the above never needs: the quasi-periodicity
+\eqref{eq:quasi} makes $G$ a section of a line bundle over $\T^2$ of Chern number one, so every continuous
+Zak transform vanishes somewhere and dead fibres necessarily exist; and the fibrewise solutions must be
+glued into a single continuous $G$ with matching behaviour on $\partial C_1$.
+
+\section*{Attribution}
+This paper builds directly on the program of Oussa \cite{Oussa}, and we want the division of credit to be
+unambiguous. Already present there, for this configuration family and for Schwartz windows: the
+Zak-transform reduction \eqref{eq:FE}; the non-ergodicity of $\gamma$ and the resulting fibration of $\T^2$
+into invariant circles; the zero-propagation dichotomy of Lemma~\ref{lem:dichotomy}; and --- this is the
+point we wish to stress --- \emph{the value of the fibre winding number}. Specifically, the proof of
+Proposition~6.2 of \cite{Oussa} derives an identity which, specialised to $d=1$, fourth point
+$(\alpha,\alpha+j)$, $a=(-1,1)$ and $m=1$, yields exactly $\kappa_a=j$; the winding lemma there is in turn
+credited to suggestions of C.~Heil, K.~Okoudjou and R.~Jadhav. Oussa states the integrality conclusion
+(remarking that it is often automatic in dimension one) and draws no root-count consequence, and he names
+$\Lambda_0$ as the unresolved resonant case.
+
+Accordingly we claim only the following. (i) A derivation of \eqref{eq:deg} using \emph{continuity alone},
+with no smoothness hypothesis, via the observation that the degree of a circle map is unchanged by
+precomposition with a rotation. (ii) The reading of that identity as the \emph{root count} $N(c)=j+1$,
+which immediately gives Theorem~\ref{thm:general} for $|j|\geq2$ by a parity-of-degree count. (iii) The
+evaluation of the fibre mean by Jensen's formula so as to produce a quantity that is \emph{constant across
+fibres} (Lemma~\ref{lem:jensen}). (iv) The Vieta rigidity contradicting that constancy, which is what
+actually settles $\Lambda_0$. Items (iii) and (iv) are, to our knowledge, new; neither Jensen's formula nor
+Vieta's relations appear in \cite{Oussa}.
+
+\begin{thebibliography}{99}
+\bibitem{BS} M.~Bownik and D.~Speegle, \emph{Linear independence of time-frequency translates of functions
+with faster than exponential decay}, Bull. Lond. Math. Soc. \textbf{45} (2013), 554--566.
+\bibitem{Dem} C.~Demeter, \emph{Linear independence of time frequency translates for special
+configurations}, Math. Res. Lett. \textbf{17} (2010), 761--779.
+\bibitem{DZ} C.~Demeter and A.~Zaharescu, \emph{Proof of the HRT conjecture for $(2,2)$ configurations},
+J. Math. Anal. Appl. \textbf{388} (2012), 151--159.
+\bibitem{HRT} C.~Heil, J.~Ramanathan and P.~Topiwala, \emph{Linear independence of time-frequency
+translates}, Proc. Amer. Math. Soc. \textbf{124} (1996), 2787--2795.
+\bibitem{HS} C.~Heil and D.~Speegle, \emph{The HRT conjecture and the zero divisor conjecture for the
+Heisenberg group}, in: Excursions in Harmonic Analysis, Vol.~3, Birkh\"auser, 2015, pp.~159--176.
+\bibitem{ILR} A.~Iwanik, M.~Lema\'nczyk and D.~Rudolph, \emph{Absolutely continuous cocycles over
+irrational rotations}, Israel J. Math. \textbf{83} (1993), 73--95.
+\bibitem{Lin} P.~A.~Linnell, \emph{Von Neumann algebras and linear independence of translates},
+Proc. Amer. Math. Soc. \textbf{127} (1999), 3269--3277.
+\bibitem{Liu} W.~Liu, \emph{Short proof of the HRT conjecture for almost every $(1,3)$ configuration},
+J. Fourier Anal. Appl. \textbf{25} (2019), 1350--1360.
+\bibitem{MP} R.-D.~Malikiosis and D.~Poursalidis, \emph{The HRT conjecture for ultimately positive
+generators}, preprint, arXiv:2509.04281.
+\bibitem{Oussa} V.~Oussa, \emph{A trichotomy for the HRT conjecture at mixed-integer configurations},
+preprint, arXiv:2508.04613v2 (2026).
+\end{thebibliography}
+
+\end{document}

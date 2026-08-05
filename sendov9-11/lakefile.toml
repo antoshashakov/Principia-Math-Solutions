@@ -1,0 +1,67 @@
+name = "Sendov9"
+defaultTargets = ["Sendov9"]
+
+# These are the development environment's options verbatim
+# (PrincipiaAI `Principia Application/LeanSandbox/lakefile.toml`), so that this standalone
+# project elaborates the same files under the same settings that gated them.
+[leanOptions]
+pp.unicode.fun = true # pretty-prints `fun a ↦ b`
+relaxedAutoImplicit = false
+weak.linter.mathlibStandardSet = true
+maxSynthPendingDepth = 3
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4.git"
+rev = "v4.31.0"
+
+[[lean_lib]]
+name = "Sendov9"
+
+# Comparator (github.com/leanprover/comparator) requires the trusted statement file and
+# the claimed proof to be separate libraries.
+[[lean_lib]]
+name = "Challenge"
+
+[[lean_lib]]
+name = "Solution"
+
+# ---------------------------------------------------------------------------------------
+# Degrees ten and eleven — the PARTIAL extension (see VERIFICATION.md Part II).
+# None of these are default targets: `lake build` still builds exactly the certified
+# degree-nine library. The 581 box certificate files in boxes10/ and boxes11/ are not
+# registered as libraries at all; they are checked one file at a time with
+# `lake env lean` (the same way they were certified), see check-boxes.sh.
+# ---------------------------------------------------------------------------------------
+
+# The Bernstein certificate engine (representation + bound directions, integer bridge).
+[[lean_lib]]
+name = "Sendov911Bern"
+
+# The conditional capstone: CertificateReduction n boxes → CoveringPositive boxes → Sendov n.
+[[lean_lib]]
+name = "Sendov911Capstone"
+
+# The earlier supporting-lemma file for the degrees 9–11 paper (states PaperMainTheorem;
+# does not conclude it).
+[[lean_lib]]
+name = "Sendov9to11"
+
+# The two boundary certificates, registered so `lake build` can produce their oleans.
+[[lean_lib]]
+name = "Sendov911Box10Boundary"
+srcDir = "boxes10"
+
+[[lean_lib]]
+name = "Sendov911Box11Boundary"
+srcDir = "boxes11"
+
+# One interior box registered as a library so IntegrationCheck can import it.
+[[lean_lib]]
+name = "Sendov911Box10_40"
+srcDir = "boxes10"
+
+# Wires two REAL boxes (Box10_40 + Box10Boundary) into the capstone, deriving
+# `sendov10_of_reduction`. Build with `lake build IntegrationCheck`.
+[[lean_lib]]
+name = "IntegrationCheck"

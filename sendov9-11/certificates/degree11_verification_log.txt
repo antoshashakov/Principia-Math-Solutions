@@ -1,0 +1,31 @@
+Degree-11 exact verification log
+================================
+
+Primary verifier (Fraction-based):
+  a-box rows 37--60: 240/240 eta-boxes passed
+  a-box rows 61--80: 200/200 eta-boxes passed
+  a-box rows 81--89:  90/90 eta-boxes passed
+  boundary a in [9/10,1]: passed
+  total interior boxes: 530/530
+
+Independent SymPy reconstruction:
+  rows 37--40: passed
+  rows 41--44: passed
+  rows 45--48: passed
+  rows 49--52: passed
+  rows 53--56: passed
+  rows 57--60: passed
+  rows 61--64: passed
+  rows 65--68: passed
+  rows 69--72: passed
+  rows 73--76: passed
+  rows 77--80: passed
+  rows 81--84: passed
+  rows 85--88: passed
+  row 89: passed
+  boundary a in [9/10,1]: passed
+  total interior boxes: 530/530
+
+All checks use exact rational arithmetic.  The split parameter tau is selected
+from a finite rational menu; positivity is established only by exact tensor-
+Bernstein coefficients, not by the floating-point discovery values.

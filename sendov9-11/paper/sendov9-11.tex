@@ -1,0 +1,889 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs,longtable,array}
+\usepackage{microtype}
+\usepackage[hidelinks]{hyperref}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\C}{\mathbb C}
+\newcommand{\D}{\mathbb D}
+\newcommand{\e}{\mathrm e}
+\newcommand{\Rea}{\operatorname{Re}}
+
+\title{Sendov's Conjecture in Degrees Nine, Ten, and Eleven}
+\author{Anton Shakov}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+We prove Sendov's conjecture for complex polynomials of degrees nine, ten, and
+ eleven.  The three proofs use the same reciprocal normalization.  A
+ hypothetical counterexample yields a product constraint, a localization
+ inequality for the mean reciprocal critical-point displacement, and an exact
+ integral identity.  After centering the reciprocal critical points, the
+ analytic problem reduces to positivity of explicit bivariate polynomials.
+ Degree nine requires eighteen interior Bernstein certificates and one
+ boundary certificate; degree ten requires fifty interior certificates and one
+ boundary certificate; degree eleven requires a split-integral estimate and
+ 530 interior certificates together with one boundary certificate.  Every
+ finite calculation is carried out in exact rational arithmetic, with an
+ independent symbolic reconstruction for each degree.
+\end{abstract}
+
+\section{Introduction}
+
+Sendov's conjecture asserts that if all zeros of a complex polynomial lie in
+ the closed unit disk, then the closed unit disk centered at each zero contains
+ a zero of the derivative.  Brown and Xiang proved the conjecture for degrees
+ at most eight \cite{BrownXiang}.  We establish the next three degrees.
+
+\begin{theorem}\label{thm:main}
+Let
+\[
+ p(z)=\prod_{k=1}^{n}(z-z_k),\qquad |z_k|\le 1,
+\]
+where $n\in\{9,10,11\}$.  All zeros are counted with multiplicity.  For every zero $a$ of $p$, there is a zero $\zeta$
+ of $p'$ such that
+\[
+ |a-\zeta|\le 1.
+\]
+\end{theorem}
+
+By rotation, the distinguished zero may be taken to be a real number
+$a\in[0,1]$.  We argue by contradiction and call the polynomial \emph{bad at
+$a$} if every zero of $p'$ has distance strictly greater than $1$ from $a$.
+The proof is computer-assisted only in finite polynomial-positivity checks.
+The reductions, the certificate polynomials, and the exact verification
+procedure are all given below.
+
+\section{Preliminaries}
+
+\subsection{Separation of the remaining zeros}
+
+We use the Grace--Walsh--Szeg\H{o} coincidence theorem in its standard form for
+symmetric multi-affine polynomials on disks; see, for example,
+\cite{BrandenWagner}.
+
+\begin{lemma}\label{lem:separation}
+Let $P$ be a polynomial of degree $n\ge 2$, let $\alpha$ be a zero of $P$, and
+suppose that
+\[
+ |\alpha-\zeta|>\rho
+\]
+for every zero $\zeta$ of $P'$.  Then $\alpha$ is simple and every other zero
+$\beta$ of $P$ satisfies
+\[
+ |\beta-\alpha|>2\rho\sin\frac{\pi}{n}.
+\]
+\end{lemma}
+
+\begin{proof}
+The simplicity of $\alpha$ is immediate.  Let $\zeta_1,\ldots,\zeta_{n-1}$ be
+ the zeros of $P'$ and put $w=\beta-\alpha$.  Since
+$P(\beta)=P(\alpha)$,
+\[
+ 0=\int_0^1\frac{P'(\alpha+tw)}{P'(\alpha)}\,dt
+   =\int_0^1\prod_{j=1}^{n-1}(1-tu_j)\,dt,
+ \qquad
+ u_j=-\frac{w}{\alpha-\zeta_j}.
+\]
+The symmetric multi-affine polynomial
+\[
+ F(u_1,\ldots,u_{n-1})=\int_0^1\prod_{j=1}^{n-1}(1-tu_j)\,dt
+\]
+has diagonal
+\[
+ F(u,\ldots,u)=\frac{1-(1-u)^n}{nu},
+\]
+with the value $1$ at $u=0$.  Its diagonal zeros are
+$1-\e^{2\pi i k/n}$, $1\le k<n$, and therefore have modulus at least
+$2\sin(\pi/n)$.  The coincidence theorem implies that $F$ is nonzero when
+all $|u_j|<2\sin(\pi/n)$.  If
+$|w|\le 2\rho\sin(\pi/n)$, then the strict critical-point separation gives
+this inequality for every $u_j$, a contradiction.
+\end{proof}
+
+\subsection{A reciprocal-square extremum}
+
+\begin{lemma}\label{lem:sigma}
+Let $0<m<M$, let $r_1,\ldots,r_N\in[m,M]$, and suppose
+\[
+ \prod_{k=1}^N r_k\ge C>m^N.
+\]
+Let $\nu$ be the least integer for which
+$M^\nu m^{N-\nu}\ge C$.  Then
+\[
+ \sum_{k=1}^N\frac1{r_k^2}
+ \le
+ \frac{N-\nu}{m^2}+\frac{\nu-1}{M^2}
+ +\left(\frac{M^{\nu-1}m^{N-\nu}}{C}\right)^2.
+\]
+\end{lemma}
+
+\begin{proof}
+Put $r_k=\e^{t_k}$.  Since $t\mapsto\e^{-2t}$ is decreasing, we may reduce
+$\sum t_k$ to $\log C$.  On the resulting section of the box
+$[\log m,\log M]^N$, the convex function $\sum\e^{-2t_k}$ is maximized at an
+extreme point.  Hence all but at most one coordinate are endpoints.  By the
+choice of $\nu$, the maximizing configuration has $N-\nu$ entries equal to
+$m$, $\nu-1$ entries equal to $M$, and one entry equal to
+$C/(M^{\nu-1}m^{N-\nu})$.
+\end{proof}
+
+\subsection{Centered elementary symmetric functions}
+
+For $d=(d_1,\ldots,d_N)$, let $e_m(d)$ denote the $m$th elementary symmetric
+function.
+
+\begin{lemma}[variance under differentiation]\label{lem:variance-derivative}
+Let $f$ be a monic polynomial of degree $N\ge2$ whose zeros
+$d_1,\ldots,d_N$ have mean zero, and let $w_1,\ldots,w_{N-1}$ be the zeros of
+$f'$.  Then
+\[
+ \sum_{j=1}^{N-1}|w_j|^2
+ \le \frac{N-2}{N}\sum_{j=1}^N|d_j|^2.
+\]
+\end{lemma}
+
+\begin{proof}
+Let $A=\operatorname{diag}(d_1,\ldots,d_N)$,
+$u=N^{-1/2}(1,\ldots,1)^{\mathsf T}$, and $P=I-uu^*$.  The compression
+$B=PAP|_{u^\perp}$ has characteristic polynomial $f'/N$.  Indeed, the Schur
+complement identity gives, first away from the zeros of $f$ and then
+identically,
+\[
+ \det(zI_{u^\perp}-B)
+ =f(z)\,u^*(zI-A)^{-1}u
+ =\frac{f'(z)}N.
+\]
+By Schur triangularization,
+\[
+ \sum_{j=1}^{N-1}|w_j|^2\le \|B\|_{\mathrm{HS}}^2.
+\]
+Since $u^*Au=0$ and $A$ is normal,
+\[
+ \|B\|_{\mathrm{HS}}^2
+ =\|PAP\|_{\mathrm{HS}}^2
+ =\|A\|_{\mathrm{HS}}^2-\|Au\|^2-\|A^*u\|^2
+ =\frac{N-2}{N}\sum_{j=1}^N|d_j|^2.
+\]
+\end{proof}
+
+\begin{lemma}\label{lem:centered-esp}
+Suppose
+\[
+ \sum_{j=1}^N d_j=0,
+ \qquad
+ \frac1N\sum_{j=1}^N|d_j|^2\le \eta^2.
+\]
+Then
+\begin{align}
+ |e_2(d)|&\le \frac N2\eta^2,\label{eq:e2}\\
+ |e_3(d)|&\le \frac{N\sqrt{N-1}}3\eta^3,\label{eq:e3}\\
+ |e_m(d)|&\le
+ \left(\frac{N^N}{m^m(N-m)^{N-m}}\right)^{1/2}\eta^m
+ \quad(1\le m<N),\label{eq:cauchy-esp}\\
+ |e_m(d)|&\le \binom Nm
+ \left(\frac{m-1}{N-1}\right)^{m/2}\eta^m
+ \quad(2\le m\le N),\label{eq:schoenberg}\\
+ |e_N(d)|&\le \eta^N.\label{eq:topesp}
+\end{align}
+\end{lemma}
+
+\begin{proof}
+Newton's identities give $e_2=-\frac12\sum d_j^2$, proving
+\eqref{eq:e2}.  If $V=\sum|d_j|^2$, then
+\[
+ \max_j|d_j|^2\le\frac{N-1}{N}V,
+\]
+because $d_j=-\sum_{k\ne j}d_k$.  Since
+$e_3=\frac13\sum d_j^3$,
+\[
+ |e_3|\le\frac13\max_j|d_j|\,V
+ \le\frac13\sqrt{\frac{N-1}{N}}V^{3/2},
+\]
+which is \eqref{eq:e3}.
+
+For \eqref{eq:cauchy-esp}, let
+$H(z)=\prod_{j=1}^N(1+zd_j)$.  On $|z|=r$, the arithmetic--geometric mean
+inequality and $\sum d_j=0$ give
+\[
+ |H(z)|
+ \le\left(\frac1N\sum_{j=1}^N|1+zd_j|^2\right)^{N/2}
+ \le(1+r^2\eta^2)^{N/2}.
+\]
+Cauchy's coefficient estimate yields
+\[
+ |e_m(d)|\le r^{-m}(1+r^2\eta^2)^{N/2}.
+\]
+For $1\le m<N$, minimization at
+$r^2=m/((N-m)\eta^2)$ proves \eqref{eq:cauchy-esp}; the case $\eta=0$ is
+immediate.
+
+For \eqref{eq:schoenberg}, let $w_1,\ldots,w_m$ be the zeros of
+$f^{(N-m)}$, where $f(z)=\prod_{j=1}^N(z-d_j)$.  Repeated application of
+Lemma~\ref{lem:variance-derivative} gives
+\[
+ \frac1m\sum_{j=1}^m|w_j|^2
+ \le\frac{m-1}{N-1}\eta^2.
+\]
+Coefficient comparison gives
+\[
+ \prod_{j=1}^m w_j=\frac{e_m(d)}{\binom Nm}.
+\]
+The arithmetic--geometric mean inequality proves \eqref{eq:schoenberg}.
+Finally, \eqref{eq:topesp} is the arithmetic--geometric mean inequality
+applied directly to $|d_1|^2,\ldots,|d_N|^2$.
+\end{proof}
+
+\subsection{Bernstein positivity}
+
+\begin{lemma}\label{lem:bernstein}
+Let $R(U,V)$ have bidegree at most $(r,s)$ and write
+\[
+ R(U,V)=\sum_{i=0}^r\sum_{j=0}^s b_{ij}
+ \binom riU^i(1-U)^{r-i}
+ \binom sjV^j(1-V)^{s-j}.
+\]
+If every $b_{ij}>0$, then $R>0$ on $[0,1]^2$.
+\end{lemma}
+
+\begin{proof}
+The tensor-product Bernstein basis functions are nonnegative and sum to $1$.
+\end{proof}
+
+\section{The reciprocal-integral reduction}
+
+Let $n\ge2$ and put $N=n-1$.  Write
+\[
+ p(z)=(z-a)\prod_{k=1}^N(z-z_k),
+ \qquad
+ p'(z)=n\prod_{j=1}^N(z-\zeta_j).
+\]
+Assume that $p$ is bad at $a$.  Then $a$ is simple.  Set
+\[
+ X_k=\frac1{a-z_k},\qquad
+ Y_j=\frac1{a-\zeta_j},\qquad
+ \mu=\frac1N\sum_{j=1}^NY_j=u+iv.
+\]
+Evaluation of $p'$ and $p''/p'$ at $a$ gives
+\begin{equation}\label{eq:anchors-general}
+ \prod_{k=1}^N(a-z_k)=n\prod_{j=1}^N(a-\zeta_j),
+ \qquad
+ \sum_{j=1}^NY_j=2\sum_{k=1}^NX_k.
+\end{equation}
+Thus
+\begin{equation}\label{eq:mu-general}
+ \sum_{k=1}^NX_k=\frac N2\mu,
+ \qquad
+ |\mu|<1.
+\end{equation}
+
+There is also a full coefficient identity.  If
+\[
+ F(t)=\prod_{k=1}^N(1-tX_k),
+ \qquad
+ G(t)=\prod_{j=1}^N(1-tY_j),
+\]
+then
+\begin{equation}\label{eq:F-G}
+ G(t)=F(t)+tF'(t),
+ \qquad
+ e_m(Y)=(m+1)e_m(X)\quad(0\le m\le N).
+\end{equation}
+Indeed, $F(t)=q(a-t)/q(a)$ for $p(z)=(z-a)q(z)$, while
+$G(t)=p'(a-t)/p'(a)$.
+
+Put
+\[
+ r_k=|a-z_k|,
+ \qquad
+ \sigma=\sum_{k=1}^N r_k^{-2}.
+\]
+Lemma~\ref{lem:separation}, the unit-disk hypothesis, and
+\eqref{eq:anchors-general} give
+\begin{equation}\label{eq:annulus-product-general}
+ 2\sin\frac\pi n<r_k\le1+a,
+ \qquad
+ \prod_{k=1}^Nr_k>n.
+\end{equation}
+Moreover, since $z_k=a-X_k^{-1}$,
+\[
+ 2a\Rea X_k+(1-a^2)|X_k|^2
+ =1+(1-|z_k|^2)|X_k|^2\ge1.
+\]
+Summing and using \eqref{eq:mu-general}, we obtain
+\begin{equation}\label{eq:localization-general}
+ aNu+(1-a^2)\sigma\ge N.
+\end{equation}
+
+Set
+\[
+ \eta^2=1-|\mu|^2,
+ \qquad
+ D_j=Y_j-\mu.
+\]
+Then
+\begin{equation}\label{eq:variance-general}
+ \sum_{j=1}^ND_j=0,
+ \qquad
+ \sum_{j=1}^N|D_j|^2\le N\eta^2.
+\end{equation}
+Choose constants $c_m$ such that
+\begin{equation}\label{eq:cm-general}
+ |e_m(D)|\le c_m\eta^m
+ \qquad(2\le m\le N).
+\end{equation}
+
+Finally, define
+\begin{equation}\label{eq:I-general}
+ I=\int_0^aG(t)\,dt=-\frac{p(0)}{p'(a)}.
+\end{equation}
+Since $|p(0)|\le a$ and $|p'(a)|>n$,
+\begin{equation}\label{eq:I-upper-general}
+ |I|<\frac an.
+\end{equation}
+
+We now state the polynomial criterion used in all three degrees.  Suppose that
+on an interval $[\alpha,\beta]$ we have $\sigma\le S$.  Put
+\begin{align}
+ L_S(a)&=\frac{N-S(1-a^2)}{aN},\label{eq:LS}\\
+ q_0(a,\eta;v)&=
+ 1-\frac{2(N-S+Sa^2)}N v+a^2(1-\eta^2)v^2,\label{eq:q0}\\
+ h(a,\eta)&=
+ \left(\frac{2S}{N}-1\right)(1-a^2)-a^2\eta^2,
+ \label{eq:h-general}\\
+ \ell_m&=\left\lfloor\frac{N-m}{2}\right\rfloor,
+ \qquad
+ k=\left\lfloor\frac n2\right\rfloor.
+\end{align}
+For rational $S,\lambda$, define
+\begin{equation}\label{eq:Pfull}
+\begin{split}
+ P_{n,S,\lambda}(a,\eta)
+ ={}&\frac{1-a}{n}+\frac{\eta^2}{2n}
+ -\frac{h(a,\eta)^k}{n\lambda}\\
+ &-\sum_{m=2}^N c_m a^{m+1}\eta^m
+ \int_0^1v^m q_0(a,\eta;v)^{\ell_m}\,dv.
+\end{split}
+\end{equation}
+This is a polynomial with rational coefficients.
+
+\begin{proposition}[unsplit certificate]\label{prop:full-certificate}
+Assume that, for $a\in[\alpha,\beta]$,
+\begin{equation}\label{eq:box-conditions}
+ \sigma\le S,
+ \qquad
+ L_S(a)\ge\lambda>0,
+ \qquad
+ Y^2\ge1-\lambda^2,
+ \qquad
+ 2\lambda\ge\beta,
+\end{equation}
+and
+\begin{equation}\label{eq:h-condition}
+ 0\le\frac{2S}{N}-1,
+ \qquad
+ \left(\frac{2S}{N}-1\right)(1-\alpha^2)\le1.
+\end{equation}
+If
+\[
+ P_{n,S,\lambda}(a,\eta)>0
+ \qquad
+ (\alpha\le a\le\beta,\ 0\le\eta\le Y),
+\]
+then no bad polynomial exists with distinguished zero in
+$[\alpha,\beta]$.
+\end{proposition}
+
+\begin{proof}
+By \eqref{eq:localization-general}, $u\ge L_S(a)\ge\lambda$, and hence
+$0\le\eta^2\le1-\lambda^2\le Y^2$.  Put
+\[
+ J=\int_0^a(1-t\mu)^N\,dt
+   =\frac{1-(1-a\mu)^n}{n\mu}.
+\]
+For $t=av$,
+\[
+ |1-t\mu|^2
+ \le1-2tL_S(a)+(1-\eta^2)t^2=q_0(a,\eta;v).
+\]
+The right side is nonnegative, and \eqref{eq:box-conditions} gives
+$q_0\le1$.  Expanding about $\mu$,
+\[
+ G(t)=(1-t\mu)^N+
+ \sum_{m=2}^N(-t)^me_m(D)(1-t\mu)^{N-m}.
+\]
+Since $0\le q_0\le1$, rounding every half-integral exponent down gives
+\begin{equation}\label{eq:error-full}
+ |I-J|\le
+ \sum_{m=2}^N c_m a^{m+1}\eta^m
+ \int_0^1v^m q_0^{\ell_m}\,dv.
+\end{equation}
+
+Let $R=|1-a\mu|$.  Then $R^2\le h(a,\eta)$.  On a feasible pair,
+$h\ge0$, while \eqref{eq:h-condition} gives $h\le1$.  Thus $R\le1$ and
+$R^n\le h^k$.  Since $|\mu|\ge\lambda$,
+\[
+ |J|\ge\frac{1-R^n}{n|\mu|}
+ \ge\frac1n+\frac{\eta^2}{2n}-\frac{h^k}{n\lambda}.
+\]
+Together with \eqref{eq:error-full}, this yields
+\[
+ |I|-\frac an\ge P_{n,S,\lambda}(a,\eta)>0,
+\]
+contrary to \eqref{eq:I-upper-general}.
+\end{proof}
+
+For degree eleven we use a split version.  Here $N=10$.  Define
+\begin{equation}\label{eq:q1}
+ q_1(a;v)=1-\frac{2(N-S+Sa^2)}N v+a^2v^2.
+\end{equation}
+For $0\le\tau\le1$, set
+\begin{equation}\label{eq:Psplit}
+\begin{split}
+ P_{n,S,\lambda}^{(\tau)}(a,\eta)
+ ={}&\frac{1-a}{n}+\frac{\eta^2}{2n}
+ -\frac{h(a,\eta)^k}{n\lambda}\\
+ &-\sum_{m=2}^N c_m a^{m+1}\eta^m
+ \int_0^\tau v^m q_0(a,\eta;v)^{\ell_m}\,dv\\
+ &-a\int_\tau^1\bigl(q_0(a,\eta;v)^5+q_1(a;v)^5\bigr)\,dv.
+\end{split}
+\end{equation}
+
+\begin{proposition}[split certificate]\label{prop:split-certificate}
+Let $n=11$.  Under \eqref{eq:box-conditions} and
+\eqref{eq:h-condition}, if
+\[
+ P_{11,S,\lambda}^{(\tau)}(a,\eta)>0
+\]
+throughout a rectangle contained in
+$[\alpha,\beta]\times[0,Y]$, then that rectangle contains no feasible pair
+arising from a bad polynomial.
+\end{proposition}
+
+\begin{proof}
+On $0\le v\le\tau$, use the termwise estimate from
+Proposition~\ref{prop:full-certificate}.  On $\tau\le v\le1$,
+\[
+ |G(av)|
+ \le\left(\frac1N\sum_{j=1}^N|1-avY_j|^2\right)^{N/2}
+ \le q_1(a;v)^5
+\]
+by the arithmetic--geometric mean inequality, while
+$|(1-av\mu)^N|\le q_0(a,\eta;v)^5$.  Thus the last line of
+\eqref{eq:Psplit} bounds the remaining part of $|I-J|$.  The estimate for
+$J$ is unchanged.
+\end{proof}
+
+\section{Degree nine}
+
+Here $N=8$.  We use
+\[
+ m_9=\frac{681}{1000}<2\sin\frac\pi9.
+\]
+Indeed, if $T=2\sin(\pi/9)$, then $3T-T^3=\sqrt3$, the function
+$3t-t^3$ is increasing on $[0,1]$, and
+\[
+ 3-(3m_9-m_9^3)^2
+ =\frac{16853534459219919}{10^{18}}>0.
+\]
+The coefficient majorants are
+\begin{equation}\label{eq:c9}
+ (c_2,\ldots,c_8)=
+ \left(4,\frac{264}{35},24,56,28,8,1\right).
+\end{equation}
+The first three follow from Newton's identities and
+Lemma~\ref{lem:centered-esp}; for $m\ge5$, Maclaurin's inequality applied to
+$|D_1|,\ldots,|D_8|$ gives $|e_m(D)|\le\binom8m\eta^m$.
+
+\subsection{The interval $0\le a\le9/20$}
+
+At $a=0$, the product inequality in
+\eqref{eq:annulus-product-general} is impossible.  For
+$0<a\le9/20$, apply Lemma~\ref{lem:sigma} with
+$M=29/20$, $m=m_9$, and $C=9$.  The resulting bound is
+\[
+ \sigma<\frac{1101}{200}=:S_0.
+\]
+By \eqref{eq:localization-general},
+\[
+ u>\frac{8-S_0(1-a^2)}{8a}.
+\]
+The right side exceeds $1$ on this interval because
+\[
+ S_0a^2-8a+8-S_0>0;
+\]
+the quadratic is decreasing there and has value $781/80000$ at $a=9/20$.
+This contradicts $|\mu|<1$.
+
+\subsection{The interval $9/20\le a\le9/10$}
+
+For each row of Table~\ref{tab:nine}, Lemma~\ref{lem:sigma}, with
+$M=1+\beta$, gives $\sigma\le S$.  The remaining hypotheses of
+Proposition~\ref{prop:full-certificate} are exact rational inequalities.
+
+\begin{longtable}{@{}c c c c@{}}
+\caption{Degree-nine interior certificate data.}\label{tab:nine}\\
+\toprule
+$[\alpha,\beta]$ & $S$ & $\lambda$ & $Y$\\
+\midrule
+\endfirsthead
+\toprule
+$[\alpha,\beta]$ & $S$ & $\lambda$ & $Y$\\
+\midrule
+\endhead
+$[9/20,19/40]$ & $11043/2000$ & $49/50$ & $199/1000$\\
+$[19/40,1/2]$ & $2783/500$ & $239/250$ & $587/2000$\\
+$[1/2,21/40]$ & $2257/400$ & $1863/2000$ & $91/250$\\
+$[21/40,11/20]$ & $1151/200$ & $1811/2000$ & $849/2000$\\
+$[11/20,23/40]$ & $11819/2000$ & $879/1000$ & $477/1000$\\
+$[23/40,3/5]$ & $764/125$ & $1699/2000$ & $66/125$\\
+$[3/5,5/8]$ & $637/100$ & $817/1000$ & $577/1000$\\
+$[5/8,13/20]$ & $13093/2000$ & $401/500$ & $239/400$\\
+$[13/20,27/40]$ & $13113/2000$ & $81/100$ & $1173/2000$\\
+$[27/40,7/10]$ & $3289/500$ & $409/500$ & $1151/2000$\\
+$[7/10,29/40]$ & $529/80$ & $413/500$ & $141/250$\\
+$[29/40,3/4]$ & $6661/1000$ & $1669/2000$ & $1103/2000$\\
+$[3/4,31/40]$ & $1681/250$ & $843/1000$ & $269/500$\\
+$[31/40,4/5]$ & $1701/250$ & $213/250$ & $131/250$\\
+$[4/5,33/40]$ & $2761/400$ & $1723/2000$ & $127/250$\\
+$[33/40,17/20]$ & $14041/2000$ & $109/125$ & $49/100$\\
+$[17/20,7/8]$ & $7161/1000$ & $221/250$ & $187/400$\\
+$[7/8,9/10]$ & $3663/500$ & $359/400$ & $883/2000$\\
+\bottomrule
+\end{longtable}
+
+After the affine substitution
+\[
+ a=\alpha+(\beta-\alpha)U,
+ \qquad
+ \eta=YV,
+\]
+the eighteen polynomials \eqref{eq:Pfull} have bidegree at most $(9,8)$.
+All $1620$ exact Bernstein coefficients are positive.  The least coefficient
+is greater than $1/2100$.  Proposition~\ref{prop:full-certificate} excludes
+the entire interval.
+
+\subsection{The interval $9/10\le a\le1$}
+
+At $a=1$, \eqref{eq:localization-general} gives $u\ge1$.  Assume
+$9/10\le a<1$ and put $\delta=1-a$.  Lemma~\ref{lem:sigma}, with $M=2$,
+gives
+\[
+ \sigma<\frac{39}{5}.
+\]
+Consequently
+\[
+ 1-u\le\frac{19}{20}\delta,
+ \qquad
+ \eta^2\le\frac{19}{10}\delta-\frac{361}{400}\delta^2.
+\]
+Write
+\[
+ \delta=x^2,
+ \qquad
+ \eta=xy.
+\]
+Then
+\[
+ 0<x<\frac8{25},
+ \qquad
+ 0\le y<\frac75.
+\]
+For $0\le t\le1-x^2$, put
+\[
+ q(x,y;t)=(1-t)^2+x^2t\left(\frac{19}{10}-y^2t\right).
+\]
+The preceding estimate gives $|1-t\mu|^2\le q\le1$.  Define
+\[
+ \mathcal E(x,y)=
+ \sum_{m=2}^8c_mx^{m-2}y^m
+ \int_0^{1-x^2}t^m q(x,y;t)^{\lfloor(8-m)/2\rfloor}\,dt.
+\]
+The centered expansion gives $|I-J|\le\delta\mathcal E$, where
+$J=\int_0^a(1-t\mu)^8dt$.  Moreover,
+\[
+ |J|\ge\frac19+\frac{\eta^2}{18}-\frac\delta{1000}.
+\]
+The last estimate follows from
+$|1-a\mu|^2\le(19/10)\delta$, $|\mu|\ge181/200$, and the exact integer
+inequality
+\[
+ 200^2 19^9<1629^2 10^{10}.
+\]
+Thus
+\[
+ |I|-\frac a9\ge\delta\mathcal P(x,y),
+ \qquad
+ \mathcal P(x,y)=\frac19+\frac{y^2}{18}-\frac1{1000}-\mathcal E(x,y).
+\]
+The polynomial $\mathcal P$ has bidegree $(24,8)$.  After
+$x=(8/25)U$, $y=(7/5)V$, all $225$ exact Bernstein coefficients exceed
+$1/100$.  This contradicts \eqref{eq:I-upper-general} and completes degree
+nine.
+
+\section{Degree ten}
+
+Here $N=9$.  We use
+\[
+ m_{10}=\frac{309}{500}<2\sin\frac\pi{10}
+ =\frac{\sqrt5-1}{2},
+\]
+which is equivalent to $(2m_{10}+1)^2<5$.  The coefficient majorants are
+\begin{equation}\label{eq:c10}
+\begin{array}{c|cccccccc}
+ m&2&3&4&5&6&7&8&9\\ \hline
+ c_m&9/2&9&2201/100&2201/100&877/50&217/20&481/100&1.
+\end{array}
+\end{equation}
+The cases $m=2,3,9$ follow from Lemma~\ref{lem:centered-esp}; the remaining
+rational numbers dominate the Cauchy bound \eqref{eq:cauchy-esp}, as checked by exact
+squaring.
+
+For $0\le a\le29/100$,
+\[
+ \prod_{k=1}^9r_k\le\left(\frac{129}{100}\right)^9<10,
+\]
+contrary to \eqref{eq:annulus-product-general}.  On
+$[29/100,2/5]$, Lemma~\ref{lem:sigma} with $M=7/5$ has $\nu=9$ and gives
+\[
+ S_0=8\left(\frac57\right)^2
+ +\left(\frac{(7/5)^8}{10}\right)^2.
+\]
+The quadratic
+\[
+ S_0a^2-9a+9-S_0
+\]
+has positive Bernstein coefficients on $[29/100,2/5]$.  Hence
+\eqref{eq:localization-general} gives $u>1$.
+
+It remains to cover $[2/5,9/10]$.  For $i=40,\ldots,89$, set
+\[
+ \alpha_i=\frac{i}{100},
+ \qquad
+ \beta_i=\frac{i+1}{100},
+\]
+and let $S_i$ be the bound from Lemma~\ref{lem:sigma} with
+$M=1+\beta_i$, $m=m_{10}$, and $C=10$.  Define $\lambda_i$ to be the largest
+multiple of $10^{-5}$ for which
+\[
+ S_i a^2-9\lambda_i a+9-S_i\ge0
+ \qquad(\alpha_i\le a\le\beta_i),
+\]
+certified by its degree-two Bernstein coefficients.  Let $Y_i$ be the least
+multiple of $10^{-5}$ satisfying
+$Y_i^2\ge1-\lambda_i^2$.
+
+For each $i$, all hypotheses of
+Proposition~\ref{prop:full-certificate} hold, and the exact Bernstein
+coefficients of
+\[
+ P_{10,S_i,\lambda_i}(a,\eta)
+\]
+are positive on
+$[\alpha_i,\beta_i]\times[0,Y_i]$.  These polynomials have bidegree at most
+$(10,10)$.  Across all fifty rectangles, the least coefficient is greater
+than $1/3100$.
+
+For the boundary interval, take the bound $S_b$ from
+Lemma~\ref{lem:sigma} with $M=2$ and set
+\[
+ \lambda_b=\frac{22}{25}.
+\]
+The hypotheses of Proposition~\ref{prop:full-certificate} hold on
+$[9/10,1]$.  Moreover, localization gives
+\[
+ 1-u\le C_b(1-a),
+ \qquad
+ C_b=\frac{S_b(1+9/10)-9}{9(9/10)},
+\]
+and hence $\eta^2\le2C_b(1-a)$.  Put $1-a=x^2$ and $\eta=xY$.  The exact
+inequalities
+\[
+ \left(\frac8{25}\right)^2\ge\frac1{10},
+ \qquad
+ \left(\frac{31}{20}\right)^2\ge2C_b
+\]
+show that every feasible pair lies in
+\[
+ 0\le x\le\frac8{25},
+ \qquad
+ 0\le Y\le\frac{31}{20}.
+\]
+Divide $P_{10,S_b,\lambda_b}(1-x^2,xY)$ by $x^2$.
+The quotient is a rational polynomial, and all its exact Bernstein
+coefficients are positive; the least exceeds $7/100$.  The case $a=1$ again
+follows directly from \eqref{eq:localization-general}.  This proves degree
+ten.
+
+\section{Degree eleven}
+
+Here $N=10$.  We use
+\[
+ m_{11}=\frac{563}{1000}<2\sin\frac\pi{11}.
+\]
+Put $x=571/2000$.  Machin's identity and the alternating series for
+$\arctan$ give
+\[
+ \pi=16\arctan\frac15-4\arctan\frac1{239}
+ >16\left(\frac15-\frac1{3\cdot5^3}\right)-\frac4{239}
+ =\frac{281476}{89625}
+ >\frac{6281}{2000}=11x.
+\]
+Thus $x<\pi/11$.  Since $\sin t>t-t^3/6$ for $0<t<1$,
+\[
+ 2\sin\frac\pi{11}
+ >2\left(x-\frac{x^3}{6}\right)
+ =\frac{563}{1000}+\frac{5830589}{24000000000}
+ >\frac{563}{1000}.
+\]  The coefficient majorants are
+\begin{equation}\label{eq:c11}
+\begin{array}{c|ccccccccc}
+ m&2&3&4&5&6&7&8&9&10\\ \hline
+ c_m&5&10&70/3&32&3125/108&2121/100&3125/256&509/100&1.
+\end{array}
+\end{equation}
+Here $c_4$ is the bound \eqref{eq:schoenberg}; $c_5,c_6,c_8$ are the exact
+Cauchy bounds; $c_7,c_9$ are rational upper bounds for
+\eqref{eq:cauchy-esp}; and the remaining cases follow from
+Lemma~\ref{lem:centered-esp}.
+
+For $0\le a\le27/100$,
+\[
+ \prod_{k=1}^{10}r_k\le\left(\frac{127}{100}\right)^{10}<11.
+\]
+On $[27/100,37/100]$, Lemma~\ref{lem:sigma} with $M=137/100$ has
+$\nu=10$ and gives
+\[
+ S_0=9\left(\frac{100}{137}\right)^2
+ +\left(\frac{(137/100)^9}{11}\right)^2.
+\]
+The quadratic $S_0a^2-10a+10-S_0$ has positive Bernstein coefficients on
+this interval, so \eqref{eq:localization-general} gives $u>1$.
+
+For $i=37,\ldots,89$, define
+$\alpha_i,\beta_i,S_i,\lambda_i,Y_i$ exactly as in the degree-ten proof,
+with $N=10$, $m=m_{11}$, and $C=11$.  Divide the vertical interval
+$[0,Y_i]$ into ten equal parts.  On each of the resulting $530$ rectangles,
+use Proposition~\ref{prop:split-certificate} with one value from the fixed
+menu
+\[
+ \mathcal T=\left\{
+ 1,\frac{19}{20},\frac9{10},\frac{17}{20},\frac45,\frac34,
+ \frac7{10},\frac{13}{20},\frac35,\frac{11}{20},\frac12
+ \right\}.
+\]
+For every rectangle at least one choice of $\tau\in\mathcal T$ gives a
+polynomial with all tensor-product Bernstein coefficients positive.  The
+polynomials have bidegree at most $(11,10)$.  The least coefficient among all
+$530$ certificates is greater than $1/2800$.
+
+For $9/10\le a\le1$, take the bound $S_b$ from
+Lemma~\ref{lem:sigma} with $M=2$ and set
+\[
+ \lambda_b=\frac{17}{20}.
+\]
+Localization gives
+\[
+ 1-u\le C_b(1-a),
+ \qquad
+ C_b=\frac{S_b(1+9/10)-10}{10(9/10)},
+\]
+so $\eta^2\le2C_b(1-a)$.  Put $1-a=x^2$ and $\eta=xY$.  The exact
+inequalities
+\[
+ \left(\frac8{25}\right)^2\ge\frac1{10},
+ \qquad
+ \left(\frac{17}{10}\right)^2\ge2C_b
+\]
+contain every feasible pair in
+\[
+ 0\le x\le\frac8{25},
+ \qquad
+ 0\le Y\le\frac{17}{10}.
+\]
+Use the unsplit polynomial \eqref{eq:Pfull}; after division by $x^2$, its
+exact Bernstein coefficients are positive on this box;
+
+the least exceeds $3/50$.  This proves degree eleven.
+
+\section{Exact verification}
+
+If
+\[
+ R(U,V)=\sum_{k=0}^r\sum_{\ell=0}^s a_{k\ell}U^kV^\ell,
+\]
+then its tensor-product Bernstein coefficients of bidegree $(r,s)$ are
+\begin{equation}\label{eq:bern-conversion}
+ b_{ij}=
+ \sum_{k\le i}\sum_{\ell\le j}a_{k\ell}
+ \frac{\binom ik}{\binom rk}
+ \frac{\binom j\ell}{\binom s\ell}.
+\end{equation}
+The ancillary verifiers construct every integral in
+\eqref{eq:Pfull} and \eqref{eq:Psplit} symbolically, apply the affine map from
+the relevant rational rectangle to $[0,1]^2$, use
+\eqref{eq:bern-conversion}, and compare rational numbers exactly.  No
+floating-point arithmetic or numerical quadrature enters any certificate.
+
+For each degree there are two independent implementations.  The primary
+implementation uses Python integers and rational fractions; the second
+reconstructs the polynomials independently in SymPy.  The finite verification
+is summarized in Table~\ref{tab:summary}.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Exact certificate summary.}\label{tab:summary}
+\begin{tabular}{@{}c c c c c@{}}
+\toprule
+Degree & Interior region & Rectangles & Interior lower bound & Boundary lower bound\\
+\midrule
+9  & $[9/20,9/10]$ & $18$  & $1/2100$ & $1/100$\\
+10 & $[2/5,9/10]$  & $50$  & $1/3100$ & $7/100$\\
+11 & $[37/100,9/10]$ & $530$ & $1/2800$ & $3/50$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The certificate programs and a verification log are included with the source
+of this paper.
+
+\section{Conclusion}
+
+The reciprocal normalization, localization inequality, and integral identity
+reduce Sendov's conjecture in degrees nine, ten, and eleven to exact
+low-dimensional polynomial inequalities.  The degree-ten proof is obtained
+from the degree-nine framework by sharper centered symmetric-function bounds.
+Degree eleven requires only one additional estimate, namely the split
+arithmetic--geometric mean bound in
+Proposition~\ref{prop:split-certificate}.  Theorem~\ref{thm:main} follows.
+
+\begin{thebibliography}{9}
+
+\bibitem{BrandenWagner}
+P.~Br\"and\'en and D.~G.~Wagner,
+\newblock A converse to the Grace--Walsh--Szeg\H{o} theorem,
+\newblock \emph{Math. Proc. Cambridge Philos. Soc.} \textbf{147} (2009),
+447--453.
+
+\bibitem{BrownXiang}
+J.~E.~Brown and G.~Xiang,
+\newblock Proof of the Sendov conjecture for polynomials of degree at most
+ eight,
+\newblock \emph{J. Math. Anal. Appl.} \textbf{232} (1999), 272--292.
+
+\end{thebibliography}
+
+\end{document}

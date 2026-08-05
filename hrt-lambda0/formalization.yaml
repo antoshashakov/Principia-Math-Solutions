@@ -1,0 +1,155 @@
+# Schema: https://github.com/mathlib-initiative/formalization.yaml
+version: "v0.3"
+
+project:
+  name: "HRT at Λ₀ = {(0,0),(1,0),(0,1),(√2,√2)} — the endgame, in Lean 4 (CONDITIONAL)"
+  authors:
+    - "Principia Math harness (autonomous multi-model research harness)"
+  license: "Apache-2.0"
+
+sources:
+  - title: "Linear independence of four time–frequency translates at a resonant non-lattice configuration"
+    authors:
+      - "Principia Math"
+    id: "paper/hrt-lambda0.pdf"
+    type: "manuscript"
+    license: "Apache-2.0"
+    author_contacted: "author is the repository owner"
+    note: >-
+      The manuscript the Lean is checked against, committed at `paper/hrt-lambda0.tex`
+      (sha256-pinned in `VERIFICATION.md`; the PDF is built from that exact tex, not
+      author-supplied bytes). The paper proves HRT at Λ₀ for every window whose Zak
+      transform has a continuous representative (in particular every nonzero Schwartz
+      window). ONLY ITS ENDGAME IS FORMALIZED: the theorem in this directory is
+      conditional on the unproved hypothesis `ZakReduction`, which packages the paper's
+      pre-endgame analysis. HRT at Λ₀ is NOT claimed unconditionally by this repository.
+  - title: "Linear independence of finite Gabor systems (survey; poses Conjecture 9.2)"
+    authors:
+      - "Christopher Heil"
+    id: "Chapter in Harmonic Analysis and Applications, Birkhäuser, 2006, pp. 171-206"
+    type: "literature"
+    license: "n/a"
+    author_contacted: "no"
+    note: >-
+      Conjecture 9.2(a) is exactly the Λ₀ configuration treated here; restated as
+      Conjecture 2 in the Heil-Speegle survey. Recorded as the source of the problem;
+      not used by the formalization.
+  - title: "Oussa's resonant-fibration program (fibration, dichotomy, winding identity)"
+    authors:
+      - "Vignon Oussa"
+    id: "cited in the paper as arXiv:2508.04613v2"
+    type: "literature"
+    license: "n/a"
+    author_contacted: "no"
+    note: >-
+      The paper attributes the Zak fibration of the torus, the zero-propagation
+      dichotomy and the fibre winding identity to this work; the paper's own
+      contribution (and the content formalized here) is the Jensen-constancy +
+      Vieta-rigidity endgame. The Lean formalizes shape-level lemmas for the dichotomy
+      (`zero_propagates`, `fibre_dichotomy`) and the arithmetic core of the degree
+      identity, all from stated hypotheses; none of the cited analysis is assumed as an
+      axiom.
+
+formalization:
+  scope: >-
+    Lean 4 + Mathlib formalization of the ENDGAME of the paper: given the paper's
+    analytic reduction (packaged as the named hypothesis `ZakReduction g`, NOT proved
+    here), the four time-frequency translates of g at Λ₀ = {(0,0),(1,0),(0,1),(√2,√2)}
+    are linearly independent. Supporting lemmas (symplectic escape, dichotomy
+    propagation, degree-identity arithmetic, quadratic and two-circle rigidity) are
+    proved unconditionally. The sorry count below excludes `Challenge.lean` (the
+    statement-only Comparator fixture; 1 intentional placeholder). THE HRT SUBCONJECTURE
+    AT Λ₀ IS NOT CLAIMED UNCONDITIONALLY.
+  sorry_count: 0
+  sorry_in_definitions: 0
+  axioms:
+    - "propext"
+    - "Classical.choice"
+    - "Quot.sound"
+  main_results:
+    - declaration: "HRTLambda0.lambda0_independent_of_reduction"
+      file: "HRTLambda0/Endgame.lean  (statement layer: HRTLambda0.Statement.lambda0_independent_of_reduction)"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator/all.json"
+      literature_dependencies: []
+      note: >-
+        CONDITIONAL: hypothesis `ZakReduction g` (the paper's pre-endgame analysis) is
+        unproved in this repository. This is the headline result and its conditionality
+        is the honest content of this folder.
+    - declaration: "HRTLambda0.hrt_endgame"
+      file: "HRTLambda0/Endgame.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+      note: >-
+        The paper's new mathematics, fully formalized: on any interval of positive
+        length < 1, Vieta's relations for Q_c(z) = c₃z² + c₁z + c₂e^{-2πic} are
+        inconsistent with the Jensen constancy |ζ_out| = |c₄|/|c₃|. Unconditional.
+    - declaration: "HRTLambda0.circle_pair_quadratic"
+      file: "HRTLambda0/Endgame.lean"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      literature_dependencies: []
+      note: >-
+        Continuity-free strengthening of the paper's two-point argument: the two-circle
+        intersection is the zero set of one fixed quadratic, so three sample fibres
+        suffice. Unconditional.
+
+automation:
+  proof_assistant: "Lean 4"
+  mathlib: "rev fabf563a7c95a166b8d7b6efca11c8b4dc9d911f (tag v4.31.0)"
+
+fidelity:
+  divergences:
+    - >-
+      The paper's endgame uses continuity of ζ_out to force constancy on the live
+      interval; the Lean (`circle_pair_quadratic` + `two_of_three_eq_of_quadratic`)
+      derives the contradiction from three sample fibres with no continuity hypothesis.
+      This is a strict strengthening of the same step.
+    - >-
+      The paper proves `ZakReduction` for windows with continuous Zak transform; the
+      Lean does not prove it for any class, and instead takes it as a named hypothesis.
+      This is the deliberate, documented gap — not a divergence in a proved statement,
+      but the boundary of what is proved.
+  no_known_divergences_in: >-
+    The definitions `tfTranslate`, `configTranslates`, `lambda0Translates`,
+    `Lambda0Independent` versus the paper's eq. (translates) and Theorem "main";
+    audited by Comparator via `definition_names`.
+
+review:
+  comparator: >-
+    Runs on CI (.github/workflows/hrt-lambda0-comparator.yml), Linux-only, in a
+    landrun/Landlock sandbox: comparator/all.json with permitted axioms exactly propext,
+    Quot.sound, Classical.choice, and definition_names covering all five
+    project-specific definitions. Not yet run at commit time; a pass certifies statement
+    fidelity and footprint of the CONDITIONAL theorem only.
+  non_vacuity: >-
+    Honest caveat rather than a check: `ZakReduction g` is an implication and holds
+    vacuously for windows whose translates are already independent, so no NonVacuous.lean
+    is possible in the sendov9-11 style. The meaningful content is the endgame reasoning
+    itself (`hrt_endgame`, unconditional) plus the paper's on-paper proof of the
+    reduction for continuous-Zak windows. See VERIFICATION.md §1.
+
+alignment:
+  statements:
+    - paper_result: "Theorem main (HRT at Λ₀ for continuous-Zak windows)"
+      lean_name: "HRTLambda0.Statement.lambda0_independent_of_reduction"
+      module: "Challenge.lean / Solution.lean (proved from HRTLambda0/Endgame.lean)"
+      status: "proved CONDITIONALLY on `ZakReduction` (the paper's pre-endgame analysis); unconditional claim NOT made"
+    - paper_result: "Remark (Λ₀ escapes lattice and parallel-line cases)"
+      lean_name: "HRTLambda0.lambda0_symplectic_escape"
+      module: "HRTLambda0/Endgame.lean"
+      status: "proved, axiom-clean"
+    - paper_result: "Lemma dichotomy (zero propagation along the fibre)"
+      lean_name: "HRTLambda0.zero_propagates / HRTLambda0.fibre_dichotomy"
+      module: "HRTLambda0/Endgame.lean"
+      status: "proved from stated hypotheses (density of the irrational orbit supplied as input)"
+    - paper_result: "Lemma degree identity (kills |j| ≥ 2)"
+      lean_name: "HRTLambda0.degree_identity_kills"
+      module: "HRTLambda0/Endgame.lean"
+      status: "arithmetic core proved ([propext, Quot.sound] only); the winding computation itself is on paper"
+    - paper_result: "Lemma jensen + Vieta rigidity (the endgame contradiction)"
+      lean_name: "HRTLambda0.hrt_endgame"
+      module: "HRTLambda0/Endgame.lean"
+      status: "proved, axiom-clean, continuity-free (stronger than the paper's prose)"

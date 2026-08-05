@@ -1,0 +1,6 @@
+NegD.lean:56:2: error: Tactic `decide` proved that the proposition
+  ∀ k ∈ range 11, ∀ l ∈ range 11, ↑(Nat.choose 10 k) * ↑(Nat.choose 10 l) * tab Qdata k l = Lscale
+is false
+NegD.lean:60:2: error: Tactic `decide` proved that the proposition
+  ∀ i ∈ range 11, ∀ j ∈ range 11, cnum ≤ intTable 10 10 (tab Adata) (tab Qdata) i j
+is false

@@ -1,0 +1,3 @@
+NegC.lean:60:2: error: Tactic `decide` proved that the proposition
+  ∀ i ∈ range 11, ∀ j ∈ range 11, cnum ≤ intTable 10 10 (tab Adata) (tab Qdata) i j
+is false

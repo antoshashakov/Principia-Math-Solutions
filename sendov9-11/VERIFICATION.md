@@ -9,7 +9,7 @@ keeps them strictly apart:
 - **Part I — degree nine: PROVED.** Unconditional, axiom-free, Comparator-certified on CI.
   This is the only degree for which Sendov's conjecture is claimed.
 - **Part II — degrees ten and eleven: PARTIAL.** The finite certificate half is
-  machine-checked (degree 10 completely, degree 11 in progress); the analytic half is an
+  machine-checked completely for both degrees; the analytic half is an
   explicit **hypothesis** (`CertificateReduction`), not a theorem. **Sendov's conjecture in
   degrees ten and eleven is NOT claimed.**
 
@@ -359,11 +359,11 @@ Every log counted below ends with
 | --- | --- | --- |
 | degree 10, interior (`a ∈ [0.40,0.90]`, width 1/100) | 50 | **PASSED — 50/50**, all axiom-clean (`certlogs1011/Sendov911Box10_*.log`) |
 | degree 10, boundary (bidegree 28×10) | 1 | **PASSED**, axiom-clean (`certlogs1011/boundary10.log`) |
-| degree 11, interior (`a ∈ [0.37,0.90]` × 10 η-slices) | 530 | **329/530 verified** axiom-clean; **201 not yet checked** (run interrupted by memory exhaustion, not by any failure) |
-| degree 11, boundary (`Sendov911Box11Boundary.lean`, bidegree 30×10) | 1 | **NOT RUN** — the file is shipped, its kernel check has never been executed |
+| degree 11, interior (`a ∈ [0.37,0.90]` × 10 η-slices) | 530 | **PASSED — 530/530**, all axiom-clean (batch completed 2026-08-06) |
+| degree 11, boundary (`Sendov911Box11Boundary.lean`, bidegree 30×10) | 1 | **PASSED**, axiom-clean (`certlogs1011/boundary11.log`, 2026-08-06) |
 
-So **degree 10's finite half is complete: 51/51. Degree 11's is partial: 329/531.** The
-unchecked degree-11 boxes are contiguous: a-indices 68–70 (11 boxes) and 71–89 (10 each).
+So **the finite halves are complete for both degrees: 51/51 (degree 10) and 531/531
+(degree 11)**, every log carrying the clean axiom triple.
 
 The non-zero exit codes in `certlogs1011/RESULTS11.txt` (one exit 1, two exit 127, one
 exit 139, three exit 4) were all **infrastructure failures under parallel load** — the two

@@ -7,7 +7,7 @@ before anything else:
 |---|---|---|
 | **9** | Sendov's conjecture holds | **PROVED** — unconditional, axiom-free, Comparator-certified on CI |
 | **10** | *no claim* | finite certificate half **complete** (51/51 boxes kernel-checked); analytic half **assumed** (`CertificateReduction`) |
-| **11** | *no claim* | finite certificate half **partial** (329/531 boxes kernel-checked, boundary not yet run); analytic half **assumed** |
+| **11** | *no claim* | finite certificate half **complete** (531/531 boxes kernel-checked); analytic half **assumed** |
 
 ## Part I — degree nine (PROVED)
 
@@ -105,8 +105,8 @@ formalizes the **shape** of the reduction; it does **not** prove the reduction i
 
 - degree 10: all **50 interior boxes + the boundary box — 51/51 complete**, every one with
   footprint `[propext, Classical.choice, Quot.sound]`;
-- degree 11: **329 of 530 interior boxes**; the remaining 201 and the boundary box are
-  **not yet checked** (`./check-boxes.sh 11` resumes; no box has ever failed);
+- degree 11: all **530 interior boxes + the boundary box — 531/531 complete**, every one
+  axiom-clean (completed 2026-08-06; no box ever failed);
 - four negative controls (`controls/`), three rejected as required, one honestly recorded
   as badly designed.
 
@@ -119,7 +119,7 @@ and is kernel-checked (`certlogs1011/IntegrationCheck.lean.log`).
 
 **Therefore: this directory does NOT claim Sendov's conjecture in degrees 10 or 11.** What
 it claims is exactly: the paper's certificate positivity assertions are kernel-verified
-(fully for degree 10, partially for degree 11), and `Sendov 10` / `Sendov 11` follow from
+in full for both degrees, and `Sendov 10` / `Sendov 11` follow from
 the explicitly named analytic hypothesis. See `VERIFICATION.md` Part II for the exact
 ledger, including what the paper's own Python verifiers (`certificates/`) cover.
 

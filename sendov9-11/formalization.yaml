@@ -33,7 +33,7 @@ sources:
       `paper/sendov9-11.pdf`, sha256-pinned in `VERIFICATION.md` PART II and in
       `certificates/SHA256SUMS` together with its own Python verifiers. The Lean in this
       directory certifies the paper's FINITE certificate half for degrees 10 and 11
-      (degree 10 completely: 51/51 boxes; degree 11 partially: 329/531) and provides a
+      (degree 10: 51/51 boxes; degree 11: 531/531 boxes) and provides a
       conditional capstone; it does NOT certify the paper's analytic reduction for those
       degrees, which remains the unproved hypothesis `CertificateReduction`. Sendov's
       conjecture in degrees ten and eleven is NOT claimed by this repository.
@@ -101,7 +101,7 @@ formalization:
     PART II of this directory extends the FINITE half of the same method to degrees ten
     and eleven (`Sendov911Bern`, `boxes10/`, `boxes11/`, `Sendov911Capstone`): the box
     certificates are kernel-checked by `decide` on exact integers (degree 10: 51/51;
-    degree 11: 329/531, in progress), and `Sendov n` is derived only CONDITIONALLY on the
+    degree 11: 531/531), and `Sendov n` is derived only CONDITIONALLY on the
     unproved analytic hypothesis `CertificateReduction`. No sorry appears anywhere in
     Part II either — the incompleteness is carried openly as a hypothesis, not hidden in
     a sorry. Sendov's conjecture in degrees ten and eleven is NOT claimed.
@@ -227,7 +227,7 @@ alignment:
     - paper_result: "sendov9-11.tex — degree-11 certificate positivity (530 interior boxes + boundary)"
       lean_name: "Sendov911Box11_*.box_positive / Sendov911Box11Boundary.box_positive"
       module: "boxes11/*.lean (engine: Sendov911Bern.lean)"
-      status: "PARTIAL: 329/531 kernel-checked (boundary not yet run), logs in certlogs1011/; no failures"
+      status: "PARTIAL DEVELOPMENT, COMPLETE FOR THIS ITEM: 531/531 kernel-checked, logs in certlogs1011/"
     - paper_result: "sendov9-11.tex — the analytic reduction (GWS, sigma, variance, covering) for degrees 10/11"
       lean_name: "Sendov911Capstone.sendov_of_reduction (hypothesis: CertificateReduction)"
       module: "Sendov911Capstone.lean"

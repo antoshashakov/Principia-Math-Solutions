@@ -39,8 +39,9 @@ WHAT EACH STATEMENT SAYS, in words:
                               `p.natDegree = 10` resp. `= 11`.
 
 Degrees nine, ten, and eleven were open. Brown–Xiang settled `n ≤ 8` (1999); Tao settled
-all sufficiently large `n` (2020) with no effective bound; the only prior claim covering
-these degrees is Meng, arXiv:1705.07235, unpublished since 2018 and publicly doubted. The
+all sufficiently large `n` (2020) with no effective bound, leaving these degrees uncovered.
+There have been previous claimed proofs at these degrees and in general, none publicly
+accepted; none is used or assessed here. The
 mathematics formalized here is Anton Shakov's (`paper/sendov9.tex` for degree nine,
 `paper/sendov9-11.tex` for degrees ten and eleven); the contribution of this directory is
 the machine-checked verification.

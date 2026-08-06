@@ -60,18 +60,10 @@ sources:
     author_contacted: "n/a"
     note: >-
       Prior art: settles all sufficiently large n, with no effective bound, so it leaves
-      degree nine open. Not used by this formalization.
-  - title: "The proof of Sendov's conjecture"
-    authors:
-      - "Xiaoshen Meng"
-    id: "arXiv:1705.07235"
-    type: "literature"
-    license: "n/a"
-    author_contacted: "n/a"
-    note: >-
-      The only prior claim covering degree nine. Unpublished since 2018 and publicly
-      doubted; recorded for honesty about the state of the literature. Not used here, and
-      no assessment of it is made or implied.
+      degrees nine, ten and eleven open. Not used by this formalization. Sendov's
+      conjecture has attracted a number of claimed proofs over the years, at these degrees
+      and in general, none of which has been publicly accepted; this directory takes no
+      position on any of them and relies on none of them.
   - title: "Grace–Walsh–Szegő coincidence theorem; Grace's apolarity theorem; Laguerre's theorem"
     authors:
       - "J. H. Grace"

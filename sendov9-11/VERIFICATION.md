@@ -54,7 +54,10 @@ hypotheses, and no `sorry` in its import closure.
   re-derived from the LaTeX and are checked by Lean's kernel on integer arithmetic. No
   floating point, no `native_decide`.
 - **Not claimed:** anything about degrees other than nine, any effectivity or uniformity
-  statement the paper does not make, and any assessment of Meng's arXiv:1705.07235.
+  statement the paper does not make, and any assessment of the previous claimed proofs of
+  Sendov's conjecture in the literature. Several exist, at these degrees and in general;
+  none has been publicly accepted, none is used here, and this ledger takes no position on
+  any of them.
 
 ## §2 The build
 

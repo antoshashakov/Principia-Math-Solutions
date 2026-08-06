@@ -30,9 +30,9 @@ directory is the machine-checked verification.
 ### Why degree nine
 
 Brown–Xiang settled `n ≤ 8` (1999). Tao settled all sufficiently large `n` (2020), with no
-effective bound, so degree nine was not covered. The only prior claim reaching degree nine
-is Meng, arXiv:1705.07235 — unpublished since 2018 and publicly doubted. No assessment of
-that claim is made here.
+effective bound, so degree nine was not covered. There have been previous claimed proofs
+reaching these degrees, and claimed proofs of the conjecture in general; none has been
+publicly accepted. No assessment of any of them is made here, and none is used.
 
 ### What to read
 

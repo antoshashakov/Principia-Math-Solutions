@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/oneoff-principia-author.yml'
+  schedule:
+    - cron: '*/5 * * * *'
 
 permissions:
   contents: write
@@ -51,5 +53,3 @@ jobs:
           git rm .github/workflows/oneoff-principia-author.yml
           git commit -m 'Set Principia Math as Sendov paper author [skip ci]'
           git push
-
-# Touch after registration so the push trigger runs.

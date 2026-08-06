@@ -51,3 +51,5 @@ jobs:
           git rm .github/workflows/oneoff-principia-author.yml
           git commit -m 'Set Principia Math as Sendov paper author [skip ci]'
           git push
+
+# Touch after registration so the push trigger runs.

@@ -10,7 +10,7 @@ project:
 sources:
   - title: "Sendov's Conjecture in Degree Nine"
     authors:
-      - "Anton Shakov"
+      - "Principia Math"
     id: "paper/sendov9.pdf"
     type: "manuscript"
     license: "Apache-2.0"

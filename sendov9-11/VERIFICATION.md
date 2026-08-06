@@ -43,7 +43,7 @@ hypotheses, and no `sorry` in its import closure.
 
 ## §1 Scope
 
-- The mathematics is **Anton Shakov's** (`paper/sendov9.tex`, Theorem 1.1). This directory
+- The mathematics is **Principia Math's** (`paper/sendov9.tex`, Theorem 1.1). This directory
   contributes the machine-checked verification, nothing else.
 - The formalization is **unconditional**. There is no carried hypothesis and no literature
   axiom. The three classical inputs the paper's Lemma 2.1 rests on — Laguerre's theorem,
@@ -119,6 +119,14 @@ modules compared: 46, differing: 0
 
 The import closure of `Sendov9.Final` is 45 modules and is complete within this directory —
 no import resolves outside it. The 46th is `Sendov9/NonVacuous.lean` (§6).
+
+**One consequence, recorded rather than quietly fixed.** When the papers' byline was
+changed to `Principia Math` (§17) the prose attributions elsewhere in this directory were
+updated to match, but `Sendov9/CertData.lean` still names the individual author in its
+module docstring. It was left alone deliberately: it is one of the 46 modules whose
+byte-identical provenance is asserted above and checked with `cmp`, and editing even a
+comment in it would falsify that claim. The byte-identical guarantee was judged worth more
+than the cosmetic consistency, so the mismatch stands and is noted here.
 
 ## §4 No `sorry` / axiom / `native_decide` (run locally)
 

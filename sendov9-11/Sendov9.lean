@@ -18,6 +18,6 @@ audit surface.
 critical point, so the hypotheses are satisfiable and the statement is not true for the
 wrong reason.
 
-This formalizes Anton Shakov, *Sendov's Conjecture in Degree Nine* (`paper/sendov9.tex`).
+This formalizes Principia Math, *Sendov's Conjecture in Degree Nine* (`paper/sendov9.tex`).
 See `VERIFICATION.md` for the ledger and `README.md` for the route.
 -/

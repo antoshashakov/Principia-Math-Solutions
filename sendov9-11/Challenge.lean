@@ -41,10 +41,9 @@ WHAT EACH STATEMENT SAYS, in words:
 Degrees nine, ten, and eleven were open. Brown–Xiang settled `n ≤ 8` (1999); Tao settled
 all sufficiently large `n` (2020) with no effective bound, leaving these degrees uncovered.
 There have been previous claimed proofs at these degrees and in general, none publicly
-accepted; none is used or assessed here. The
-mathematics formalized here is Anton Shakov's (`paper/sendov9.tex` for degree nine,
-`paper/sendov9-11.tex` for degrees ten and eleven); the contribution of this directory is
-the machine-checked verification.
+accepted; none is used or assessed here. The mathematics formalized here is Principia
+Math's (`paper/sendov9.tex` for degree nine, `paper/sendov9-11.tex` for degrees ten and
+eleven); the contribution of this directory is the machine-checked verification.
 -/
 import Mathlib
 set_option autoImplicit false

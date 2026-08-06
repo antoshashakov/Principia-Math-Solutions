@@ -520,12 +520,20 @@ two `pdflatex` passes (both exit 0). The **original** tex/pdf (sha256
 intermediate `c₄`-only state (sha256 `0fd76832…`/`2b027535…`), which still carried the
 `1/2800` figure, was never committed and is superseded by the pins below.
 
+Re-pinned again on 2026-08-06 when the byline was changed from the individual author to
+`Principia Math`, matching `sendov9.tex`. That edit changed exactly one token of the tex
+(`\author{...}`) and the pdf was rebuilt from it with two `pdflatex` passes (both exit 0,
+13 pages, no LaTeX warnings). A page-by-page text extraction of the old and new pdfs
+differs on page 1 only, by the single line `Anton Shakov` → `Principia Math`; pages 2–13
+are textually identical. The write-up is otherwise untouched. Superseded pins
+(`d2d91f7b…`/`787f16eb…`) are in git history.
+
 Current pins (also in `certificates/SHA256SUMS`, which was re-pinned and re-verified
 with `sha256sum -c` — all OK):
 
 ```
-d2d91f7bb1d1a29b190cff29957fff3f6a0f95ee70a8fefb2ea6996f6da9725c  paper/sendov9-11.tex
-787f16ebb975bb06d1206876f8ff9c547185d3f083d18907505d677395f33a80  paper/sendov9-11.pdf
+821a8178e6ad385ea26403f58f813c41701d390361b43e4195f5ac975f97f4ac  paper/sendov9-11.tex
+055678f69e0fc65c3887bf50e08a58f2ed7d1d5b6e5eb18293517277d2167b38  paper/sendov9-11.pdf
 ```
 
 Note this weakens Part I's §8 provenance posture for THIS paper only (the degree-9 paper

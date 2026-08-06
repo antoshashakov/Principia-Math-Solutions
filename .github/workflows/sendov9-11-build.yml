@@ -1,6 +1,32 @@
 name: sendov9-11-build
 
-# Scoped to the sendov9-11 solution; other solutions get their own workflow.
+# THE FAST JOB. Scoped to the sendov9-11 solution; other solutions get their own workflow.
+#
+# WHAT THIS JOB DOES AND DOES NOT COVER
+# -------------------------------------
+# It builds everything in this directory whose cost is measured in MINUTES:
+#   • the 46-module `Sendov9` library (degree nine, complete and certified);
+#   • `Solution` — the two degree-nine statements, whose import closure is exactly that
+#     library;
+#   • `Challenge` — the single trusted statement file for all six results (Mathlib-only);
+#   • `Sendov911Bern` / `Sendov911Capstone` / `Sendov9to11` — the degrees-10/11 framework;
+#   • `Sendov1011Core` — the BOX-INDEPENDENT part of the degrees-10/11 development
+#     (21 of its 91 modules: the parametric SendovN machinery, computed from the import
+#     graph as those whose closure touches no file in boxes10/ or boxes11v2/).
+#
+# It does NOT build `Sendov1011` or `Solution1011`. Their import closure contains all 582
+# kernel-`decide` box certificates: locally measured at ~53 s/box for degree 10 and
+# ~60 s/box for degree 11 single-process, i.e. ~10 CPU-hours, plus a further ~3.5 CPU-hours
+# for the 582 generated `hEq`/`ring` identities of the assembly layer. On this runner
+# (4 vCPU for a public repo) that is 200+ minutes on its own, against a HARD GitHub job
+# ceiling of 360 minutes — too close to risk on every push. Those layers are verified by
+# two `workflow_dispatch` jobs instead:
+#   • `sendov1011-boxes.yml` — all 582 certificates, matrix-sharded 12 ways, each shard
+#     asserting the exact axiom footprint of every box in its slice;
+#   • `sendov1011-full.yml`  — the full build incl. boxes, `Solution1011`, the four
+#     degree-10/11 axiom assertions, and Comparator on sendov10.json / sendov11.json.
+# The local evidence for the full corpus is recorded in sendov9-11/VERIFICATION.md.
+
 on:
   push:
     branches: [main]
@@ -16,6 +42,10 @@ defaults:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # Target is under 90 minutes: the Mathlib cache fetch, the `Sendov9` library (whose
+    # slow module is `Sendov9/CertData.lean`, nineteen `decide` positivity certificates),
+    # and the box-independent 10/11 core. 180 is headroom for a slow shared runner, not a
+    # budget we expect to use.
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
@@ -42,38 +72,71 @@ jobs:
       - name: Cache Mathlib oleans
         run: lake exe cache get
 
+      # `lake build` with no target builds the default target, which is `Sendov9` alone.
       # `Sendov9/CertData.lean` discharges nineteen exact positivity certificates by
       # `decide` over integer-scaled coefficient tables; it is the slow module here.
-      - name: Build the development library
+      - name: Build the degree-nine development library
         run: |
           set -o pipefail
           lake build 2>&1 | tee build.log
 
-      - name: Build Solution
+      - name: Build Solution (the two degree-nine statements)
         run: |
           set -o pipefail
           lake build Solution 2>&1 | tee solution.log
 
+      # `Solution.lean` must stay cheap. Its import closure is supposed to be exactly the
+      # `Sendov9` library and Mathlib; if someone re-adds `import SendovNStatement` the
+      # closure silently grows to all 582 boxes and this job stops being the fast job.
+      # Assert the invariant textually, before anything expensive could have happened.
+      - name: Solution.lean's import closure is degree-nine only
+        run: |
+          imports=$(grep -E '^import ' Solution.lean | awk '{print $2}')
+          echo "Solution.lean imports: $imports"
+          for i in $imports; do
+            case "$i" in
+              Sendov9|Mathlib|Mathlib.*) ;;
+              *) echo "::error::Solution.lean imports '$i'; it must import only Sendov9 (the degree-10/11 statements belong in Solution1011.lean)"
+                 exit 1 ;;
+            esac
+          done
+          echo "Solution.lean's closure is the Sendov9 library only"
+
+      - name: Build the degrees-10/11 framework (engine, capstone, Sendov9to11)
+        run: |
+          set -o pipefail
+          lake build Sendov911Bern Sendov911Capstone Sendov9to11 2>&1 | tee framework1011.log
+
+      # The box-INDEPENDENT part of the degrees-10/11 development. A regression in the
+      # parametric SendovN machinery — the layer where the actual mathematics of the
+      # degrees-10/11 argument lives — is caught here, on every push, in minutes. What is
+      # deferred to the dispatch jobs is only the certificate arithmetic and the generated
+      # glue that cites it.
+      - name: Build the box-independent degrees-10/11 core (Sendov1011Core)
+        run: |
+          set -o pipefail
+          lake build Sendov1011Core 2>&1 | tee core1011.log
+
       # The authoritative check that nothing is stubbed. A failed tactic injects `sorryAx`
       # into DOWNSTREAM theorems while the file still reports zero sorries, so a textual
       # search is not sufficient — Lean's own warning is.
-      - name: No declaration in Sendov9 or Solution uses sorry
+      - name: No declaration built by this job uses sorry
         run: |
-          if grep -n "declaration uses 'sorry'" build.log solution.log; then
-            echo "::error::a declaration in the development library or Solution.lean uses sorry"
+          if grep -n "declaration uses 'sorry'" build.log solution.log framework1011.log core1011.log; then
+            echo "::error::a declaration in the built libraries uses sorry"
             exit 1
           fi
-          echo "no sorry-using declarations in Sendov9 / Solution"
+          echo "no sorry-using declarations in Sendov9 / Solution / the 10-11 framework / Sendov1011Core"
 
       # `#print axioms` runs on every headline theorem of the development too, so
       # `build.log` carries a few hundred footprints. Rather than pin a count there, assert
-      # that across BOTH logs no axiom name outside the permitted set ever appears — this
+      # that across ALL logs no axiom name outside the permitted set ever appears — this
       # also catches `sorryAx`. A footprint may legitimately be a strict SUBSET of the
       # permitted three (`Sendov9.Top.radical_ineq` needs only `propext`), so a literal
       # match on the full triple would be wrong at this level.
       - name: No axiom outside {propext, Classical.choice, Quot.sound} anywhere
         run: |
-          grep -h "depends on axioms" build.log solution.log > all_axioms.txt
+          grep -h "depends on axioms" build.log solution.log framework1011.log core1011.log > all_axioms.txt || true
           test -s all_axioms.txt || { echo "::error::no axiom lines found"; exit 1; }
           echo "footprint lines: $(wc -l < all_axioms.txt)"
           bad=$(sed 's/.*depends on axioms: \[//; s/\]$//' all_axioms.txt \
@@ -84,14 +147,14 @@ jobs:
           fi
           echo "every footprint is within {propext, Classical.choice, Quot.sound}"
 
-      # The two headline results specifically must carry the full clean triple.
+      # Solution's two degree-nine results specifically must carry the full clean triple.
       #
       # Match BY DECLARATION NAME, not by counting clean lines: `lake build Solution`
       # replays the cached info messages of every dependency, so `solution.log` carries
-      # the whole development's footprints (372 of them) and not just Solution's two.
+      # the whole degree-nine development's footprints and not just Solution's two.
       # The trailing quote in the pattern matters — `sendov_degree_nine` is a proper
       # prefix of `sendov_degree_nine_general`.
-      - name: Solution's two results are axiom-free
+      - name: Solution's two degree-nine results are axiom-free
         run: |
           check() {
             n=$(grep -c "'$1' depends on axioms: \[propext, Classical.choice, Quot.sound\]$" solution.log || true)
@@ -110,23 +173,38 @@ jobs:
           # NOTE: a bare `grep sorry` is NOT used here — two module headers discuss the
           # `sorry` this development superseded, and prose must not fail the build. The
           # Lean-level check above is the real one.
-          if grep -rn "native_decide\|implemented_by\|\bunsafe\b" Sendov9/*.lean Solution.lean Challenge.lean; then
+          #
+          # The pattern excludes BACKTICK-quoted occurrences: all 582 generated box files
+          # carry the header line "No floating point, no `native_decide`." in prose, and a
+          # naive grep matches every one of them. Real uses (`by native_decide`,
+          # `unsafe def`, `attribute [implemented_by f]`) are never backtick-wrapped.
+          #
+          # This is a SOURCE-TEXT scan, so it covers every .lean file in the directory —
+          # including boxes10/, boxes11v2/ and the whole of Sendov1011/, which this job
+          # does not build. Both solution files are in scope.
+          if grep -rnE '(^|[^`_[:alnum:]])(native_decide|implemented_by|unsafe)([^`_[:alnum:]]|$)' \
+               Sendov9.lean Sendov911Bern.lean Sendov911Capstone.lean Sendov9to11.lean \
+               IntegrationCheck.lean Sendov9/*.lean Sendov1011/*.lean boxes10/*.lean \
+               boxes11v2/*.lean Solution.lean Solution1011.lean Challenge.lean; then
             echo "::error::kernel-bypassing feature found"; exit 1
           fi
-          total=$(grep -rh "^axiom " Sendov9/*.lean Solution.lean Challenge.lean | wc -l)
+          total=$(grep -rh "^axiom " Sendov9.lean Sendov911Bern.lean Sendov911Capstone.lean \
+                    Sendov9to11.lean IntegrationCheck.lean Sendov9/*.lean Sendov1011/*.lean \
+                    boxes10/*.lean boxes11v2/*.lean Solution.lean Solution1011.lean \
+                    Challenge.lean | wc -l)
           echo "axiom declarations found: $total"
           if [ "$total" -ne 0 ]; then
             echo "::error::expected zero axioms, found $total"; exit 1
           fi
           echo "clean"
 
-      - name: Build Challenge (the audit fixture) and check its two sorries
+      - name: Build Challenge (the audit fixture) and check its six sorries
         run: |
           set -o pipefail
           lake build Challenge 2>&1 | tee challenge.log
           n=$(grep -c "^  sorry$" Challenge.lean)
           echo "intentional sorries in Challenge.lean: $n"
-          test "$n" -eq 2
+          test "$n" -eq 6
 
       # Non-vacuity: the main theorem applied to p = X^9 yields an actual critical point,
       # so its hypotheses are satisfiable. This exists because the one real defect found
@@ -135,30 +213,23 @@ jobs:
       - name: Non-vacuity check builds
         run: lake build Sendov9.NonVacuous
 
-      # ----- Part II (degrees 10/11, PARTIAL — see VERIFICATION.md Part II) -----
-      # Builds only the three Mathlib-only framework libraries. The 581 box certificate
-      # files are deliberately NOT built here (~8.6 CPU-hours of kernel `decide`); their
-      # evidence is the per-box logs shipped in certlogs1011/, reproducible with
-      # ./check-boxes.sh. This step asserts the framework carries no sorry and no axiom
-      # outside the permitted triple.
-      - name: Build the degrees-10/11 framework (engine, capstone, Sendov9to11)
+      # A cheap structural guard on the split: the six statements must still all be
+      # present, four of them in Solution1011.lean, and Solution1011 must still be a
+      # registered library (otherwise `sendov1011-full.yml` would fail only on dispatch).
+      - name: The degree-10/11 statements are still there, in Solution1011
         run: |
-          set -o pipefail
-          lake build Sendov911Bern Sendov911Capstone Sendov9to11 2>&1 | tee framework1011.log
-          if grep -n "declaration uses 'sorry'" framework1011.log; then
-            echo "::error::a declaration in the 10/11 framework uses sorry"
-            exit 1
-          fi
-          grep -h "depends on axioms" framework1011.log > fw_axioms.txt || true
-          if [ -s fw_axioms.txt ]; then
-            bad=$(sed 's/.*depends on axioms: \[//; s/\]$//' fw_axioms.txt \
-                    | tr ',' '\n' | sed 's/^ *//; s/ *$//' | sort -u \
-                    | grep -v -x -e propext -e Classical.choice -e Quot.sound || true)
-            if [ -n "$bad" ]; then
-              echo "::error::unexpected axiom(s) in the 10/11 framework: $bad"; exit 1
-            fi
-          fi
-          echo "framework clean"
+          for t in sendov_degree_ten sendov_degree_ten_general \
+                   sendov_degree_eleven sendov_degree_eleven_general; do
+            grep -q "^theorem $t " Solution1011.lean || {
+              echo "::error::Solution1011.lean is missing theorem $t"; exit 1; }
+            grep -q "^#print axioms $t$" Solution1011.lean || {
+              echo "::error::Solution1011.lean is missing '#print axioms $t'"; exit 1; }
+          done
+          grep -q 'name = "Solution1011"' lakefile.toml || {
+            echo "::error::Solution1011 is not registered as a lean_lib"; exit 1; }
+          grep -q 'name = "Sendov1011Core"' lakefile.toml || {
+            echo "::error::Sendov1011Core is not registered as a lean_lib"; exit 1; }
+          echo "the 10/11 solution layer is registered and intact"
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -168,3 +239,5 @@ jobs:
             sendov9-11/build.log
             sendov9-11/solution.log
             sendov9-11/framework1011.log
+            sendov9-11/core1011.log
+            sendov9-11/challenge.log

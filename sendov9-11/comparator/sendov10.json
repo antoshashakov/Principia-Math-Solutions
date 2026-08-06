@@ -1,0 +1,10 @@
+{
+    "challenge_module": "Challenge",
+    "solution_module": "Solution1011",
+    "theorem_names": [
+        "Sendov1011.Statement.sendov_degree_ten",
+        "Sendov1011.Statement.sendov_degree_ten_general"
+    ],
+    "permitted_axioms": ["propext", "Quot.sound", "Classical.choice"],
+    "enable_nanoda": false
+}

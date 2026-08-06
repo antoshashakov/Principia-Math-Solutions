@@ -751,13 +751,16 @@ Thus $x<\pi/11$.  Since $\sin t>t-t^3/6$ for $0<t<1$,
 \begin{equation}\label{eq:c11}
 \begin{array}{c|ccccccccc}
  m&2&3&4&5&6&7&8&9&10\\ \hline
- c_m&5&10&70/3&32&3125/108&2121/100&3125/256&509/100&1.
+ c_m&5&10&1447/50&32&3125/108&2121/100&3125/256&509/100&1.
 \end{array}
 \end{equation}
-Here $c_4$ is the bound \eqref{eq:schoenberg}; $c_5,c_6,c_8$ are the exact
-Cauchy bounds; $c_7,c_9$ are rational upper bounds for
+Here $c_5,c_6,c_8$ are the exact
+Cauchy bounds; $c_4,c_7,c_9$ are rational upper bounds for
 \eqref{eq:cauchy-esp}; and the remaining cases follow from
-Lemma~\ref{lem:centered-esp}.
+Lemma~\ref{lem:centered-esp}.  (An earlier version of this paper took
+$c_4=70/3$ from \eqref{eq:schoenberg}; the present certificates use the
+weaker Cauchy value $c_4=1447/50\ge\sqrt{10^{10}/(4^4\cdot6^6)}$, which
+they verify directly.)
 
 For $0\le a\le27/100$,
 \[
@@ -787,7 +790,13 @@ menu
 For every rectangle at least one choice of $\tau\in\mathcal T$ gives a
 polynomial with all tensor-product Bernstein coefficients positive.  The
 polynomials have bidegree at most $(11,10)$.  The least coefficient among all
-$530$ certificates is greater than $1/2800$.
+$530$ certificates is greater than $1/4000$.  The value of $\tau$ recorded for
+each rectangle in the ancillary certificates is the one maximizing that
+rectangle's least Bernstein coefficient, and under that selection the least
+coefficient among all $530$ certificates is in fact greater than $1/250$; the
+bundled verifier instead accepts the first $\tau$ of a fixed preference order
+that already succeeds, and its minimum, though smaller, still exceeds
+$1/4000$.
 
 For $9/10\le a\le1$, take the bound $S_b$ from
 Lemma~\ref{lem:sigma} with $M=2$ and set
@@ -852,7 +861,7 @@ Degree & Interior region & Rectangles & Interior lower bound & Boundary lower bo
 \midrule
 9  & $[9/20,9/10]$ & $18$  & $1/2100$ & $1/100$\\
 10 & $[2/5,9/10]$  & $50$  & $1/3100$ & $7/100$\\
-11 & $[37/100,9/10]$ & $530$ & $1/2800$ & $3/50$\\
+11 & $[37/100,9/10]$ & $530$ & $1/4000$ & $3/50$\\
 \bottomrule
 \end{tabular}
 \end{table}

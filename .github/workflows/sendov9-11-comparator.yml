@@ -7,6 +7,14 @@ name: sendov9-11-comparator
 # This job deliberately does NOT pre-build Challenge or Solution. Comparator's threat
 # model assumes the solution has not been compiled beforehand; building it here would
 # void that assumption. It is a separate workflow from `build` for the same reason.
+#
+# SCOPE: DEGREE NINE ONLY. `Solution.lean` holds the two degree-nine statements and its
+# import closure is just the `Sendov9` library, so this job stays fast and stays green on
+# every push. The four degree-10/11 statements live in `Solution1011.lean`, whose closure
+# is the 582-box certificate corpus (~10 CPU-hours); Comparator on those is run by
+# `sendov1011-full.yml` (`workflow_dispatch` only, configs `comparator/sendov10.json` and
+# `comparator/sendov11.json`), because starting Comparator from an unbuilt `Solution1011`
+# does not fit inside GitHub's 360-minute job ceiling on a free 4-vCPU runner.
 
 on:
   push:

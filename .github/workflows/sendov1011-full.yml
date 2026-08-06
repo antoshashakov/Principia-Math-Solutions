@@ -1,0 +1,242 @@
+name: sendov1011-full
+
+# THE WHOLE DEGREES-10/11 PROOF, END TO END, IN ONE JOB — dispatch only.
+#
+# Builds `Sendov1011` (the parametric SendovN core, the generated assembly layer, and all
+# 582 kernel-`decide` box certificates), then `Solution1011`, asserts the axiom footprints
+# of the four degree-10/11 statements, and finally runs Comparator on
+# `comparator/sendov10.json` and `comparator/sendov11.json` against the shared trusted
+# `Challenge.lean`.
+#
+# HONEST WARNING ABOUT THE RUNNER CEILING
+# ---------------------------------------
+# This job may not fit. Measured locally: ~10 CPU-hours for the 582 certificates plus
+# ~3.5 CPU-hours for the 582 generated `hEq`/`ring` identities of the assembly layer, so
+# ~13.5 CPU-hours, which on a public-repo `ubuntu-latest` runner (4 vCPU) is ~200 minutes
+# IF lake keeps all four cores busy — and it will not, near the ends of the dependency
+# graph. Add the Mathlib cache fetch, the landrun/lean4export/comparator builds, and
+# Comparator's own two passes, and the realistic range is 230-345 minutes against GitHub's
+# HARD 360-minute ceiling. `timeout-minutes: 350` is set so the job fails as a timeout
+# rather than being killed mid-Comparator with no logs.
+#
+# If this job times out, the fallback is either of:
+#   • a larger runner — `runs-on: ubuntu-latest-16-core` cuts the build roughly fourfold
+#     and makes the job comfortable (it is a paid runner, hence not the default here);
+#   • the sharded `sendov1011-boxes.yml`, which re-checks all 582 certificates across
+#     twelve free-tier jobs and is the load-bearing CI evidence for the corpus;
+#   • the local evidence recorded in `sendov9-11/VERIFICATION.md`, which is where the
+#     full-corpus run was actually performed and logged (`certlogs1011/`, `certlogs11v2/`).
+# None of these is a substitute for the others; the sharded job proves the certificates,
+# this job proves the assembly and the Comparator equivalence.
+#
+# NOTE ON COMPARATOR'S THREAT MODEL. `sendov9-11-comparator.yml` deliberately does not
+# pre-build its solution, because Comparator assumes an uncompiled solution. This job DOES
+# pre-build, and that is a real weakening: it is the only way two Comparator configs over
+# a 13.5-CPU-hour closure fit in one job at all. Comparator still re-elaborates and
+# exports both environments inside the landrun sandbox, so the comparison itself is
+# unchanged; what is lost is the guarantee that no earlier step primed the build. Treat
+# this job's Comparator result as corroboration of the degree-nine job's, not as an
+# independent adversarial run.
+
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: sendov9-11
+
+env:
+  # Same pins as the degree-nine comparator job, which is known-good on this repo.
+  COMPARATOR_SHA: c3903e1ed0148a32cd39510707c632dc4d265514
+  # lean4export must match the PROJECT's Lean version (sendov9-11 is on v4.31.0).
+  # af5aa64 is toolchain v4.33.0-rc1 and fails with "incompatible header".
+  LEAN4EXPORT_SHA: 8554815c2dc6b7abe99ec1f08849c9759ba77947
+  LANDRUN_SHA: 5ed4a3db3a4ad930d577215c6b9abaa19df7f99f
+
+jobs:
+  full:
+    runs-on: ubuntu-latest
+    # See the honest warning in the header: this is one job against a hard 360-minute cap.
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+
+      # ubuntu-latest ships ~25-30 GB of preinstalled tooling this job never uses, and the
+      # runner image's free space varies between runs. Unpacking the Mathlib olean cache
+      # needs several GB, and this job additionally writes 582 box oleans; reclaiming the
+      # unused tooling up front removes that coin flip.
+      - name: Free disk space
+        working-directory: .
+        run: |
+          echo "before:"; df -h / | tail -1
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/local/.ghcup /opt/hostedtoolcache/CodeQL \
+                      /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          echo "after:"; df -h / | tail -1
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      # Build the Comparator toolchain FIRST, while the runner is cheap to fail on: a
+      # broken landrun after four hours of Lean would waste the whole job.
+      - name: Build landrun
+        run: |
+          git clone https://github.com/Zouuup/landrun.git /tmp/landrun
+          cd /tmp/landrun && git checkout "$LANDRUN_SHA"
+          go build -o /usr/local/bin/landrun ./cmd/landrun
+          landrun --help >/dev/null
+
+      - name: Probe that landrun actually denies out-of-policy writes
+        run: |
+          # If the sandbox silently no-ops, a Comparator pass means nothing.
+          set +e
+          landrun --rox / -- /bin/sh -c 'echo x > /tmp/_landrun_probe' 2>/dev/null
+          rc=$?
+          set -e
+          if [ -f /tmp/_landrun_probe ]; then
+            echo "::error::landrun did NOT deny an out-of-policy write; refusing to trust Comparator"
+            exit 1
+          fi
+          echo "landrun denies out-of-policy writes (rc=$rc)"
+
+      - name: Build lean4export
+        run: |
+          git clone https://github.com/leanprover/lean4export.git /tmp/lean4export
+          cd /tmp/lean4export && git checkout "$LEAN4EXPORT_SHA"
+          lake build
+          echo "COMPARATOR_LEAN4EXPORT=/tmp/lean4export/.lake/build/bin/lean4export" >> "$GITHUB_ENV"
+          # Comparator invokes lean4export *by name* inside the landrun sandbox, so it must
+          # be on PATH. COMPARATOR_LEAN4EXPORT alone is NOT sufficient at this comparator
+          # revision.
+          echo "/tmp/lean4export/.lake/build/bin" >> "$GITHUB_PATH"
+
+      - name: Build comparator
+        run: |
+          git clone https://github.com/leanprover/comparator.git /tmp/comparator
+          cd /tmp/comparator && git checkout "$COMPARATOR_SHA"
+          lake build
+
+      - name: Cache Mathlib oleans
+        run: lake exe cache get
+
+      # THE EXPENSIVE STEP. `Sendov1011`'s import closure is every one of the 582 box
+      # certificates plus the generated assembly layer; this is the ~13.5 CPU-hour part.
+      - name: Build the full degrees-10/11 development (Sendov1011, incl. all 582 boxes)
+        timeout-minutes: 260
+        run: |
+          set -o pipefail
+          lake build Sendov1011 2>&1 | tee sendov1011.log
+
+      - name: Build Solution1011 (the four degree-10/11 statements)
+        run: |
+          set -o pipefail
+          lake build Solution1011 2>&1 | tee solution1011.log
+
+      - name: Build Challenge (the audit fixture) and check its six sorries
+        run: |
+          set -o pipefail
+          lake build Challenge 2>&1 | tee challenge.log
+          n=$(grep -c "^  sorry$" Challenge.lean)
+          echo "intentional sorries in Challenge.lean: $n"
+          test "$n" -eq 6
+
+      # The authoritative check that nothing is stubbed. A failed tactic injects `sorryAx`
+      # into DOWNSTREAM theorems while the file still reports zero sorries, so a textual
+      # search is not sufficient — Lean's own warning is.
+      - name: No declaration in Sendov1011 or Solution1011 uses sorry
+        run: |
+          if grep -n "declaration uses 'sorry'" sendov1011.log solution1011.log; then
+            echo "::error::a declaration in the degrees-10/11 development or Solution1011.lean uses sorry"
+            exit 1
+          fi
+          echo "no sorry-using declarations in Sendov1011 / Solution1011"
+
+      # Across BOTH logs no axiom name outside the permitted set may ever appear — this
+      # also catches `sorryAx`. A footprint may legitimately be a strict SUBSET of the
+      # permitted three, so a literal match on the full triple would be wrong at this level.
+      - name: No axiom outside {propext, Classical.choice, Quot.sound} anywhere
+        run: |
+          grep -h "depends on axioms" sendov1011.log solution1011.log > all_axioms.txt || true
+          test -s all_axioms.txt || { echo "::error::no axiom lines found"; exit 1; }
+          echo "footprint lines: $(wc -l < all_axioms.txt)"
+          bad=$(sed 's/.*depends on axioms: \[//; s/\]$//' all_axioms.txt \
+                  | tr ',' '\n' | sed 's/^ *//; s/ *$//' | sort -u \
+                  | grep -v -x -e propext -e Classical.choice -e Quot.sound || true)
+          if [ -n "$bad" ]; then
+            echo "::error::unexpected axiom(s): $bad"; exit 1
+          fi
+          echo "every footprint is within {propext, Classical.choice, Quot.sound}"
+
+      # The four degree-10/11 headline results specifically must carry the full clean
+      # triple. Match BY DECLARATION NAME, not by counting clean lines: `lake build
+      # Solution1011` replays the cached info messages of every dependency, so
+      # `solution1011.log` carries the whole corpus's footprints (582 box lines among them)
+      # and not just Solution1011's four. The trailing `$` matters —
+      # `sendov_degree_ten` is a proper prefix of `sendov_degree_ten_general`.
+      - name: Solution1011's four results are axiom-free
+        run: |
+          check() {
+            n=$(grep -c "'$1' depends on axioms: \[propext, Classical.choice, Quot.sound\]$" solution1011.log || true)
+            echo "$1 -> $n clean footprint(s)"
+            if [ "$n" -lt 1 ]; then
+              echo "::error::$1 is missing a clean [propext, Classical.choice, Quot.sound] footprint"
+              grep "'$1' depends on axioms" solution1011.log || echo "  (no footprint line at all)"
+              exit 1
+            fi
+          }
+          check Sendov1011.Statement.sendov_degree_ten
+          check Sendov1011.Statement.sendov_degree_ten_general
+          check Sendov1011.Statement.sendov_degree_eleven
+          check Sendov1011.Statement.sendov_degree_eleven_general
+
+      # All 582 certificates report through the build log too. This is a coarse corroboration
+      # of the sharded `sendov1011-boxes.yml` job, which is the file-by-file authority.
+      - name: All 582 box certificates report a clean footprint
+        run: |
+          n=$(grep -c "\.box_positive' depends on axioms: \[propext, Classical.choice, Quot.sound\]$" sendov1011.log || true)
+          echo "clean box_positive footprints in the build log: $n"
+          if [ "$n" -lt 582 ]; then
+            echo "::warning::saw $n of 582 box footprints — lake replays cached info messages only for modules it (re)built, so a warm cache legitimately shows fewer. The file-by-file authority is sendov1011-boxes.yml."
+          fi
+
+      # NOTE: `--pipe --wait --collect`, NOT the `--pty` given in Comparator's README.
+      # `--pty` allocates a terminal and waits on it, which never resolves on a CI runner.
+      # The `RestrictAddressFamilies` property is the part that actually matters for safety
+      # and is kept verbatim; it guards a landrun vulnerability fixed only in Linux 7.1.
+      - name: "Run comparator (degrees 10 and 11, both forms each, axiom-free)"
+        timeout-minutes: 60
+        run: |
+          set -o pipefail
+          run_cfg() {
+            echo "=== comparator on $1 ==="
+            systemd-run --property=RestrictAddressFamilies=~AF_UNIX --user --pipe --wait --collect -E PATH="$PATH" --working-directory "$(pwd)" -- bash -c "lake env /tmp/comparator/.lake/build/bin/comparator $1" 2>&1 | tee -a comparator.log
+          }
+          # Both must pass with NO extra axioms: permitted = propext / Quot.sound / Classical.choice.
+          run_cfg comparator/sendov10.json
+          run_cfg comparator/sendov11.json
+
+      - name: Require the success string
+        run: |
+          n=$(grep -c "Your solution is okay!" comparator.log)
+          echo "comparator 'okay' count: $n (expected 2 — deg-10, deg-11)"
+          test "$n" -eq 2
+          echo "comparator accepted both degrees-10/11 configs"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sendov1011-full-log
+          path: |
+            sendov9-11/sendov1011.log
+            sendov9-11/solution1011.log
+            sendov9-11/challenge.log
+            sendov9-11/comparator.log

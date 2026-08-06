@@ -15,7 +15,7 @@ Q=sp.Rational
 a,y,v,u,w,x,Yv=sp.symbols('a y v u w x Y')
 N=10; n=11
 M0=Q(563,1000)
-C={2:Q(5),3:Q(10),4:Q(70,3),5:Q(32),6:Q(3125,108),
+C={2:Q(5),3:Q(10),4:Q(1447,50),5:Q(32),6:Q(3125,108),
    7:Q(2121,100),8:Q(3125,256),9:Q(509,100),10:Q(1)}
 
 # Discovery table only chooses which exact polynomial to try first.  The

@@ -1,0 +1,14 @@
+50/531 checked
+100/531 checked
+150/531 checked
+200/531 checked
+250/531 checked
+300/531 checked
+350/531 checked
+400/531 checked
+450/531 checked
+500/531 checked
+531/531 checked
+ALL 531 FILES PASS: hQ, cnum>0, every Bernstein numerator >= cnum (min tight), margins match the c4 experiment exactly.
+worst margin 4.344719e-03 in Sendov911Box11_79_8.lean
+EXIT 0

@@ -2,7 +2,7 @@
 version: "v0.3"
 
 project:
-  name: "Sendov's conjecture, degrees nine to eleven, in Lean 4 (degree nine proved; degrees ten/eleven partial)"
+  name: "Sendov's conjecture, degrees nine, ten and eleven, in Lean 4 (all three degrees proved)"
   authors:
     - "Principia Math harness (autonomous multi-model research harness)"
   license: "Apache-2.0"
@@ -30,13 +30,16 @@ sources:
     author_contacted: "author is the repository owner"
     note: >-
       The degrees 9-11 journal paper, committed at `paper/sendov9-11.tex` and
-      `paper/sendov9-11.pdf`, sha256-pinned in `VERIFICATION.md` PART II and in
-      `certificates/SHA256SUMS` together with its own Python verifiers. The Lean in this
-      directory certifies the paper's FINITE certificate half for degrees 10 and 11
-      (degree 10: 51/51 boxes; degree 11: 531/531 boxes) and provides a
-      conditional capstone; it does NOT certify the paper's analytic reduction for those
-      degrees, which remains the unproved hypothesis `CertificateReduction`. Sendov's
-      conjecture in degrees ten and eleven is NOT claimed by this repository.
+      `paper/sendov9-11.pdf`, sha256-pinned in `VERIFICATION.md` Part II and in
+      `certificates/SHA256SUMS` together with its own Python verifiers. The paper was
+      REVISED here on 2026-08-06 (the degree-11 majorant c4 changed from Schoenberg's
+      70/3 to the weaker Cauchy value 1447/50, which is what the shipped certificates
+      and the Lean development verify; original bytes in git history — see
+      `VERIFICATION.md` §17). The Lean in this directory certifies BOTH halves of the
+      paper's degrees-10/11 proof: the finite certificate half (degree 10: 51/51 boxes;
+      degree 11: 531/531 regenerated v2 boxes) and, since 2026-08-06, the analytic
+      reduction (`Sendov1011/`, formerly the unproved hypothesis
+      `CertificateReduction`), yielding unconditional `Sendov 10` and `Sendov 11`.
   - title: "On the Sendov conjecture for polynomials with at most six distinct roots"
     authors:
       - "Johnny E. Brown"
@@ -96,15 +99,20 @@ formalization:
     out inside Lean as nineteen exact integer-scaled Bernstein certificates discharged by
     `decide`, not by an external verifier; no floating point and no `native_decide` is
     used anywhere. The sorry counts below exclude `Challenge.lean` (the statement-only
-    Comparator fixture; 2 intentional placeholders).
+    Comparator fixture; 6 intentional placeholders).
 
-    PART II of this directory extends the FINITE half of the same method to degrees ten
-    and eleven (`Sendov911Bern`, `boxes10/`, `boxes11/`, `Sendov911Capstone`): the box
-    certificates are kernel-checked by `decide` on exact integers (degree 10: 51/51;
-    degree 11: 531/531), and `Sendov n` is derived only CONDITIONALLY on the
-    unproved analytic hypothesis `CertificateReduction`. No sorry appears anywhere in
-    Part II either — the incompleteness is carried openly as a hypothesis, not hidden in
-    a sorry. Sendov's conjecture in degrees ten and eleven is NOT claimed.
+    PART II of this directory extends the SAME unconditional result to degrees ten and
+    eleven (`Sendov1011/`, `Sendov911Bern`, `boxes10/`, `boxes11v2/`,
+    `Sendov911Capstone`): the box certificates are kernel-checked by `decide` on exact
+    integers (degree 10: 51/51; degree 11: 531/531 regenerated v2 boxes at c4 = 1447/50),
+    and the analytic reduction — formerly the named hypothesis `CertificateReduction` —
+    is now PROVED for both degrees, so `SendovN.Final10.sendov10` and
+    `SendovN.Final11.sendov11` are unconditional theorems with the clean axiom triple.
+    Grace-Walsh-Szego is consumed from the degree-9 development's parametric proof, so
+    degrees ten and eleven also carry no literature dependency. The statement layer
+    (`Sendov1011/SendovNStatement.lean`, surfaced in Challenge.lean/Solution.lean) adds
+    monic and general forms in pure Mathlib vocabulary for both degrees; Challenge.lean
+    now carries 6 intentional sorry placeholders (two per degree).
   sorry_count: 0
   sorry_in_definitions: 0
   axioms:
@@ -130,6 +138,32 @@ formalization:
       note: >-
         The monic form, matching the paper's `p(z) = ∏(z - z_k)`. The general form above is
         derived from it by scaling.
+    - declaration: "Sendov1011.Statement.sendov_degree_ten_general"
+      file: "Sendov1011/SendovNStatement.lean  (statement layer: Challenge.lean / Solution1011.lean)"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator/sendov10.json"
+      comparator_status: "NOT YET RUN — config shipped; dispatched by sendov1011-full.yml"
+      literature_dependencies: []
+      note: >-
+        Sendov's conjecture in degree ten, general (non-monic) form; the monic form
+        `sendov_degree_ten` is named by the same comparator config. Proved
+        unconditionally via `SendovN.Final10.sendov10` (analytic reduction +
+        51 kernel-checked box certificates). The axioms field records the local
+        `#print axioms` result; Comparator has not yet audited this declaration.
+    - declaration: "Sendov1011.Statement.sendov_degree_eleven_general"
+      file: "Sendov1011/SendovNStatement.lean  (statement layer: Challenge.lean / Solution1011.lean)"
+      sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "comparator/sendov11.json"
+      comparator_status: "NOT YET RUN — config shipped; dispatched by sendov1011-full.yml"
+      literature_dependencies: []
+      note: >-
+        Sendov's conjecture in degree eleven, general (non-monic) form; the monic form
+        `sendov_degree_eleven` is named by the same comparator config. Proved
+        unconditionally via `SendovN.Final11.sendov11` (analytic reduction +
+        531 kernel-checked v2 box certificates, c4 = 1447/50). The axioms field records
+        the local `#print axioms` result; Comparator has not yet audited this declaration.
     - declaration: "Sendov9.GWS.graceWalshSzegoPos"
       file: "Sendov9/GWS.lean"
       sorry_count: 0
@@ -168,10 +202,16 @@ fidelity:
 
 review:
   comparator: >-
-    Runs on CI (.github/workflows/sendov9-comparator.yml), Linux-only, in a
-    landrun/Landlock sandbox: comparator/sendov9_general.json and
+    DEGREE NINE ONLY, as of this commit. .github/workflows/sendov9-11-comparator.yml runs
+    Linux-only in a landrun/Landlock sandbox over comparator/sendov9_general.json and
     comparator/sendov9_monic.json, both axiom-free (permitted axioms are exactly propext,
-    Quot.sound, Classical.choice). Both must report "Your solution is okay!".
+    Quot.sound, Classical.choice); both report "Your solution is okay!" (PASSED, commit
+    e547beb, run 30390230659). The degree-10/11 configs comparator/sendov10.json and
+    comparator/sendov11.json are written and shipped but HAVE NOT BEEN RUN: they are
+    dispatched by .github/workflows/sendov1011-full.yml (workflow_dispatch only), because
+    Comparator forbids pre-building the solution and the degrees-10/11 closure is roughly
+    13.5 CPU-hours, past GitHub's hard 360-minute job ceiling on a free runner. Nothing in
+    degrees ten or eleven may be described as Comparator-certified. See VERIFICATION.md §20.
   non_vacuity: >-
     `Sendov9.NonVacuous.sanity` applies the main theorem to `p = X⁹` and obtains an actual
     critical point, so the hypotheses are satisfiable. This check exists because the one
@@ -223,12 +263,16 @@ alignment:
     - paper_result: "sendov9-11.tex — degree-10 certificate positivity (50 interior boxes + boundary)"
       lean_name: "Sendov911Box10_*.box_positive / Sendov911Box10Boundary.box_positive"
       module: "boxes10/*.lean (engine: Sendov911Bern.lean)"
-      status: "PARTIAL DEVELOPMENT, COMPLETE FOR THIS ITEM: 51/51 kernel-checked, logs in certlogs1011/"
-    - paper_result: "sendov9-11.tex — degree-11 certificate positivity (530 interior boxes + boundary)"
+      status: "proved — 51/51 kernel-checked by decide on exact integers, logs in certlogs1011/"
+    - paper_result: "sendov9-11.tex — degree-11 certificate positivity (530 interior boxes + boundary, v2: c4 = 1447/50)"
       lean_name: "Sendov911Box11_*.box_positive / Sendov911Box11Boundary.box_positive"
-      module: "boxes11/*.lean (engine: Sendov911Bern.lean)"
-      status: "PARTIAL DEVELOPMENT, COMPLETE FOR THIS ITEM: 531/531 kernel-checked, logs in certlogs1011/"
-    - paper_result: "sendov9-11.tex — the analytic reduction (GWS, sigma, variance, covering) for degrees 10/11"
-      lean_name: "Sendov911Capstone.sendov_of_reduction (hypothesis: CertificateReduction)"
-      module: "Sendov911Capstone.lean"
-      status: "CONDITIONAL ONLY — the reduction is an unproved hypothesis; Sendov 10/11 NOT claimed"
+      module: "boxes11v2/*.lean (engine: Sendov911Bern.lean)"
+      status: "proved — 531/531 kernel-checked by decide on exact integers, logs in certlogs11v2/"
+    - paper_result: "sendov9-11.tex — the analytic reduction (GWS, separation, sigma, centered-esp bounds, covering) for degrees 10/11"
+      lean_name: "SendovN.Reduction10.certificateReduction10 / SendovN.Reduction11.certificateReduction11"
+      module: "Sendov1011/SendovNReduction10.lean / SendovNReduction11.lean (through Sendov911Capstone.sendov_of_reduction, unchanged)"
+      status: "proved, axiom-free (formerly the unproved hypothesis CertificateReduction)"
+    - paper_result: "sendov9-11.tex — main theorem, degrees ten and eleven"
+      lean_name: "SendovN.Final10.sendov10 / SendovN.Final11.sendov11 (statement layer: Sendov1011.Statement.*)"
+      module: "Sendov1011/Sendov10Final.lean / Sendov11Final.lean / SendovNStatement.lean"
+      status: "proved, axiom-free, unconditional"

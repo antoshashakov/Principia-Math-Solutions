@@ -4,8 +4,12 @@ TRUSTED CHALLENGE FILE — the statements, without proofs.
 This file is the audit surface. Comparator (github.com/leanprover/comparator) checks that
 the corresponding declarations in `Solution.lean` prove EXACTLY these statements, using no
 axioms beyond the permitted list in `comparator/*.json`:
-  • `sendov_degree_nine`         — [propext, Quot.sound, Classical.choice]  (axiom-free).
-  • `sendov_degree_nine_general` — [propext, Quot.sound, Classical.choice]  (axiom-free).
+  • `sendov_degree_nine`           — [propext, Quot.sound, Classical.choice]  (axiom-free).
+  • `sendov_degree_nine_general`   — [propext, Quot.sound, Classical.choice]  (axiom-free).
+  • `sendov_degree_ten`            — [propext, Quot.sound, Classical.choice]  (axiom-free).
+  • `sendov_degree_ten_general`    — [propext, Quot.sound, Classical.choice]  (axiom-free).
+  • `sendov_degree_eleven`         — [propext, Quot.sound, Classical.choice]  (axiom-free).
+  • `sendov_degree_eleven_general` — [propext, Quot.sound, Classical.choice]  (axiom-free).
 
 The `sorry`s below are deliberate and are the only `sorry`s in this directory.
 
@@ -30,11 +34,16 @@ WHAT EACH STATEMENT SAYS, in words:
                               distance one of `a`. This is the form Sendov's conjecture is
                               usually quoted in, and it is the headline result.
 
-Degree nine was open. Brown–Xiang settled `n ≤ 8` (1999); Tao settled all sufficiently
-large `n` (2020); the only prior degree-nine claim is Meng, arXiv:1705.07235, unpublished
-since 2018 and publicly doubted. The mathematics formalized here is Anton Shakov's
-(`paper/sendov9.tex`); the contribution of this directory is the machine-checked
-verification.
+  sendov_degree_ten / sendov_degree_eleven, and their _general forms
+                              The same four shapes verbatim with the degree hypothesis
+                              `p.natDegree = 10` resp. `= 11`.
+
+Degrees nine, ten, and eleven were open. Brown–Xiang settled `n ≤ 8` (1999); Tao settled
+all sufficiently large `n` (2020) with no effective bound; the only prior claim covering
+these degrees is Meng, arXiv:1705.07235, unpublished since 2018 and publicly doubted. The
+mathematics formalized here is Anton Shakov's (`paper/sendov9.tex` for degree nine,
+`paper/sendov9-11.tex` for degrees ten and eleven); the contribution of this directory is
+the machine-checked verification.
 -/
 import Mathlib
 set_option autoImplicit false
@@ -56,3 +65,33 @@ theorem sendov_degree_nine_general {p : ℂ[X]} (hdeg : p.natDegree = 9)
   sorry
 
 end Sendov9.Statement
+
+namespace Sendov1011.Statement
+
+open Polynomial
+
+/-- **Sendov's conjecture in degree ten (monic form).** -/
+theorem sendov_degree_ten {p : ℂ[X]} (hm : p.Monic) (hdeg : p.natDegree = 10)
+    (hroots : ∀ w ∈ p.roots, ‖w‖ ≤ 1) {a : ℂ} (ha : a ∈ p.roots) :
+    ∃ z ∈ (derivative p).roots, ‖a - z‖ ≤ 1 := by
+  sorry
+
+/-- **Sendov's conjecture in degree ten.** -/
+theorem sendov_degree_ten_general {p : ℂ[X]} (hdeg : p.natDegree = 10)
+    (hroots : ∀ w ∈ p.roots, ‖w‖ ≤ 1) {a : ℂ} (ha : a ∈ p.roots) :
+    ∃ z ∈ (derivative p).roots, ‖a - z‖ ≤ 1 := by
+  sorry
+
+/-- **Sendov's conjecture in degree eleven (monic form).** -/
+theorem sendov_degree_eleven {p : ℂ[X]} (hm : p.Monic) (hdeg : p.natDegree = 11)
+    (hroots : ∀ w ∈ p.roots, ‖w‖ ≤ 1) {a : ℂ} (ha : a ∈ p.roots) :
+    ∃ z ∈ (derivative p).roots, ‖a - z‖ ≤ 1 := by
+  sorry
+
+/-- **Sendov's conjecture in degree eleven.** -/
+theorem sendov_degree_eleven_general {p : ℂ[X]} (hdeg : p.natDegree = 11)
+    (hroots : ∀ w ∈ p.roots, ‖w‖ ≤ 1) {a : ℂ} (ha : a ∈ p.roots) :
+    ∃ z ∈ (derivative p).roots, ‖a - z‖ ≤ 1 := by
+  sorry
+
+end Sendov1011.Statement

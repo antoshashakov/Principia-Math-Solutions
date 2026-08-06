@@ -1,13 +1,10 @@
 # Sendov's conjecture, degrees nine to eleven — Lean 4
 
-Two developments in **very different states** share this directory. Read this table
-before anything else:
-
 | degree | claim | Lean status |
 |---|---|---|
 | **9** | Sendov's conjecture holds | **PROVED** — unconditional, axiom-free, Comparator-certified on CI |
-| **10** | *no claim* | finite certificate half **complete** (51/51 boxes kernel-checked); analytic half **assumed** (`CertificateReduction`) |
-| **11** | *no claim* | finite certificate half **complete** (531/531 boxes kernel-checked); analytic half **assumed** |
+| **10** | Sendov's conjecture holds | **PROVED** — unconditional, axiom-free (`SendovN.Final10.sendov10`; analytic reduction proved in `Sendov1011/`, 51/51 boxes kernel-checked) |
+| **11** | Sendov's conjecture holds | **PROVED** — unconditional, axiom-free (`SendovN.Final11.sendov11`; analytic reduction proved in `Sendov1011/`, 531/531 v2 boxes kernel-checked) |
 
 ## Part I — degree nine (PROVED)
 
@@ -24,8 +21,8 @@ each zero `a`, a critical point within distance one of `a`.*
 
 `#print axioms` shows exactly `[propext, Classical.choice, Quot.sound]`. There are **no
 carried hypotheses, no literature axioms, and no `sorry`** anywhere in the 46 modules of
-the `Sendov9` library — the only `sorry`s in this directory are the two deliberate
-placeholders in `Challenge.lean`, which is the audit surface.
+the `Sendov9` library — the only `sorry`s in this directory are the six deliberate
+placeholders in `Challenge.lean` (two per degree), which is the audit surface.
 
 The mathematics is **Principia Math's** (`paper/sendov9.tex`). The contribution of this
 directory is the machine-checked verification.
@@ -94,39 +91,61 @@ without leaving a trace in `#print axioms`. Everything targets the corrected sta
 `Sendov9/NonVacuous.lean` applies the main theorem to `p = X⁹` to confirm the final
 hypotheses are satisfiable.
 
-## Part II — degrees ten and eleven (PARTIAL — read this honestly)
+## Part II — degrees ten and eleven (PROVED)
 
 The degrees 9–11 journal paper (`paper/sendov9-11.tex`, sha256-pinned) proves each degree
-by an analytic reduction to the strict positivity of finitely many certificate polynomials.
-This directory machine-checks the **finite half** of that proof for degrees 10 and 11 and
-formalizes the **shape** of the reduction; it does **not** prove the reduction itself.
+by an analytic reduction to the strict positivity of finitely many certificate
+polynomials. This directory now machine-checks **both halves** for degrees 10 and 11:
 
-**Machine-checked, kernel-`decide` on exact integers** (per-box logs in `certlogs1011/`):
+**The analytic reduction, proved** (`Sendov1011/`, 91 modules — the parametric `SendovN`
+core plus a generated assembly layer, every generated table matched
+integer-for-integer against the shipped box files before emission):
+`CertificateReduction 10` and `CertificateReduction 11`, formerly this directory's
+explicitly named unproved hypotheses, are theorems (`SendovNReduction10/11.lean`),
+plugged into the **unchanged** capstone `Sendov911Capstone.sendov_of_reduction`.
+Grace–Walsh–Szegő is consumed from Part I's `Sendov9/GWS.lean`, which was already
+parametric in the degree — so degrees 10/11 still carry **no literature axiom**. The
+separation constants are again reached algebraically (tenth roots of unity via the
+golden-ratio branch `t² − t − 1`; eleventh via the quintic Laurent identity
+`ω⁵(t⁵+t⁴−4t³−3t²+3t+1) = ∑ωᵏ`), with no trigonometry.
 
-- degree 10: all **50 interior boxes + the boundary box — 51/51 complete**, every one with
-  footprint `[propext, Classical.choice, Quot.sound]`;
-- degree 11: all **530 interior boxes + the boundary box — 531/531 complete**, every one
-  axiom-clean (completed 2026-08-06; no box ever failed);
+**The finite half, kernel-`decide` on exact integers:**
+
+- degree 10: **51/51 boxes** (logs in `certlogs1011/`);
+- degree 11: **531/531 boxes** in `boxes11v2/` (logs in `certlogs11v2/`) — the
+  certificates were **regenerated (v2)** with the Cauchy constant `c₄ = 1447/50` in
+  place of the paper's original Schoenberg `70/3`, because the `m = 4` centered
+  elementary-symmetric bound was formalized in its Cauchy form; the paper's `c₄` entry
+  was revised accordingly and the original certificates and paper bytes are in git
+  history (see `VERIFICATION.md` §17);
+- the v2 emitter and an independent parse-and-reverify cross-check are shipped
+  (`scripts/`), and the cross-check was run in this repository: **531/531 PASS**
+  (`certlogs11v2/crosscheck-repo.log`);
 - four negative controls (`controls/`), three rejected as required, one honestly recorded
   as badly designed.
 
-**Formalized but conditional:** `Sendov911Capstone.lean` proves
-`CertificateReduction n boxes → CoveringPositive boxes → Sendov n` — the analytic half
-(Grace–Walsh–Szegő in degrees 10/11, the σ/variance/centered-esp lemmas, certificate
-assembly, and box **covering**) is bundled as the unproved hypothesis
-`CertificateReduction`. `IntegrationCheck.lean` wires two real boxes into the capstone
-and is kernel-checked (`certlogs1011/IntegrationCheck.lean.log`).
-
-**Therefore: this directory does NOT claim Sendov's conjecture in degrees 10 or 11.** What
-it claims is exactly: the paper's certificate positivity assertions are kernel-verified
-in full for both degrees, and `Sendov 10` / `Sendov 11` follow from
-the explicitly named analytic hypothesis. See `VERIFICATION.md` Part II for the exact
-ledger, including what the paper's own Python verifiers (`certificates/`) cover.
+**The headline statements** (`Challenge.lean`, proved in `Solution1011.lean` by direct term
+assignment from `Sendov1011/SendovNStatement.lean`; `Solution.lean` holds the degree-nine
+pair and its cheap degree-nine-only import closure): `sendov_degree_ten`,
+`sendov_degree_eleven` and their `_general` non-monic forms, phrased purely in Mathlib
+vocabulary exactly like the degree-9 pair — all with `#print axioms` exactly
+`[propext, Classical.choice, Quot.sound]`.
 
 ## Verification
 
 See `VERIFICATION.md` for the ledger: every command, its real output, the papers' sha256
-pins, the negative controls, and what is *not* claimed. Part I's Comparator runs on CI
-(`.github/workflows/sendov9-11-comparator.yml`), Linux-only, in a landrun/Landlock sandbox.
-Part II's box certificates are **not** built in CI (~8.6 CPU-hours of `decide`); their
-evidence is the shipped per-box logs, reproducible with `./check-boxes.sh`.
+pins, the negative controls, and what is *not* claimed.
+
+**Comparator has certified the two degree-nine statements only.** The four degree-10/11
+configs (`comparator/sendov10.json`, `comparator/sendov11.json`) are written and shipped
+but **have not been run** — they live in `.github/workflows/sendov1011-full.yml`, which is
+`workflow_dispatch` only, because Comparator's threat model forbids pre-building the
+solution and a ~13.5-CPU-hour closure from scratch does not fit GitHub's 360-minute job
+ceiling. The per-push comparator job stays scoped to degree nine so it can stay green on
+every push.
+
+Likewise the per-push build job compiles `Sendov1011Core` — the 21 box-independent
+modules — not the full corpus. All 582 certificates are re-checked by
+`.github/workflows/sendov1011-boxes.yml` (sharded twelve ways, `workflow_dispatch`), and
+are independently evidenced by the shipped per-box logs, reproducible one file at a time
+with `./check-boxes.sh` (degree 10) and `./check-boxes11v2.sh` (degree 11).

@@ -21,7 +21,10 @@ case "$(uname -s)" in
 esac
 export LEAN_PATH="$LP${SEP}.lake/build/lib/lean"
 
-for d in boxes10 boxes11; do
+# NOTE: the degree-11 v1 boxes (boxes11/, c4 = 70/3) were superseded by boxes11v2/
+# (c4 = 1447/50) and removed from the working tree; use ./check-boxes11v2.sh for
+# degree 11. This script now covers degree 10 only.
+for d in boxes10; do
   [ "$which" = all ] || [ "$d" = "boxes$which" ] || continue
   for f in "$d"/Sendov911Box*_*.lean; do
     base=$(basename "$f")
@@ -34,6 +37,5 @@ for d in boxes10 boxes11; do
 done | xargs -P 3 -I{} sh -c 'f={}; b=$(basename "$f"); lake env lean "$f" > "certlogs1011/$b.log" 2>&1; echo "$? $b" >> certlogs1011/RESULTS-resume.txt; echo "done $b"'
 
 c10=$(grep -l 'depends on axioms: \[propext, Classical.choice, Quot.sound\]' certlogs1011/Sendov911Box10_*.log 2>/dev/null | wc -l)
-c11=$(grep -l 'depends on axioms: \[propext, Classical.choice, Quot.sound\]' certlogs1011/Sendov911Box11_*.log 2>/dev/null | wc -l)
 echo "degree 10 interior verified clean: $c10 / 50"
-echo "degree 11 interior verified clean: $c11 / 530"
+echo "(degree 11 v2: run ./check-boxes11v2.sh)"

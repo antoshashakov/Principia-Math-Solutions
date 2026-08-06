@@ -1,0 +1,191 @@
+name: sendov1011-boxes
+
+# SHARDED KERNEL RE-CHECK OF ALL 582 DEGREE-10/11 BOX CERTIFICATES.
+#
+# WHY THIS IS A SEPARATE, DISPATCH-ONLY WORKFLOW
+# ----------------------------------------------
+# `sendov9-11/boxes10/` (51 files) and `sendov9-11/boxes11v2/` (531 files) hold 582
+# generated certificates, each a kernel `decide` over big-integer Bernstein tables.
+# Measured locally: ~53 s/box for degree 10 and ~60 s/box for degree 11 single-process,
+# i.e. ~10 CPU-hours for the corpus. (A separate audit measured 43 s/box WALL at 4-way
+# concurrency under heavy contention and extrapolated ~26 CPU-h; that is an upper bound —
+# ~10 CPU-h is the realistic figure.) A public-repo `ubuntu-latest` runner has 4 vCPU and
+# GitHub enforces a HARD 360-minute job ceiling, so one job cannot carry the corpus with
+# anything else. Twelve shards each carry ~48 boxes ≈ 49 minutes of kernel work, which
+# fits comfortably.
+#
+# WHAT EACH SHARD ASSERTS
+# -----------------------
+# For every box in its slice: `lake env lean <file>` exits 0 and its ENTIRE output is the
+# single line
+#     '<Module>.box_positive' depends on axioms: [propext, Classical.choice, Quot.sound]
+# Every one of the 582 files carries exactly one `#print axioms <Module>.box_positive` and
+# nothing else that prints, so a stray line means a warning, an error, or a changed
+# footprint — all of which fail the shard. This is the same check the local scripts
+# `check-boxes.sh` / `check-boxes11v2.sh` perform, and the same one whose results are
+# committed in `certlogs1011/` and `certlogs11v2/`.
+#
+# Dispatch only: it is expensive, and nothing about it changes unless a box file changes.
+
+on:
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: sendov9-11
+
+jobs:
+  boxes:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    # Slice size is 49 for shards 0-5 and 48 for shards 6-11 (582 = 12*48 + 6).
+    # Budget: 60 s/box * 49 boxes * 1.5 safety = 74 minutes of kernel work, SEQUENTIALLY.
+    # Plus ~15 minutes for checkout, elan, the Mathlib cache fetch and building the
+    # `Sendov911Bern` olean. 110 minutes, well under the 350-minute cap. The kernel loop
+    # actually runs 2-way, so the sequential figure is pure headroom.
+    timeout-minutes: 110
+    env:
+      NSHARDS: 12
+      SHARD: ${{ matrix.shard }}
+      # Do not raise above 4: parallel `lake env lean` beyond that has produced spurious
+      # infrastructure failures (bad_alloc, olean read races) on the certification machine.
+      # 2 is chosen for a 4-vCPU runner with 16 GB of RAM.
+      JOBS: 2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        working-directory: .
+        run: |
+          echo "before:"; df -h / | tail -1
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/local/.ghcup /opt/hostedtoolcache/CodeQL \
+                      /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          echo "after:"; df -h / | tail -1
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Cache Mathlib oleans
+        run: lake exe cache get
+
+      # Round-robin slicing over one deterministic, C-collated list of every certificate.
+      # Shard k takes the files with (line number) mod NSHARDS == k. Every line has exactly
+      # one residue, so the twelve slices are a partition: no gaps, no overlap, and the
+      # sizes differ by at most one. Round robin also interleaves the cheaper degree-10
+      # boxes with the degree-11 ones, so the shards are balanced in time as well as count.
+      - name: Build the certificate slice list
+        run: |
+          set -o pipefail
+          find boxes10 boxes11v2 -name '*.lean' | LC_ALL=C sort > all-boxes.txt
+          total=$(wc -l < all-boxes.txt)
+          echo "certificates found: $total"
+          if [ "$total" -ne 582 ]; then
+            echo "::error::expected 582 certificates (51 in boxes10/ + 531 in boxes11v2/), found $total"
+            exit 1
+          fi
+          awk -v s="$SHARD" -v n="$NSHARDS" 'NR % n == s' all-boxes.txt > slice.txt
+          echo "shard $SHARD/$NSHARDS takes $(wc -l < slice.txt) certificates:"
+          cat slice.txt
+
+      # The boxes import `Sendov911Bern` by module name and are checked ONE FILE AT A TIME,
+      # exactly as they were certified — not through `lake build`, so that each file's
+      # kernel result and axiom footprint is attributable on its own. Build the engine's
+      # olean first and put the package build tree on LEAN_PATH (mirrors check-boxes.sh).
+      - name: Build the Bernstein engine olean
+        run: lake build Sendov911Bern
+
+      - name: Kernel-check this shard's certificates
+        run: |
+          LP="$(lake env printenv LEAN_PATH)"
+          export LEAN_PATH="$LP:.lake/build/lib/lean"
+          mkdir -p shardlogs
+          : > shardlogs/RESULTS.txt
+
+          check_one() {
+            f="$1"
+            b="$(basename "$f" .lean)"
+            log="shardlogs/$b.log"
+            start=$(date +%s)
+            if lake env lean "$f" > "$log" 2>&1; then rc=0; else rc=$?; fi
+            printf '%s %s %ss\n' "$rc" "$b" "$(( $(date +%s) - start ))" >> shardlogs/RESULTS.txt
+          }
+          export -f check_one
+          export LEAN_PATH
+
+          xargs -P "$JOBS" -I{} bash -c 'check_one "$@"' _ {} < slice.txt
+
+          echo "=== per-file exit code / elapsed ==="
+          sort -k2 shardlogs/RESULTS.txt
+
+      # Assert, per file, the exact footprint. A missing log, a non-zero exit, extra output
+      # or a different axiom list all fail — and the shard reports every offender, not just
+      # the first, so one run tells the whole story.
+      - name: Every certificate in this shard is clean
+        run: |
+          expected='depends on axioms: [propext, Classical.choice, Quot.sound]'
+          bad=0
+          n=0
+          while IFS= read -r f; do
+            n=$((n + 1))
+            b="$(basename "$f" .lean)"
+            log="shardlogs/$b.log"
+            rc=$(awk -v b="$b" '$2 == b {print $1}' shardlogs/RESULTS.txt | head -1)
+            if [ "$rc" != "0" ]; then
+              echo "::error::$b: lean exited with '${rc:-<no result recorded>}'"
+              sed 's/^/    /' "$log" 2>/dev/null | head -20
+              bad=$((bad + 1)); continue
+            fi
+            if [ ! -s "$log" ]; then
+              echo "::error::$b: empty or missing log"; bad=$((bad + 1)); continue
+            fi
+            lines=$(wc -l < "$log")
+            if [ "$lines" -ne 1 ]; then
+              echo "::error::$b: expected exactly one output line (the axiom footprint), got $lines"
+              sed 's/^/    /' "$log" | head -20
+              bad=$((bad + 1)); continue
+            fi
+            if [ "$(cat "$log")" != "'$b.box_positive' $expected" ]; then
+              echo "::error::$b: wrong footprint line"
+              echo "    expected: '$b.box_positive' $expected"
+              echo "    actual:   $(cat "$log")"
+              bad=$((bad + 1)); continue
+            fi
+          done < slice.txt
+          echo "shard $SHARD: $n certificate(s) checked, $bad bad"
+          if [ "$bad" -ne 0 ]; then
+            echo "::error::shard $SHARD: $bad certificate(s) failed"; exit 1
+          fi
+          if [ "$n" -eq 0 ]; then
+            echo "::error::shard $SHARD checked nothing — the slice list is empty"; exit 1
+          fi
+          echo "shard $SHARD: all $n certificates kernel-checked with footprint [propext, Classical.choice, Quot.sound]"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sendov1011-boxes-shard-${{ matrix.shard }}
+          path: |
+            sendov9-11/slice.txt
+            sendov9-11/shardlogs/
+
+  # Fails unless all twelve shards passed, so a single required status covers the corpus.
+  boxes-complete:
+    needs: boxes
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: All shards passed
+        working-directory: .
+        run: |
+          echo "shard matrix result: ${{ needs.boxes.result }}"
+          test "${{ needs.boxes.result }}" = "success"
+          echo "all 582 degree-10/11 box certificates re-checked across 12 shards"

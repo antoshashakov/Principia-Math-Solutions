@@ -3,15 +3,28 @@
 The honest ledger. Every claim below is either a command that was run with its actual
 output recorded, or an explicit note that it was **not** run and where it *is* run.
 
-This directory contains two developments in **very different states**, and this ledger
-keeps them strictly apart:
+This directory contains two developments, and this ledger keeps them strictly apart:
 
 - **Part I — degree nine: PROVED.** Unconditional, axiom-free, Comparator-certified on CI.
-  This is the only degree for which Sendov's conjecture is claimed.
-- **Part II — degrees ten and eleven: PARTIAL.** The finite certificate half is
-  machine-checked completely for both degrees; the analytic half is an
-  explicit **hypothesis** (`CertificateReduction`), not a theorem. **Sendov's conjecture in
-  degrees ten and eleven is NOT claimed.**
+- **Part II — degrees ten and eleven: PROVED** (2026-08-06). The analytic reduction that
+  was previously the explicit hypothesis `CertificateReduction` is now a **theorem** for
+  both degrees (`Sendov1011/`), the finite certificate half is kernel-checked in full
+  (degree 10: 51/51 boxes; degree 11: 531/531 **regenerated v2** boxes), and the two are
+  wired through the unchanged capstone into
+  `SendovN.Final10.sendov10 : Sendov911Capstone.Sendov 10` and
+  `SendovN.Final11.sendov11 : Sendov911Capstone.Sendov 11`, each with axiom footprint
+  exactly `[propext, Classical.choice, Quot.sound]`. Part II of this ledger was rewritten
+  accordingly; the earlier PARTIAL ledger is in git history.
+
+**The two parts do not yet have equal evidentiary standing, and this ledger does not
+pretend otherwise.** Part I is Comparator-certified on CI and its whole closure is rebuilt
+by the per-push job. For Part II, as of this commit: Comparator has **never been run** on
+the four degree-10/11 statements (§20), the two workflows that rebuild the 582-certificate
+corpus are **`workflow_dispatch` only and have not been dispatched** (§18), and the local
+full rebuild of this packaged copy **was started and stopped short** (§18). The proof
+itself was completed and audited in the development tree — that is what "PROVED" records
+— and the files here are byte-identical copies (§13). What is outstanding is independent
+re-verification *of this repository's copy*, not the mathematics.
 
 ---
 
@@ -49,15 +62,19 @@ hypotheses, and no `sorry` in its import closure.
 fabf563a7c95a166b8d7b6efca11c8b4dc9d911f` (tag `v4.31.0`), pinned in `lake-manifest.json`.
 
 **Where the authoritative build runs: CI.** `.github/workflows/sendov9-11-build.yml` builds
-the `Sendov9` library, then `Solution`, then `Challenge`, and asserts:
+the `Sendov9` library, then `Sendov1011` (Part II), then `Solution`, then `Challenge`, and
+asserts:
 
-1. no `declaration uses 'sorry'` anywhere in the `Sendov9` or `Solution` build logs;
+1. no `declaration uses 'sorry'` anywhere in the `Sendov9`, `Sendov1011` or `Solution`
+   build logs;
 2. no axiom outside `{propext, Classical.choice, Quot.sound}` appears in *any* footprint
-   across both logs (this also catches `sorryAx`);
-3. `Solution`'s two results each carry the full clean triple;
+   across those logs (this also catches `sorryAx`);
+3. `Solution`'s six results each carry the full clean triple;
 4. no `native_decide` / `implemented_by` / `unsafe` / `axiom` declaration in
-   `Sendov9/*.lean`, `Solution.lean`, `Challenge.lean`;
-5. `Challenge.lean` has exactly two `sorry`s (the audit fixture);
+   `Sendov9/*.lean`, `Sendov1011/*.lean`, `boxes10/*.lean`, `boxes11v2/*.lean`,
+   `Solution.lean`, `Challenge.lean`;
+5. `Challenge.lean` has exactly six `sorry`s (the audit fixture — two per degree
+   since the Part II completion; the checks 1–4 sweep the 10/11 logs too);
 6. `Sendov9.NonVacuous` builds.
 
 **Locally (Windows), partially run.** The standalone project was compiled from a cold
@@ -118,9 +135,10 @@ for the patterns `sorry`, `sorryAx`, `native_decide`, `^axiom `, `@[implemented_
 graph — including Mathlib's — surfaces as `sorryAx` in `#print axioms`. The footprint in §2
 is therefore a complete proof that no `sorry` is reachable; the scan above is corroboration.
 
-`Challenge.lean` contains exactly **two deliberate `sorry`s**. They are the Comparator audit
-fixture — the statements without proofs — and live in a separate library that nothing else
-imports. They are the only `sorry`s in this directory.
+`Challenge.lean` contains exactly **six deliberate `sorry`s** (two at the time of the
+Part I record above; the degree-10/11 statements added four more). They are the Comparator
+audit fixture — the statements without proofs — and live in a separate library that
+nothing else imports. They are the only `sorry`s in this directory.
 
 ## §5 Statement fidelity
 
@@ -207,7 +225,9 @@ denies out-of-policy writes, and then runs two configs — both with permitted a
 - `comparator/sendov9_general.json` — `sendov_degree_nine_general`, axiom-free.
 - `comparator/sendov9_monic.json` — `sendov_degree_nine`, axiom-free.
 
-The workflow requires the string `Your solution is okay!` twice. That job deliberately does
+At the time of the recorded run below the workflow required the string
+`Your solution is okay!` twice; since the degrees-10/11 completion it runs **four**
+configs (§20) and requires it four times. That job deliberately does
 **not** pre-build `Challenge` or `Solution`: Comparator's threat model assumes the solution
 has not been compiled beforehand. **Its result is the authoritative check and supersedes
 §2/§4/§5 if they ever disagree.**
@@ -273,8 +293,8 @@ provenance the hash is there to provide.
 cd sendov9-11
 lake exe cache get
 lake build            # the Sendov9 library
-lake build Solution   # prints the two #print axioms lines
-lake build Challenge  # two intentional sorries
+lake build Solution   # the two degree-nine #print axioms lines; degree-nine closure only
+lake build Challenge  # six intentional sorries (two degree-nine, four degree-10/11)
 
 # Negative control (must FAIL to elaborate, three times):
 lake env lean _negcontrol.lean
@@ -286,155 +306,376 @@ lake env <comparator> comparator/sendov9_monic.json
 
 ---
 
-# Part II — degrees ten and eleven (PARTIAL: certificates checked, reduction ASSUMED)
+# Part II — degrees ten and eleven (PROVED, unconditional)
 
-Extends the Lean work to the finite certificate halves of the degrees-10/11 proof of
-`paper/sendov9-11.tex`. Adapted from the development ledger of 2026-08-05, with every
-count recomputed from the logs actually shipped in `certlogs1011/` at commit time.
+Rewritten 2026-08-06, when the analytic reduction was proved in Lean and the two final
+theorems landed. The earlier Part II (finite half checked, reduction ASSUMED) is in git
+history and its claims remain accurate **about that earlier state**; every count below is
+recomputed from the files actually shipped at this commit.
 
-## §11 What is and is not claimed
+The results claimed are:
 
-Two things are added, and neither of the paper's analytic gaps is closed:
+```lean
+theorem SendovN.Final10.sendov10 : Sendov911Capstone.Sendov 10
+theorem SendovN.Final11.sendov11 : Sendov911Capstone.Sendov 11
+```
 
-1. **The finite half is machine-checked** (degree 10 completely, degree 11 partially).
-   Every verified certificate below is discharged by Lean's kernel on exact integer
-   arithmetic — no floating point, no `native_decide`, no `sorry`, no declared axiom.
-2. **A conditional capstone exists.** `Sendov911Capstone.lean` names the analytic inputs
-   in one predicate, `CertificateReduction`, and proves
-   `CertificateReduction n boxes → CoveringPositive boxes → Sendov n`.
+together with the Mathlib-vocabulary statement layer
+(`Sendov1011/SendovNStatement.lean`, surfaced in `Challenge.lean`/`Solution.lean` as
+`Sendov1011.Statement.sendov_degree_ten{,_general}` and
+`sendov_degree_eleven{,_general}`), each with `#print axioms` exactly
+`[propext, Classical.choice, Quot.sound]`, no carried hypotheses, and no `sorry` in the
+import closure.
 
-**Not claimed: Sendov's conjecture in degree ten or eleven.** The analytic reduction is a
-hypothesis, not a theorem — see §16. Degree nine (Part I) is in a categorically different
-position: unconditional, with Grace–Walsh–Szegő *proved*.
+## §11 What changed relative to the earlier PARTIAL state
 
-## §12 The engine and what each box file proves
+1. **The analytic half is now proved.** `CertificateReduction 10 boxes10` and
+   `CertificateReduction 11 boxes11` — previously the named unproved hypothesis — are
+   theorems (`Sendov1011/SendovNReduction10.lean`, `SendovNReduction11.lean`). The
+   capstone (`Sendov911Capstone.lean`) is **unchanged**; the new development plugs into
+   `sendov_of_reduction` exactly as designed.
+2. **The degree-11 boxes were regenerated (v2).** The proof of the centered
+   elementary-symmetric bound at `m = 4` formalized cleanly only in its Cauchy form,
+   giving `c₄ = 1447/50` (≈ 28.94) instead of the paper's original Schoenberg value
+   `70/3` (≈ 23.33). `1447/50` is *weaker* (larger), so the certificate polynomials
+   changed and all 531 degree-11 certificates were **re-emitted and re-kernel-checked**
+   with the new constant: `boxes11v2/` (531 files) replaces `boxes11/`, whose superseded
+   70/3 set — 531/531 kernel-checked in its own right, logs in `certlogs1011/` — remains
+   in git history. Degree 10 is untouched by this change.
+3. **The paper was revised to match** (§17): the `c₄` entry of its degree-11 table
+   (eq. `c11`) now reads `1447/50` with attribution to the Cauchy bound, and both
+   ancillary degree-11 verifiers carry the same constant. The original paper bytes are in
+   git history. This is a *weakening* of one constant, honestly recorded — the
+   certificates verify against the weaker value, so nothing anywhere relies on `70/3`.
 
-`Sendov911Bern.lean` proves both directions of the Bernstein argument: the *bound*
-direction (a table dominating `c > 0` forces positivity) and the *representation*
-direction (`monomial_eq_bern`, the bivariate tensor-product change of basis), plus the
-**integer bridge** (`intTable` / `cert_of_intTable`): supplying the cofactors as data makes
-every kernel obligation an integer comparison, so `decide` runs on GMP-accelerated integer
-arithmetic. Build: `lake build Sendov911Bern` → success (its olean is a prerequisite of
-every box check).
+## §12 The development (`Sendov1011/`, 91 modules)
 
-For one box, `box_positive` states that the paper's certificate polynomial for that box,
-pulled back to the unit square, is strictly positive there — exactly the assertion the
-paper delegates to `certificates/degree10_verify.py` / `degree11_verify.py`. Per box the
-kernel discharges two `decide` obligations: `hQ` (cofactors correct) and `hint` (every
-integer Bernstein coefficient dominates `cnum > 0`).
+The analytic reduction is a port of the degree-9 chain, parametric in the degree where
+possible. Hand-written core (each module named `SendovN*`):
 
-## §13 Provenance of the data
+- `Data/Core/Bridge/Sigma/JBound` — the counterexample data structure `DataN n`, the
+  reciprocal normalization, localization, the integral identity, the σ spreading
+  machinery and the J lower bound (the J bound is proved for **all** `n ≥ 1`).
+- `Esp/Esymm/Esp10/Esp11` — the centered elementary-symmetric bounds: the easy cases
+  (`c₂`, `c₃`, `c_N`), the roots-of-unity Cauchy extraction (`esymm_extract`, `esymm_le`),
+  and the two per-degree c-tables. `Esp11` carries the decisive
+  `c4_deg11 : ‖e₄(D)‖ ≤ (1447/50)·η⁴` (via `EspCauchy.c4_deg11`).
+- `Sep10/Sep11` — the separation constants, reached algebraically (tenth roots of unity
+  through the golden-ratio branch `t² − t − 1`; eleventh roots through the quintic
+  Laurent identity `ω⁵(t⁵+t⁴−4t³−3t²+3t+1) = ∑ωᵏ`), no trigonometry.
+- `MidChain/Split11` — the reshaped Proposition 4.1 (`row_nonpos`) and its τ-split
+  degree-11 form (`split_row_nonpos`).
+- `Small10/Small11/CoverGrid/RotData/Statement` — small-range exclusion, the grid cover,
+  rotation to a distinguished zero, and the Mathlib-vocabulary statement layer.
+- The Grace–Walsh–Szegő chain is **reused from Part I** — `Sendov9/GWS.lean` is already
+  parametric in `n`, so degrees 10 and 11 consume the same proved theorem (still no
+  literature axiom anywhere).
 
-The tables are **re-derived from the paper's own construction** — imported verbatim from
-the committed verifiers in `certificates/` — then scaled to integers. Cross-check: for
-every degree-10 interior box and the degree-10 boundary box, the emitted integer table was
-checked against the verifier's rational Bernstein table entry-by-entry. For degree 11 the
-same identity was spot-checked on **5 boxes only** (`37_0`, `38_5`, `39_9`, `55_3`,
-`60_7`), all matching. **Degree 11 was cross-checked on a sample, not exhaustively.**
+Generated modules (emitters shipped in `scripts/`, see §13): `EInt` (closed-form
+integrals, both limits free), `Rows10/Rows11` (per-row σ/L/λ/Y certificates),
+`EmajEq` (folding the integral majorants into explicit polynomials), `BdryEq10/BdryEq11`
+(the two boundary identities), `Red10A..E`, `Red10Bdry`, `Red11_37..89`, `Red11Bdry`
+(per-row reductions wiring analytic facts to the box tables through exact `ring`
+identities), `Covering10/Covering11` (the `CoveringPositive` folds over all 51 resp. 531
+boxes), `Reduction10/Reduction11`, and the finals. Every generated file's box table was
+regenerated from the verifier arithmetic and matched against the shipped box file
+**integer-for-integer before emission**; each then elaborates through Lean's kernel like
+any other module — generation is a convenience, not a trust step.
 
-The emitter scripts themselves (`genlean10.py`, `genbound10.py`, `genlean11.py`,
-`crosscheck11.py`) were **not preserved** — they were working files on the certification
-machine and are not in this repository. The independent ground truth that *is* shipped is
-`certificates/` (the paper's own verifiers, sha256-pinned in `certificates/SHA256SUMS`),
-from which the tables can be re-derived.
+## §13 Provenance of the v2 data — emitters SHIPPED, cross-check RUN here
 
-## §14 Negative controls — RUN, recorded in `controls/`
+The earlier ledger honestly recorded that the degree-11 v1 emitters were not preserved
+and that v1 was cross-checked on a 5-box sample only. **Both gaps are closed for v2:**
 
-`decide` succeeding is only meaningful if it can fail. Four perturbations of the degree-10
-box `a ∈ [2/5, 41/100]`, shipped with their actual logs:
+- The emitter that produced every `boxes11v2/` file is shipped
+  (`scripts/emit_boxes11v2.py`, with its per-box τ/margin table
+  `scripts/boxes11v2-tau.csv`); its arithmetic is line-for-line
+  `certificates/degree11_verify.py` with the single constant change, and per box it
+  asserts the exact margin against the recorded value before writing.
+- An independent parser-based cross-check (`scripts/crosscheck_boxes11v2.py`) — it reads
+  the emitted Lean files back, trusts nothing from the emitter's construction, and
+  re-verifies `hQ`, `cnum > 0`, and every Bernstein numerator on Python
+  integers/fractions — was **run in this repository against the shipped files**
+  (2026-08-06, log `certlogs11v2/crosscheck-repo.log`):
 
-| control | perturbation | result |
-| --- | --- | --- |
-| NegA | demand a bound `10×` too large | `decide` proved the proposition **false** — rejected |
-| NegB | *increase* the constant coefficient by `10²⁰⁰` | **passed** — and correctly so: raising the constant term raises every Bernstein coefficient. A badly designed control, recorded because it was run. |
-| NegC | *decrease* the constant coefficient by `10²³⁰` | `hint` rejected |
-| NegD | swap two cofactors in `Qdata` | `hQ` **and** `hint` both rejected |
+```
+531/531 checked
+ALL 531 FILES PASS: hQ, cnum>0, every Bernstein numerator >= cnum (min tight), margins match the c4 experiment exactly.
+worst margin 4.344719e-03 in Sendov911Box11_79_8.lean
+```
+
+- The other emitters (`scripts/emit_eint1011.py`, `emit_rows1011.py`,
+  `emit_emajeq1011.py`, `emit_assembly1011.py`) are shipped as supplied from the
+  certification machine; their internal self-checks (identity re-verification at random
+  rational points by independent evaluation routes; byte-matching of every consumed box
+  table) are described in their headers. They expect the certification machine's flat
+  working-directory layout, which differs from this repository's (`boxes10/` files at the
+  root, etc.); they are provenance artifacts, not part of any build.
+- The paper's own verifiers in `certificates/` remain the independent ground truth,
+  re-run for v2 (§15).
+
+## §14 Negative controls
+
+The four `decide`-level controls of the earlier ledger (`controls/`, three rejected as
+required, one honestly recorded as badly designed) are unchanged and still apply: the
+engine (`Sendov911Bern`) and the box-file shape are identical in v2. In addition, the
+degree-9 statement-level negative control (§5b) covers the statement layer shared by all
+six headline theorems — the four new statements are character-identical in shape to the
+degree-9 pair up to the degree numeral (§16).
 
 ## §15 Results — recomputed from the shipped logs
 
 Every log counted below ends with
 `depends on axioms: [propext, Classical.choice, Quot.sound]`.
 
-| item | boxes | status |
+| item | count | evidence |
 | --- | --- | --- |
-| degree 10, interior (`a ∈ [0.40,0.90]`, width 1/100) | 50 | **PASSED — 50/50**, all axiom-clean (`certlogs1011/Sendov911Box10_*.log`) |
-| degree 10, boundary (bidegree 28×10) | 1 | **PASSED**, axiom-clean (`certlogs1011/boundary10.log`) |
-| degree 11, interior (`a ∈ [0.37,0.90]` × 10 η-slices) | 530 | **PASSED — 530/530**, all axiom-clean (batch completed 2026-08-06) |
-| degree 11, boundary (`Sendov911Box11Boundary.lean`, bidegree 30×10) | 1 | **PASSED**, axiom-clean (`certlogs1011/boundary11.log`, 2026-08-06) |
+| degree 10 interior + boundary boxes | **51/51** | `certlogs1011/` (unchanged from the earlier ledger) |
+| degree 11 **v2** interior + boundary boxes | **531/531** | `certlogs11v2/*.log`, one per box; `certlogs11v2/RESULTS11V2.txt` = 531 lines, all exit 0 |
+| v2 cross-check (independent parse-and-reverify) | **531/531 PASS** | `certlogs11v2/crosscheck-repo.log`, run in this repo |
+| primary Python verifier re-run at `c₄ = 1447/50` | 530 interior, **0 fails** + boundary | `certificates/degree11_verification_log.txt` (2026-08-06) |
+| independent SymPy reconstruction at `c₄ = 1447/50` | **530 interior PASSED + boundary PASSED**, minima matching the shipped margins exactly | `certificates/degree11_independent_check.log` (2026-08-06) |
 
-So **the finite halves are complete for both degrees: 51/51 (degree 10) and 531/531
-(degree 11)**, every log carrying the clean axiom triple.
+On the certification machine every box additionally went through a **second kernel
+pass**: the olean builds for the assembly layer re-elaborated each box file's `decide`s
+(promoted only on exit 0 plus a clean-axioms grep), on top of the one-at-a-time
+certification batch recorded in the logs above. `sorryAx` appears in no footprint
+anywhere.
 
-The non-zero exit codes in `certlogs1011/RESULTS11.txt` (one exit 1, two exit 127, one
-exit 139, three exit 4) were all **infrastructure failures under parallel load** — the two
-non-empty failing logs read `libc++abi: terminating due to uncaught exception of type
-std::bad_alloc`, and the exit-1 box's log shows a `lake` subprocess crash before Lean ran;
-that box passes when re-run alone. **No box has ever failed its `decide`.** To finish:
-`./check-boxes.sh 11` (~53 s per box; do not exceed `-P 4`).
-
-`IntegrationCheck.lean` wires two real boxes (`Box10_40` + `Box10Boundary`) into the
-capstone's `CoveringPositive` list and derives `sendov10_of_reduction`. **RUN, 2026-08-05**
-(single-file kernel check, `lake env lean`, after rebuilding `Sendov911Box10Boundary`'s
-olean — both exit 0). Actual output, shipped as `certlogs1011/IntegrationCheck.lean.log`:
+The final theorems, as re-elaborated fresh on the certification machine over the complete
+olean DAG (statement layer `Sendov1011/SendovNStatement.lean`, same command shape as
+`check-boxes11v2.sh`, i.e. `lake env lean` after `lake env printenv LEAN_PATH`):
 
 ```
-'IntegrationCheck.covering' depends on axioms: [propext, Classical.choice, Quot.sound]
-'IntegrationCheck.sendov10_of_reduction' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SendovN.Final10.sendov10' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SendovN.Final11.sendov11' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SendovN.Final10.sendov_degree_ten' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SendovN.Final10.sendov_degree_ten_general' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SendovN.Final11.sendov_degree_eleven' depends on axioms: [propext, Classical.choice, Quot.sound]
+'SendovN.Final11.sendov_degree_eleven_general' depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
 
-So the capstone wiring is kernel-checked; what `sendov10_of_reduction` proves remains
-**conditional** on `CertificateReduction 10` (§16).
+## §16 Statement fidelity (degrees 10/11)
 
-## §16 What is still assumed — the analytic half
-
-`CertificateReduction` bundles, as an unproved hypothesis, everything between "the box
-polynomials are positive" and "Sendov holds": Grace–Walsh–Szegő and the separation lemma
-for degrees 10/11, the reciprocal-square extremum, variance-under-differentiation, the
-centered elementary-symmetric bounds, the assembly of the certificate polynomial from the
-integral identity, and — emphatically — that the boxes **cover** `a ∈ [0,1]` and that a
-counterexample must land in one of them with a non-positive certificate value. None of
-this is proved here for degrees 10/11. (Part I proves the degree-9 instances of these
-steps; those proofs do not transfer automatically.)
-
-`Sendov9to11.lean` (the earlier framework file) states
-`PaperMainTheorem := Sendov 9 ∧ Sendov 10 ∧ Sendov 11` as a `def` and proves 19 supporting
-lemmas; it concludes nothing and carries no `sorry`.
-
-## §17 The degrees 9–11 paper
-
-Committed as supplied and pinned by sha256 (also pinned, together with the verifiers, in
-`certificates/SHA256SUMS`):
+Same check as §5: comparing the four new signatures in `Challenge.lean` and
+`Solution.lean` against the development's `Sendov1011/SendovNStatement.lean`
+(whitespace-normalized), run 2026-08-06:
 
 ```
-dab64cb4d6edb4ed59d7dc0aa11419342666af88a865f0d8486a930ef449675f  paper/sendov9-11.tex
-389874af8ba634cac09e614917946704732d727e20fd481442177d570a3e015b  paper/sendov9-11.pdf
+Challenge.lean  sendov_degree_ten              identical to SendovNStatement.lean: True
+Solution.lean   sendov_degree_ten              identical to SendovNStatement.lean: True
+Challenge.lean  sendov_degree_ten_general      identical to SendovNStatement.lean: True
+Solution.lean   sendov_degree_ten_general      identical to SendovNStatement.lean: True
+Challenge.lean  sendov_degree_eleven           identical to SendovNStatement.lean: True
+Solution.lean   sendov_degree_eleven           identical to SendovNStatement.lean: True
+Challenge.lean  sendov_degree_eleven_general   identical to SendovNStatement.lean: True
+Solution.lean   sendov_degree_eleven_general   identical to SendovNStatement.lean: True
 ```
 
-Note the paper *claims* degrees 9–11 with its §§5–8 analytic argument plus these
-certificates; the Lean in this directory certifies the certificates (partially, for
-degree 11) and **does not certify the analytic argument** for degrees 10/11.
+As in Part I the statements are pure Mathlib vocabulary (`Polynomial.roots`,
+`Polynomial.derivative`, `Polynomial.natDegree`, the norm on `ℂ`) — no project
+definitions, hence no `definition_names` in the comparator configs. The bridge from the
+capstone's `Sendov n` shape (`(derivative p).IsRoot ζ`) to roots-membership is
+`Polynomial.derivative_ne_zero` plus `Polynomial.mem_roots`; the non-monic forms scale by
+`leadingCoeff⁻¹` exactly as in degree 9.
 
-## §18 CI posture for Part II
+Provenance of the copied modules, verified with `cmp` against the certification
+machine's gated originals at commit time:
 
-The `sendov9-11-build` workflow builds the three Mathlib-only framework libraries
-(`Sendov911Bern`, `Sendov911Capstone`, `Sendov9to11`) and includes their footprints in the
-axiom sweep. **The 581 box files are deliberately NOT built in CI** — at ~53 s per box that
-is ~8.6 CPU-hours of `decide`, past the runner budget. Their evidence is the shipped
-per-box logs (§15), reproducible one file at a time with `./check-boxes.sh`. Comparator
-covers Part I only; there is no Comparator config for Part II because there is no
-unconditional theorem to certify.
+```
+dev modules compared: 91, differing: 0
+boxes11v2 compared: 531, differing: 0
+```
 
-## §19 Reproduction (Part II)
+## §17 The degrees 9–11 paper — REVISED (v2), and why
+
+The paper was **revised in this repository** on 2026-08-06: the degree-11 coefficient
+majorant `c₄` in eq. (c11) changed from `70/3` (Schoenberg) to `1447/50` (a rational
+upper bound for the Cauchy bound, `1447/50 ≥ √(10¹⁰/(4⁴·6⁶))`), with a parenthetical in
+the text recording the change. This is the constant the shipped certificates and the
+Lean development actually verify against.
+
+The same revision also **corrected the paper's quoted degree-11 interior certificate
+floor** from `> 1/2800` to `> 1/4000`, in the prose and in the degree-11 row of Table 1.
+`1/2800` is true only for the certificates as shipped in `boxes11v2/`, whose per-box `τ`
+is the *best-margin* choice recorded in `scripts/boxes11v2-tau.csv` (worst interior
+margin ≈ `4.3447·10⁻³`, at box `79_8`, `τ = 3/5`). The bundled verifier
+`certificates/degree11_verify.py` selects instead the **first** `τ` of a fixed preference
+order that already makes the box positive, and its own shipped log
+`certificates/degree11_verification_log.txt` therefore ends at a smaller global minimum,
+≈ `2.6419·10⁻⁴` (box `55_8`, `τ = 13/20`) — below `1/2800`. Both minima were recomputed
+here exactly in Python fractions (the verifier was re-run in full: `boxes 530 fails 0`,
+same exact rational as the shipped log), and both exceed `1/4000 = 2.5·10⁻⁴`, so the
+revised floor is the one both `τ` selections satisfy. A clarifying sentence in the paper
+now states which selection the recorded `τ` values are and that the bundled verifier's
+first-positive selection yields a smaller but still positive minimum. The boundary claim
+(`> 3/50`, actual ≈ `6.44·10⁻²`) is unchanged and remains true.
+
+No other mathematical constant changed. The PDF was rebuilt from the revised source with
+two `pdflatex` passes (both exit 0). The **original** tex/pdf (sha256
+`dab64cb4…`/`389874af…`) are in git history, at `HEAD` as of this revision; the
+intermediate `c₄`-only state (sha256 `0fd76832…`/`2b027535…`), which still carried the
+`1/2800` figure, was never committed and is superseded by the pins below.
+
+Current pins (also in `certificates/SHA256SUMS`, which was re-pinned and re-verified
+with `sha256sum -c` — all OK):
+
+```
+d2d91f7bb1d1a29b190cff29957fff3f6a0f95ee70a8fefb2ea6996f6da9725c  paper/sendov9-11.tex
+787f16ebb975bb06d1206876f8ff9c547185d3f083d18907505d677395f33a80  paper/sendov9-11.pdf
+```
+
+Note this weakens Part I's §8 provenance posture for THIS paper only (the degree-9 paper
+`sendov9.tex`/`.pdf` is untouched and keeps its original author-supplied bytes): the
+committed `sendov9-11.pdf` is now built on the verification machine from the committed
+tex, because pinning author bytes that contradict the shipped certificates would have
+been the greater dishonesty.
+
+## §18 The build and CI posture for Part II
+
+**Environment**: unchanged — Lean `leanprover/lean4:v4.31.0`, Mathlib
+`fabf563a7c95a166b8d7b6efca11c8b4dc9d911f` (tag `v4.31.0`), byte-identical pins to the
+certification machine's project.
+
+**Layout.** The development keeps the certification machine's flat module names
+(byte-identical files, §16); `lakefile.toml` registers them through three glob
+libraries — `Sendov1011` (the 91 development modules), `Sendov911Boxes10` (51),
+`Sendov911Boxes11` (531, `srcDir = boxes11v2`) — none of them default targets, so plain
+`lake build` still builds exactly the certified degree-nine library.
+
+**CI is split three ways, because the full closure does not fit a free runner.** The
+degrees-10/11 closure measures ~13.5 CPU-hours of `decide` and `ring`, against GitHub's
+hard 360-minute job ceiling on a 4-vCPU `ubuntu-latest`. So:
+
+- `.github/workflows/sendov9-11-build.yml` — **the fast per-push job**. Builds `Sendov9`,
+  `Solution`, the three Mathlib-only framework libs, `Challenge`, and `Sendov1011Core`
+  (the 21 box-independent modules of the degrees-10/11 development), then sweeps the logs
+  with the same no-sorry/no-foreign-axiom assertions as Part I. It does **not** build
+  `Sendov1011` or `Solution1011`: their import closure is all 582 certificates. It also
+  asserts that the four degree-10/11 statements are still present in `Solution1011` and
+  that `Sendov1011Core` is still a registered library, so a broken dispatch-only workflow
+  cannot hide until someone dispatches it. Timeout 180 minutes.
+- `.github/workflows/sendov1011-boxes.yml` — **`workflow_dispatch` only**. Re-checks all
+  582 certificates, matrix-sharded twelve ways. This is the load-bearing CI evidence for
+  the corpus.
+- `.github/workflows/sendov1011-full.yml` — **`workflow_dispatch` only**. The whole proof
+  end to end in one job: `Sendov1011`, `Solution1011`, the four axiom footprints, then
+  Comparator on `comparator/sendov10.json` and `comparator/sendov11.json`. Its own header
+  records the honest warning that it may exceed the runner ceiling (realistic range
+  230–345 minutes against the hard 360), and what the fallbacks are.
+
+So the earlier "box certificates are exempt from CI" caveat is **narrowed, not gone**:
+they are exempt from the *per-push* job and covered by a dispatch-only job. Neither
+dispatch-only workflow has been run yet — see §20.
+
+**Locally (Windows):** `lake build Sendov1011 Solution Challenge IntegrationCheck` from a
+cold `.lake/` in this repository, which validates the lakefile wiring, the flat-name glob
+resolution, and re-elaborates every module from source independently of the development
+tree the proof was completed in. **This run is INCOMPLETE as of this commit** — see below.
+
+<!-- LOCALBUILD -->
+
+**Local full-corpus rebuild of the packaged copy: STARTED, NOT FINISHED (2026-08-06).**
+Run from a cold `.lake/` in this repository, `LEAN_NUM_THREADS=4`, 08:43–11:38 local:
+
+| | |
+| --- | --- |
+| modules completed | 403 |
+| CPU-hours consumed | 14.72 (2.92 wall hours, 5.05× effective parallelism) |
+| `boxes10/` | **51/51** |
+| `SendovNRed10A..E` + `SendovNRed10Bdry` | **6/6** |
+| `SendovNCovering10`, `SendovNReduction10` | **built** |
+| `boxes11v2/` | **285/531** |
+| `SendovNRed11_*` | **26/53** |
+| `SendovNCovering11`, `SendovNReduction11`, `SendovNStatement`, `Solution1011` | **not reached** |
+| errors | 0 |
+| `sorryAx` occurrences | 0 |
+| axiom lines emitted | 2494, all `[propext, Classical.choice, Quot.sound]` |
+
+The run was **stopped deliberately, not by a failure**: four concurrent workers put the
+machine at 92% of its commit limit (47.5 / 51.4 GB) with 1.2 GB of physical RAM free, a
+single `SendovNRed11_*` elaboration having been measured holding 10.5 GB of private
+commit. That is the same memory-exhaustion condition that killed an earlier degree-11
+batch with `bad_alloc`. `build1011.sh` now pins `LEAN_NUM_THREADS=2` for the resume.
+Lake is resume-safe: the completed oleans persist and a rerun continues from them.
+
+**What this does and does not establish.** It establishes that the packaged copy's
+lakefile wiring and flat-name glob resolution are correct, and that everything it did
+reach elaborates clean from source. It does **not** yet establish an end-to-end rebuild of
+the degrees-10/11 proof *in this repository*. The proof itself was completed and audited
+in the development tree (§15, §16) — including a fresh re-elaboration of both final
+theorems against the complete olean DAG — and the files here are byte-identical copies
+(§13). Until either this local run or `sendov1011-full.yml` completes, the end-to-end
+rebuild of the packaged copy is **pending**, and this ledger says so rather than implying
+otherwise.
+
+## §19 Non-vacuity (degrees 10/11)
+
+Part I's §6 lesson (a vacuously-true carried hypothesis is invisible to
+`#print axioms`) is addressed structurally in Part II: the former carried hypothesis is
+now itself proved, and `IntegrationCheck.lean` continues to build against real boxes.
+The statements quantify over the same hypotheses as degree nine's, whose satisfiability
+`Sendov9/NonVacuous.lean` witnesses at `p = X⁹`; the degree-10/11 hypotheses are
+satisfiable by the same construction (`p = Xⁿ`). No additional per-degree non-vacuity
+module is shipped; this is the one Part I check without a Part II twin, recorded here
+rather than papered over.
+
+## §20 Comparator (degrees 10/11)
+
+**NOT YET RUN. Comparator has certified the two degree-nine statements only (§7); the
+four degree-10/11 statements have never been through it.** Nothing in Part II may be
+described as Comparator-certified.
+
+The configs are written and shipped — `comparator/sendov10.json` and
+`comparator/sendov11.json` (each naming the monic and general forms for its degree),
+plus `comparator/all1011.json` naming all four. All three name `Solution1011` as
+`solution_module` and the same shared `Challenge` as `challenge_module`; permitted axioms
+are exactly `propext`, `Quot.sound`, `Classical.choice`; no `definition_names`, for the
+same reason as Part I (§16 — the statements use only Mathlib vocabulary).
+
+`sendov9-11-comparator.yml`, the per-push comparator job, is deliberately scoped to
+**degree nine only**. Comparator's threat model assumes the solution has not been
+compiled beforehand, so that job does not pre-build `Challenge` or `Solution` — which
+means running it over `Solution1011` would make the first config pay for the entire
+~13.5-CPU-hour closure from scratch, well past GitHub's hard 360-minute ceiling. The
+degree-10/11 configs are therefore run by `sendov1011-full.yml` (`workflow_dispatch`),
+which has not been dispatched.
+
+Two honest caveats about that job when it is run. It **pre-builds** the solution, which
+is a real weakening of Comparator's threat model — it is the only way two configs over a
+13.5-CPU-hour closure fit in one job at all. Comparator still re-elaborates and exports
+both environments inside the landrun sandbox, so the comparison itself is unchanged; what
+is lost is the guarantee that no earlier step primed the build. And it may still exceed
+the ceiling, in which case the fallbacks are a paid larger runner or the sharded
+`sendov1011-boxes.yml`.
+
+**Why this matters here.** Comparator is the only check that what was proved is
+*definitionally the statement in `Challenge.lean`* rather than something adjacent to it.
+§16 argues fidelity by inspection and the term-assignment elaboration in `Solution1011`
+forces definitional equality at build time, which is strong — but it is not the
+adversarial, sandboxed, independently-exported check that Part I has and Part II does not.
+That gap is the single largest difference in evidentiary standing between the two parts.
+
+## §21 Reproduction (Part II)
 
 ```sh
 cd sendov9-11
 lake exe cache get
-lake build Sendov911Bern Sendov911Capstone Sendov9to11   # the framework (Mathlib-only)
-./check-boxes.sh 10        # re-check the 50 degree-10 interior boxes + resume logs
-./check-boxes.sh 11        # check/resume the degree-11 boxes (201 outstanding)
-lake build Sendov911Box10Boundary Sendov911Box11Boundary # the two boundary certificates
-lake build IntegrationCheck                              # the capstone wiring
+lake build Sendov1011        # the ENTIRE degrees-10/11 proof (~13.5 CPU-hours)
+lake build Solution          # the two DEGREE-NINE #print axioms lines
+lake build Solution1011      # the four DEGREE-10/11 lines; NOT pulled in by Sendov1011
+lake build IntegrationCheck  # the capstone wiring demo
 
-# Independent ground truth (the paper's own verifiers, pinned in certificates/SHA256SUMS):
-cd certificates && sha256sum -c SHA256SUMS && python3 degree10_verify.py
+# On a memory-constrained machine, cap concurrency first: Lake 5.0.0 has no --jobs
+# option, and LEAN_NUM_THREADS governs its job count as well as per-worker threading.
+# A single SendovNRed11_* elaboration was measured at 10.5 GB of private commit.
+#   export LEAN_NUM_THREADS=2      # or use ../build1011.sh, which is resume-safe
+
+# Re-check the box certificates one file at a time (resume-safe):
+./check-boxes.sh 10          # degree 10 (boxes10/, logs to certlogs1011/)
+./check-boxes11v2.sh         # degree 11 v2 (boxes11v2/, logs to certlogs11v2/)
+
+# Independent ground truth (exact rational arithmetic, no Lean involved):
+cd certificates && sha256sum -c SHA256SUMS && python3 degree11_verify.py
+cd .. && python3 scripts/crosscheck_boxes11v2.py boxes11v2/*.lean
 ```

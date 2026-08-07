@@ -19,6 +19,15 @@ rev = "v4.31.0"
 [[lean_lib]]
 name = "HRTLambda0"
 
+# The second route: the full Zak/Birkhoff/Jensen development, which PROVES what
+# `HRTLambda0.ZakReduction` assumes.  Kept as its own library so the first route's tiny
+# import closure is unaffected.
+[[lean_lib]]
+name = "HRT"
+srcDir = "HRT"
+roots = ["HRTBridge"]
+globs = ["*"]
+
 # Comparator (github.com/leanprover/comparator) requires the trusted statement file and
 # the claimed proof to be separate libraries.
 [[lean_lib]]

@@ -14,6 +14,71 @@ defaults:
     working-directory: hrt-lambda0
 
 jobs:
+  # The L2 route (paper Theorem 2 / Proposition 3(ii)): the `HRT` library vendored from the
+  # development repository. Deliberately a SEPARATE job from `build` so that the two routes
+  # are verified independently and a failure in one cannot be mistaken for the other. The
+  # theorem it certifies is CONDITIONAL on the Lean hypothesis `ILRStatement`, which is a
+  # `def ... : Prop` discharged by the caller, NOT an `axiom` — hence the axiom assertion
+  # below still applies to it unchanged.
+  build-hrt-l2-route:
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        working-directory: .
+        run: |
+          echo "before:"; df -h / | tail -1
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/local/.ghcup /opt/hostedtoolcache/CodeQL \
+                      /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          sudo docker image prune --all --force >/dev/null 2>&1 || true
+          echo "after:"; df -h / | tail -1
+
+      - name: Install elan
+        run: |
+          curl -sSfL https://github.com/leanprover/elan/releases/download/v3.1.1/elan-x86_64-unknown-linux-gnu.tar.gz \
+            | tar xz
+          ./elan-init -y --default-toolchain none
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+
+      - name: Cache Mathlib oleans
+        run: lake exe cache get
+
+      - name: Build the HRT (L2 route) library
+        run: |
+          set -o pipefail
+          lake build HRT 2>&1 | tee hrt.log
+
+      - name: No declaration in HRT uses sorry
+        run: |
+          if grep -n "declaration uses 'sorry'" hrt.log; then
+            echo "::error::a declaration in the HRT library uses sorry"
+            exit 1
+          fi
+          echo "no sorry-using declarations in HRT"
+
+      - name: No axiom outside {propext, Classical.choice, Quot.sound} in HRT
+        run: |
+          grep -h "depends on axioms" hrt.log > hrt_axioms.txt
+          test -s hrt_axioms.txt || { echo "::error::no axiom lines found"; exit 1; }
+          echo "footprint lines: $(wc -l < hrt_axioms.txt)"
+          bad=$(sed 's/.*depends on axioms: \[//; s/\]$//' hrt_axioms.txt \
+                  | tr ',' '\n' | sed 's/^ *//; s/ *$//' | sort -u \
+                  | grep -v -x -e propext -e Classical.choice -e Quot.sound || true)
+          if [ -n "$bad" ]; then
+            echo "::error::unexpected axiom(s): $bad"; exit 1
+          fi
+          echo "every HRT footprint is within {propext, Classical.choice, Quot.sound}"
+
+      - name: No declared axiom in the HRT sources
+        run: |
+          if grep -rn "^axiom " HRT/; then
+            echo "::error::HRT declares an axiom"; exit 1
+          fi
+          echo "HRT declares no axioms"
+
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 120

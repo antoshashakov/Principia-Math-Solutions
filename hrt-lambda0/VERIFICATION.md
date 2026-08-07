@@ -1,43 +1,67 @@
-# VERIFICATION — HRT at Λ₀, the endgame (CONDITIONAL)
+# VERIFICATION — HRT at Λ₀, two routes (BOTH CONDITIONAL)
 
 The honest ledger. Every claim below is either a command that was run with its actual
 output recorded, or an explicit note that it was **not** run and where it *is* run.
 
-The result claimed is:
+Two results are claimed, from two independent Lean libraries. **Route I** (`HRTLambda0`):
 
 ```lean
 theorem HRTLambda0.Statement.lambda0_independent_of_reduction {g : ℝ → ℂ}
     (h : HRTLambda0.ZakReduction g) : HRTLambda0.Lambda0Independent g
 ```
 
-with `#print axioms` showing exactly `[propext, Classical.choice, Quot.sound]`.
+**Route II** (`HRT`):
+
+```lean
+theorem HRTBridge.lambda0Translates_linearIndependent_of_ILR (g : ℝ → ℂ)
+    (hgm : Measurable g) (hg2 : MemLp g 2 volume) (hgne : ¬ (g =ᵐ[volume] 0))
+    (hILR : …) : LinearIndependent ℂ (HRTLambda0Mirror.lambda0Translates g)
+```
+
+both with `#print axioms` showing exactly `[propext, Classical.choice, Quot.sound]`.
 
 ## §1 Scope — read this first
 
-- **The theorem is CONDITIONAL.** Its hypothesis `ZakReduction g`
-  (`HRTLambda0/Statement.lean`) packages the paper's entire pre-endgame analysis — the
-  Zak-transform reduction, the fibre dichotomy, the degree identity at `j = 0`, and
-  Jensen's formula on the fibre — and **none of that is proved in this repository**.
-- **Therefore the HRT subconjecture at `Λ₀` (Heil 2006 Conjecture 9.2(a) /
-  Heil–Speegle Conjecture 2) is NOT claimed unconditionally here.** What is
-  machine-checked is the paper's *endgame*: that the reduction suffices. The paper
-  (`paper/hrt-lambda0.tex`) argues the reduction for every window whose Zak transform
-  has a continuous representative (in particular every nonzero Schwartz window); that
-  analysis is on paper, not in Lean.
-- **Mathematical attribution**, as recorded in the paper itself: the fibration of `𝕋²`,
-  the zero-propagation dichotomy and the winding identity are due to Oussa (cited in the
-  paper as arXiv:2508.04613v2); the paper's own contribution — what is formalized here —
-  is the Jensen-constancy + Vieta-rigidity contradiction, plus the continuity-free
-  strengthening `circle_pair_quadratic`.
-- **An honest caveat about conditional theorems:** `ZakReduction g` is an implication
-  (`¬ independent → ∃ …`), so it holds *vacuously* for any window whose translates are
-  already independent. The formalization's value is that it machine-checks the endgame
-  *reasoning* — the step every window class must pass through — not that the hypothesis
-  is hard to satisfy. A skeptic should read the definition of `ZakReduction` and decide
-  whether it faithfully transcribes the paper's §Reduction; that transcription is the
-  trust boundary of this folder.
-- **No `sorry`** outside the single deliberate placeholder in `Challenge.lean`; **no
-  declared axiom** anywhere in this directory.
+- **BOTH theorems are CONDITIONAL, on different hypotheses.**
+  - Route I's hypothesis `ZakReduction g` (`HRTLambda0/Statement.lean`) packages the
+    paper's entire pre-endgame analysis — the Zak reduction, the fibre dichotomy, the
+    root count at `j = 0`, and Jensen's formula on the fibre — and **none of that is
+    proved in that library**.
+  - Route II's hypothesis is the Iwanik–Lemańczyk–Rudolph spectral theorem, isolated as
+    `ILRStatement` in `HRT/HRTBridge.lean`. Route II **does** prove the analysis Route I
+    assumes; what it quotes instead is one published theorem whose conclusion (Lebesgue
+    maximal spectral type) is not currently expressible in Mathlib — there is no maximal
+    spectral type, no spectral measure for unitaries, and no Lebesgue spectrum.
+- **Therefore the HRT subconjecture at `Λ₀` (Heil 2006 Conjecture 9.2(a) / Heil–Speegle
+  Conjecture 2) is NOT claimed unconditionally in Lean by this directory**, by either
+  route. The paper's *Theorem 1* is unconditional on paper; it is **not formalized** (see
+  §7).
+- **`ILRStatement` is a `def … : Prop`, not an `axiom`.** It is discharged by the caller,
+  so no `sorryAx` and no additional axiom enters any footprint — the axiom assertions in
+  §2/§3 remain meaningful. It is pinned to the loop family that actually arises
+  (`quadLoop`) so that it cannot be accidentally *stronger* than the cited theorem; an
+  earlier draft was both too weak (missing periodicity, making consumers vacuous) and
+  later too strong (quantified over all unimodular loops with a continuous lift), and both
+  defects were corrected. One nontrivial fragment, the character case, is proved outright
+  (`ILR_character`).
+- **Mathematical attribution**, as recorded in the paper's §11: the fibration of `𝕋²`, the
+  zero-propagation dichotomy and the winding identity are due to Oussa (arXiv:2508.04613v2);
+  the paper's own contributions are the reading of the winding value as a *root count*,
+  the Jensen fixed-radius consequence, the two endgames, and the removal of the regularity
+  hypothesis via ILR. **For real-valued windows the `Λ₀` case belongs to Guan–Okoudjou**
+  (arXiv:2607.26878, Corollary 1) — see paper §9; no priority is claimed there.
+- **An honest caveat about Route I's conditional theorem:** `ZakReduction g` is an
+  implication (`¬ independent → ∃ …`), so it holds *vacuously* for any window whose
+  translates are already independent. Route I's value is that it machine-checks the endgame
+  *reasoning* — the step every window class must pass through — not that the hypothesis is
+  hard to satisfy. A skeptic should read the definition of `ZakReduction` and decide
+  whether it faithfully transcribes the paper's §2; that transcription is Route I's trust
+  boundary. **Route II does not have this weakness**: it proves the analysis, and its
+  trust boundary is the single statement `ILRStatement`, which a reader can compare
+  directly against \[ILR].
+- **No `sorry`** outside the single deliberate placeholder in `Challenge.lean` — neither
+  in `HRTLambda0` nor anywhere in the 25-module `HRT` library; **no declared axiom**
+  anywhere in this directory.
 
 ## §2 The build
 
@@ -112,6 +136,37 @@ the clean footprint for `HRTLambda0.Statement.lambda0_independent_of_reduction`;
 `Endgame` footprints are **identical** to the monolithic file's (§2), so the split
 introduced no drift.
 
+## §3b Route II — the `HRT` library, verification status
+
+**Where it was checked: the development environment, NOT this folder's layout.** The 25
+modules under `HRT/` were written and kernel-checked in the private development repository
+(`PrincipiaAI`, `LeanSandbox/problems/`) under the *same* toolchain and Mathlib pins as this
+folder (`leanprover/lean4:v4.31.0`, Mathlib tag `v4.31.0`), most recently 2026-08-07, with
+every `#print axioms` line reporting exactly `[propext, Classical.choice, Quot.sound]` and no
+`declaration uses 'sorry'` warning anywhere.
+
+**What has NOT been run:** `lake build HRT` **in this folder**. This directory has no `.lake`
+and Mathlib is not built here, so the vendored library has not yet been compiled under this
+`lakefile.toml` (`srcDir = "HRT"`, `roots = ["HRTBridge"]`). A layout/module-path defect would
+therefore not yet have surfaced. This ledger says so rather than implying otherwise.
+
+**Where it *is* run:** a new CI job `build-hrt-l2-route` in
+`.github/workflows/hrt-lambda0-build.yml` builds `HRT` on Linux over the cached Mathlib and
+asserts the same three properties as the Route I job — no `declaration uses 'sorry'`, no axiom
+outside the permitted triple in any footprint (this also catches `sorryAx`), and no `axiom`
+declaration in the sources. It is a **separate job** from `build`, so the two routes are
+verified independently and a failure in one cannot be mistaken for the other. **Not yet run at
+commit time** — it triggers on this push.
+
+Static facts about the vendored sources, checked locally on Windows 2026-08-07: 25 modules,
+19,275 lines, 1,065 declarations; `grep -c sorry` returns nonzero for exactly two files
+(`BirkhoffErgodic.lean`, `HRTZakL2.lean`) and in **both** cases the match is inside a prose
+comment, not a tactic — there is no `sorry` in any proof; `grep -rn "^axiom "` returns nothing.
+
+**The import closure is not prunable.** `HRTBridge` reaches all 25 modules, including the
+`Atiyah*` / `GroupVonNeumann` group-von-Neumann-algebra development, via
+`HRTRectangular → AtiyahHRT`. Those modules are load-bearing, not stray campaign files.
+
 ## §4 Statement fidelity
 
 The risk Lean's kernel cannot address is a sound proof of a subtly *different*
@@ -142,25 +197,52 @@ unconditional one.
 
 ## §6 The paper
 
-The `.tex` is committed as supplied; the `.pdf` was built from that exact `.tex` with
-`pdflatex` (two passes, exit 0 both) on the certification machine, 2026-08-05 — unlike
-`sendov9-11/paper/`, the PDF here is a build product, not author-supplied bytes, and
-this ledger says so. Pins:
+The `.pdf` was built from the committed `.tex` with `pdflatex` (two passes, exit 0 both,
+no undefined reference or citation warning) on the certification machine, 2026-08-07 —
+unlike `sendov9-11/paper/`, the PDF here is a build product, not author-supplied bytes,
+and this ledger says so.
+
+**The paper is a merge, 2026-08-07.** It supersedes two earlier manuscripts that proved
+the same central identity by different means: the continuous-Zak paper previously
+committed at this path, and the `L²` manuscript archived alongside it at
+`paper/hrt_lambda0_rigorous.tex`. The merged text carries **both** routes (paper §3,
+Proposition 7(i) and (ii)), both endgames (§5), the `j = ±1` saturation analysis, a new §9
+on Guan–Okoudjou, and a new §10 recording the formalization boundary. The archived
+`L²` source is retained for provenance; the earlier continuous-Zak source is recoverable
+from git history. Pins:
 
 ```
-1a886f0739941407d84a2bb78fb80f1ff5d3ca31acccf37bab2062cd0223244b  paper/hrt-lambda0.tex
-a66a23a3d929ce03907c184eabd0f95a300ae334448c37b52c13612ad9fc1513  paper/hrt-lambda0.pdf
+88d095b7367e971d43cf5655b6f8b5c2e958cfcb6ffe100b9cc798fb06fb2e0f  paper/hrt-lambda0.tex
+cb811ade7e6addf132b960ede5b7fba9cf71fa4e8e65a226fd7fd414bd228f56  paper/hrt-lambda0.pdf
+b833084083d3a02aa732e4d6030bd3b329320a99b998fc3de72e7d24960e2134  paper/hrt_lambda0_rigorous.tex
 ```
+
+**One citation was checked rather than inherited.** Both source manuscripts asserted that
+`Λ₀` is Heil–Speegle *Conjecture 2*. That attribution was verified against the published
+chapter on 2026-08-07 by extracting the text of
+`https://heil.math.gatech.edu/papers/hrtzero.pdf`: Conjecture 2 (HRT Subconjecture) reads
+*"If g ∈ S(ℝ)\{0}, then {g(x), g(x−1), e^{2πix}g(x), e^{2πi√2x}g(x−√2)} is linearly
+independent"*, and their equation (5) names `Λ₀` explicitly. The citation is correct, and
+— load-bearing for the paper's §9 — their hypothesis is `g ∈ S(ℝ)`, which permits
+**complex** Schwartz windows.
 
 ## §7 Deliberately excluded
 
-- The wider Lean campaign attacking `ZakReduction` itself (Zak transform as an `L²`
-  object, shift covariance, Birkhoff/cocycle machinery) lives in the private
-  development repository and is **not** part of this folder; nothing here depends on it.
-- A second, stronger manuscript claiming the result for **every** nonzero `g ∈ L²`
-  exists in draft. It has not passed the same audit as `paper/hrt-lambda0.tex` and is
-  **not** committed here; this folder's claims are calibrated to the continuous-Zak
-  paper only.
+- **Formerly excluded, now included (2026-08-07).** Two earlier entries here said that the
+  wider Lean campaign attacking the reduction, and the stronger `L²` manuscript, were *not*
+  part of this folder. Both statements are now **false and have been retracted**: the
+  campaign is vendored as the `HRT` library (§3b) and the `L²` manuscript is merged into
+  `paper/hrt-lambda0.tex` (§6). The calibration of this folder's claims changed accordingly
+  — see §1, which now describes two conditional routes rather than one.
+- **The paper's Theorem 1 (unconditional, continuous windows) is not formalized.** The
+  winding-number infrastructure it needs is present in `HRT` (`windOf`, `IsLoopLift`,
+  `windOf_add`, `exists_lift_char`, `exists_lift_quadratic`), but two ingredients are not:
+  invariance of the degree of a circle map under precomposition with a rotation, and the
+  continuous fibre dichotomy. Until those land, no library here certifies an unconditional
+  statement.
+- **Comparator covers Route I only.** `comparator/all.json` names
+  `HRTLambda0.Statement.lambda0_independent_of_reduction` and Route I's five definitions.
+  Route II is gated by CI (§3b) but not by Comparator.
 - The website publication step of the project's solution SOP has **not** been performed.
 
 ## §8 Reproduction

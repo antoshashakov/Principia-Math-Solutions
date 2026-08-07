@@ -1,712 +1,222 @@
-\documentclass[11pt]{amsart}
+\documentclass[10pt]{amsart}
 
-\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[letterpaper,left=.68in,right=.68in,top=.62in,bottom=.68in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools,microtype}
 \usepackage[hidelinks]{hyperref}
 
 \newtheorem{theorem}{Theorem}
-\newtheorem{proposition}[theorem]{Proposition}
-\newtheorem{lemma}[theorem]{Lemma}
-\newtheorem{corollary}[theorem]{Corollary}
-\theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
 
-\newcommand{\Q}{\mathbb Q}
 \newcommand{\R}{\mathbb R}
 \newcommand{\Z}{\mathbb Z}
 \newcommand{\T}{\mathbb T}
-\newcommand{\C}{\mathbb C}
 \newcommand{\e}{\mathrm e}
 \newcommand{\dd}{\,\mathrm d}
 \DeclareMathOperator{\wind}{wind}
-\DeclareMathOperator{\dg}{deg}
 
-\title[A resonant four-point case of the HRT conjecture]
-{Linear independence of four time--frequency translates\\
-at a resonant non-lattice configuration}
+\setlength{\abovedisplayskip}{5pt plus 2pt minus 2pt}
+\setlength{\belowdisplayskip}{5pt plus 2pt minus 2pt}
+\setlength{\abovedisplayshortskip}{3pt plus 2pt}
+\setlength{\belowdisplayshortskip}{3pt plus 2pt}
+\allowdisplaybreaks
+\raggedbottom
 
+\title{Linear independence for a resonant family of four Gabor shifts}
 \author{Principia Math}
 \date{}
 
 \begin{document}
 
 \begin{abstract}
-Let $Z$ denote the Zak transform, $a$ an irrational number and $j$ an integer. We study the
-four-point configuration $\Lambda_{a,j}=\{(0,0),(1,0),(0,1),(a,a+j)\}$, which is
-\emph{resonant}: the translation of $\T^2$ that governs it is not ergodic, and $\T^2$ fibres
-into invariant circles. We prove two statements. First, unconditionally: if $g\neq0$ has a
-continuous Zak transform --- in particular if $g$ is a nonzero Schwartz function --- then the
-translates indexed by $\Lambda_{a,j}$ are linearly independent for every irrational $a$ and
-every $j\notin\{-1,1\}$. Taking $a=\sqrt2$, $j=0$ settles the HRT subconjecture of Heil and
-Speegle \cite[Conjecture~2]{HS} exactly as stated. Second, conditionally on the theorem of
-Iwanik--Lema\'nczyk--Rudolph on absolutely continuous cocycles over irrational rotations, the
-same conclusion holds for \emph{every} nonzero $g\in L^2(\R)$, with no continuity or decay
-hypothesis.
-
-The two statements are proved by two different routes that share a reduction and a common
-central identity, the root count $N(\theta)=j+1$. The unconditional route obtains it from the
-invariance of the degree of a circle map under precomposition with a rotation; the $L^2$ route,
-where no degree is available, obtains it from a spectral obstruction. We also show that
-$j=\pm1$ is precisely where both routes saturate. The $L^2$ route is formally verified in
-Lean~4 against Mathlib; see Section~\ref{sec:lean}.
+Let $a\notin\mathbb Q$ and $j\in\mathbb Z\setminus\{-1,1\}$. We prove that for every
+$0\neq g\in L^2(\mathbb R)$ the functions $g,T_1g,M_1g,M_{a+j}T_ag$ are linearly independent.
+This includes the Heil--Speegle configuration
+$\{(0,0),(1,0),(0,1),(\sqrt2,\sqrt2)\}$, with no regularity assumption on the window.
+Oussa's Zak-transform fibration reduces a putative dependence to cocycles over irrational
+rotations. A theorem of Iwanik--Lema\'nczyk--Rudolph forces a quadratic root count on almost
+every nonzero fibre; Jensen's formula then fixes the modulus of one root, which can occur on
+only finitely many fibres.
 \end{abstract}
 
 \maketitle
 
-\section{Introduction}
-
-The HRT conjecture \cite{HRT} asserts that for every nonzero $f\in L^2(\R)$ and every finite
-set of distinct points $\{(a_k,b_k)\}\subset\R^2$ the functions $\e^{2\pi ib_kx}f(x-a_k)$ are
-linearly independent. It is known for at most three points \cite{HRT}, for subsets of a
-lattice \cite{Lin}, for configurations lying on two parallel lines \cite{Dem,DZ}, for almost
-every $(1,3)$ configuration \cite{Liu}, and for various restricted window classes
-\cite{BS,MP}. The smallest configuration resisting all of these is
+For $x,\omega\in\R$, write
 \[
-\Lambda_0=\{(0,0),(1,0),(0,1),(\sqrt2,\sqrt2)\},
+(T_xg)(t)=g(t-x),\qquad (M_\omega g)(t)=\e^{2\pi i\omega t}g(t).
 \]
-singled out by Heil and Speegle as the \emph{HRT subconjecture} \cite[Conjecture~2]{HS}: if
-$g\in\mathcal S(\R)\setminus\{0\}$, then $g(x)$, $g(x-1)$, $\e^{2\pi ix}g(x)$,
-$\e^{2\pi i\sqrt2x}g(x-\sqrt2)$ are linearly independent.
+The original HRT conjecture has recently been disproved by a twelve-point Schwartz example
+\cite{FPVV}, but its universal four-point form remains open. Guan and Okoudjou proved that
+form for real-valued windows \cite{GO}. We prove the following complementary result for an
+arbitrary complex window and a resonant non-lattice family.
 
-Throughout, for $x,\omega\in\R$ write $(T_xg)(t)=g(t-x)$ and
-$(M_\omega g)(t)=\e^{2\pi i\omega t}g(t)$, and put
-\[
-\Lambda_{a,j}=\{(0,0),(1,0),(0,1),(a,a+j)\},\qquad a\in\R\setminus\Q,\ j\in\Z ,
-\]
-so that $\Lambda_0=\Lambda_{\sqrt2,0}$. Our results are the following two theorems.
-
-\begin{theorem}[Continuous windows; unconditional]\label{thm:cont}
-Let $a$ be irrational and $j\in\Z\setminus\{-1,1\}$. Let $g\in L^2(\R)$ be nonzero and suppose
-the quasi-periodic extension \eqref{eq:quasi} of $Zg$ is continuous on all of $\R^2$. Then
+\begin{theorem}\label{thm:main}
+Let $a\in\R\setminus\mathbb Q$ and $j\in\Z\setminus\{-1,1\}$. For every nonzero
+$g\in L^2(\R)$, the four functions
 \[
 g,\qquad T_1g,\qquad M_1g,\qquad M_{a+j}T_ag
 \]
-are linearly independent. This applies in particular to every nonzero Schwartz $g$, and more
-generally to every nonzero $g$ in the Wiener amalgam $W(C,\ell^1)$. Taking $a=\sqrt2$ and
-$j=0$ proves \cite[Conjecture~2]{HS}.
+are linearly independent.
 \end{theorem}
 
-\begin{theorem}[Arbitrary $L^2$ windows; conditional on Theorem~\ref{thm:ILR}]\label{thm:L2}
-Let $a$ be irrational and $j\in\Z\setminus\{-1,1\}$. Assume Theorem~\ref{thm:ILR} below. Then
-for \emph{every} nonzero $g\in L^2(\R)$ the four functions $g$, $T_1g$, $M_1g$, $M_{a+j}T_ag$
-are linearly independent. No continuity or decay hypothesis on $g$ is used.
-\end{theorem}
+The case $(a,j)=(\sqrt2,0)$ is the four-point configuration singled out by Heil and Speegle
+\cite{HS}. The Zak reduction and invariant-circle decomposition below are part of Oussa's
+mixed-integer program \cite{Oussa}. The additional ingredients are the root-count
+interpretation, the use of Jensen's formula across fibres, and the fixed-radius endgame.
 
-Theorem~\ref{thm:ILR} is a published theorem of Iwanik, Lema\'nczyk and Rudolph, not a
-conjecture; we nevertheless flag Theorem~\ref{thm:L2} as conditional because that input is
-quoted rather than reproved here, and because it is the one step of the present development
-that is not formally verified (Section~\ref{sec:lean}).
-
-\begin{remark}[$\Lambda_0$ is not reachable from the solved cases]\label{rem:symp}
-Affine symplectic maps preserve HRT dependences, and the difference vectors of $\Lambda_0$
-have symplectic invariants $1,\sqrt2,-\sqrt2$; membership in a lattice would force these into
-a common $d\Z$, which is impossible since $1/\sqrt2$ is irrational. Parallelism and
-collinearity are affine invariants and fail for $\Lambda_0$. Hence Linnell's theorem, the
-two-parallel-line results and the collinear results cannot be applied after any change of
-coordinates.
-\end{remark}
-
-\begin{remark}[Scope]\label{rem:scope}
-Theorems \ref{thm:cont} and \ref{thm:L2} concern one resonant family of four-point
-configurations. They are not a proof of the HRT conjecture for arbitrary four-point sets: the
-hypothesis that the fourth point has the form $(a,a+j)$ with $j\in\Z$ is what produces the
-invariant-circle decomposition, and is essential to everything below.
-\end{remark}
-
-The external input for Theorem~\ref{thm:L2} is the following. If $R_at=t+a$ is an irrational
-rotation of $\T$ and $\xi:\T\to\T$, let $V_{\xi,a}f(t)=\xi(t)f(R_at)$ for $f\in L^2(\T)$.
-
-\begin{theorem}[Iwanik--Lema\'nczyk--Rudolph \cite{ILR}]\label{thm:ILR}
-Suppose $a$ is irrational and $\xi:\T\to\T$ is absolutely continuous, has nonzero topological
-degree, and has derivative of bounded variation. Then $V_{\xi,a}$ has Lebesgue maximal
-spectral type. In particular $V_{\xi,a}$ has no eigenvectors.
-\end{theorem}
-
-This is the form of the main spectral statement of \cite{ILR}; see also
-\cite[Theorem~4]{KL}. We apply it only to real-analytic circle-valued $\xi$, for which the
-regularity hypotheses are immediate.
-
-\subsection*{Organisation}
-Section~\ref{sec:reduction} performs the Zak reduction in $L^2$ and isolates the fibre
-dichotomy. Section~\ref{sec:degree} proves the central identity $N(\theta)=j+1$ twice, once
-under continuity and once under Theorem~\ref{thm:ILR}. Section~\ref{sec:jensen} extracts the
-mean condition from Jensen's formula. Section~\ref{sec:endgame} gives two endgames and proves
-the theorems. Section~\ref{sec:saturate} explains why $j=\pm1$ resists both routes.
-Section~\ref{sec:GO} compares with the recent work of Guan and Okoudjou.
-Section~\ref{sec:lean} describes the Lean~4 formalisation. Section~\ref{sec:attribution}
-sets out the division of credit with respect to Oussa's program.
-
-\section{The Zak reduction and the invariant fibres}\label{sec:reduction}
-
-Normalise the Zak transform by
+We use the following consequence of Iwanik--Lema\'nczyk--Rudolph \cite{ILR}: if $a$ is
+irrational and $\xi:\T\to\T$ is absolutely continuous, has nonzero degree, and has derivative
+of bounded variation, then
 \[
-Zg(t,\omega)=\sum_{n\in\Z}g(t-n)\e^{2\pi in\omega},
+U_{\xi,a}f(t)=\xi(t)f(t-a)
 \]
-interpreted on a dense subspace and extended by unitarity from $L^2(\R)$ onto
-$L^2([0,1)^2)$. Its quasi-periodic extension satisfies, almost everywhere,
-\begin{equation}\label{eq:quasi}
-Zg(t+1,\omega)=\e^{2\pi i\omega}Zg(t,\omega),\qquad Zg(t,\omega+1)=Zg(t,\omega),
-\end{equation}
-and
-\begin{equation}\label{eq:cov}
-Z(M_bT_xg)(t,\omega)=\e^{2\pi ibt}Zg(t-x,\omega-b).
-\end{equation}
+has no nonzero eigenfunction in $L^2(\T)$. We apply this only to real-analytic $\xi$.
 
-Assume towards a contradiction that
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Assume that
 \begin{equation}\label{eq:dep}
-Ag+BT_1g+CM_1g+DM_{a+j}T_ag=0
+Ag+BT_1g+CM_1g+DM_{a+j}T_ag=0.
 \end{equation}
-with coefficients not all zero. If one coefficient vanishes, \eqref{eq:dep} is a dependence
-among at most three time--frequency translates. For one or two points this is immediate; for
-three points it is excluded by the theorem of Heil--Ramanathan--Topiwala \cite{HRT}.
-(Equivalently, for three points in general position an element of $SL(2,\R)$ carries the
-difference vectors to $(1,0)$ and $(0,s)$ with $s\neq0$, placing the configuration inside the
-lattice $\Z\times s\Z$, where Linnell's theorem \cite{Lin} applies; metaplectic operators are
-unitary on $L^2$, preserve the Schwartz class, and carry time--frequency translates to
-time--frequency translates up to unimodular factors, so dependences correspond.) Hence
-\begin{equation}\label{eq:nonzero}
-ABCD\neq0 .
+By the three-point theorem \cite{HRT}, all four coefficients are nonzero. Let
+\[
+Zg(t,\omega)=\sum_{n\in\Z}g(t-n)\e^{2\pi in\omega}
+\]
+be the Zak transform, interpreted by unitary extension on $L^2$. Its standard covariance
+relations turn \eqref{eq:dep} into
+\begin{equation}\label{eq:zak}
+\bigl(A+B\e^{-2\pi i\omega}+C\e^{2\pi it}\bigr)G(t,\omega)
+=-D\e^{2\pi i(a+j)t}G(t-a,\omega-a),
 \end{equation}
-
-Put $G=Zg$. By \eqref{eq:quasi}, \eqref{eq:cov} and $j\in\Z$, \eqref{eq:dep} becomes
-\begin{equation}\label{eq:FE}
-p(t,\omega)G(t,\omega)=-D\e^{2\pi i(a+j)t}G(t-a,\omega-a),
-\qquad p(t,\omega)=A+B\e^{-2\pi i\omega}+C\e^{2\pi it}.
-\end{equation}
-Note that $j$ has disappeared from the shift and survives only in the prefactor.
-
-The translation $(t,\omega)\mapsto(t-a,\omega-a)$ of $\T^2$ is \emph{not} ergodic:
-$\e^{2\pi i(\omega-t)}$ is a nonconstant invariant character. Its ergodic components are the
-circles $\{\omega=t+\theta\}$, on which the translation acts as the rotation by $a$; the
-parameter $\theta=\omega-t\bmod1$ is well defined on $\T^2$ and each fibre is a single circle.
-For $\theta\in\T$ set
+where $G=Zg$. The translation on the right preserves $\theta=\omega-t\pmod1$. Put
 \[
 G_\theta(t)=G(t,t+\theta),\qquad
 P_\theta(t)=A+B\e^{-2\pi i(t+\theta)}+C\e^{2\pi it}.
 \]
-The coordinate change $(t,\theta)\mapsto(t,t+\theta)$ preserves Haar measure on $\T^2$.
-Consequently, for almost every $\theta$ the restriction of $G_\theta$ to $[0,1)$ lies in
-$L^2([0,1))$ and the following hold for almost every $t$:
+For almost every $\theta$,
 \begin{align}
-G_\theta(t+1)&=\e^{2\pi i(t+\theta)}G_\theta(t),\label{eq:fq}\\
-G_\theta(t-a)&=-D^{-1}\e^{-2\pi i(a+j)t}P_\theta(t)G_\theta(t).\label{eq:fFE}
+G_\theta(t+1)&=\e^{2\pi i(t+\theta)}G_\theta(t),\label{eq:quasi}\\
+G_\theta(t-a)&=-D^{-1}\e^{-2\pi i(a+j)t}P_\theta(t)G_\theta(t),\label{eq:fibre}
 \end{align}
-Moreover
+and
 \begin{equation}\label{eq:fubini}
-\|g\|_2^2=\int_\T\int_0^1|G_\theta(t)|^2\dd t\dd\theta .
+\|g\|_2^2=\int_\T\int_0^1|G_\theta(t)|^2\dd t\dd\theta.
 \end{equation}
-If $Zg$ is continuous, \eqref{eq:fq} and \eqref{eq:fFE} hold for \emph{every} $t$ and every
-$\theta$, and $G_\theta$ is continuous.
-
-Call a fibre \emph{live} if $G_\theta$ is not the zero element of $L^2([0,1))$. Since
-$g\neq0$, \eqref{eq:fubini} shows the set of live fibres has positive measure.
-
-\begin{lemma}[Fibre dichotomy]\label{lem:dich}
-For almost every $\theta$, either $G_\theta=0$ almost everywhere, or $G_\theta(t)\neq0$ for
-almost every $t$.
-
-If in addition $Zg$ is continuous, then for every $\theta$ either $G_\theta\equiv0$ or
-$G_\theta$ is nowhere zero; the set $C_1=\{\theta:G_\theta\text{ is nowhere zero}\}$ is open,
-and $C_1=\emptyset$ forces $g=0$. In particular, for nonzero $g$ with continuous Zak
-transform, $C_1$ contains an interval.
-\end{lemma}
-
-\begin{proof}
-Taking absolute values in \eqref{eq:fFE},
-\begin{equation}\label{eq:modcoc}
-|G_\theta(t-a)|=|D|^{-1}|P_\theta(t)|\,|G_\theta(t)| .
-\end{equation}
-By \eqref{eq:fq} the function $|G_\theta|$ is $1$-periodic. The trigonometric polynomial
-$P_\theta$ is not identically zero and so has finitely many zeros; hence $|P_\theta|>0$ almost
-everywhere, and \eqref{eq:modcoc} shows the zero set of $|G_\theta|$ is invariant modulo null
-sets under the irrational rotation $t\mapsto t-a$. Ergodicity gives measure zero or one.
-
-For the continuous statement, \eqref{eq:fFE} shows $G_\theta(t_0)=0$ forces
-$G_\theta(t_0-a)=0$, hence $G_\theta(t_0-na)=0$ for every $n\geq0$; no division occurs. As $a$
-is irrational this orbit is dense modulo $1$, and $|G_\theta|$ is $1$-periodic, so continuity
-gives $G_\theta\equiv0$. By \eqref{eq:quasi} the modulus $|G|$ is a well-defined continuous
-function on $\T^2$, so $\{|G|>0\}$ is open, and $C_1$ is its image under the bundle projection
-$\T^2\to\T$, $(t,\omega)\mapsto\omega-t$, an open map. If $C_1=\emptyset$ then $G\equiv0$ and
-$g=0$. A nonempty open subset of $\T$ contains an interval.
-\end{proof}
+Hence the set $\Theta$ of parameters for which $G_\theta\neq0$ in $L^2(\T)$ has positive
+measure. Since $|G_\theta|$ is periodic and $P_\theta$ has only finitely many zeros, the zero
+set of $G_\theta$ is invariant modulo null sets under the irrational rotation $t\mapsto t-a$.
+Thus, for almost every $\theta\in\Theta$, one has $G_\theta(t)\neq0$ almost everywhere.
 
 Write $z=\e^{2\pi it}$ and
 \begin{equation}\label{eq:Q}
-Q_\theta(z)=Cz^2+Az+B\e^{-2\pi i\theta},\qquad P_\theta(t)=z^{-1}Q_\theta(z).
+Q_\theta(z)=Cz^2+Az+B\e^{-2\pi i\theta},
+\qquad P_\theta(t)=z^{-1}Q_\theta(z).
 \end{equation}
-Only the phase of the constant term of $Q_\theta$ depends on $\theta$; this drives everything
-below. Let $N(\theta)$ denote the number of zeros of $Q_\theta$ in the open unit disc, counted
-with multiplicity, defined whenever $Q_\theta$ has no zero on the unit circle. Put
-\begin{equation}\label{eq:Ebd}
-E_\partial=\{\theta:Q_\theta\text{ has a zero on }|z|=1\}.
-\end{equation}
-
-\section{The central identity: the root count}\label{sec:degree}
-
-The following proposition is the heart of both routes. We give two independent proofs, with
-different hypotheses and different costs.
-
-\begin{proposition}[Root count]\label{prop:count}
-Let $\theta$ be a live fibre with $\theta\notin E_\partial$. Then
+Let $E$ be the set of $\theta$ for which $Q_\theta$ has a zero on $|z|=1$, and for
+$\theta\notin E$ let $N(\theta)$ be the number of its zeros in the open unit disc.
+For later use, observe that for every $\rho>0$ there are at most two $\theta$ for which
+$Q_\theta$ has a zero of modulus $\rho$. Indeed, such a zero lies on the two circles
 \[
-N(\theta)=j+1 .
+|z|=\rho,
+\qquad |A+Cz|=|B|/\rho,
 \]
-This holds (i) unconditionally, if $Zg$ is continuous; and (ii) for arbitrary $g\in L^2(\R)$,
-assuming Theorem~\ref{thm:ILR}.
-\end{proposition}
+whose centres are distinct because $A\neq0$; once $z$ is fixed, \eqref{eq:Q} determines
+$\theta$. In particular, $E$ is finite.
 
-Both proofs pass through the same normalisation. Define
-\begin{equation}\label{eq:m}
-m_\theta(t)=\e^{2\pi i\theta t}\e^{\pi it(t-1)} ,
+We now prove the essential identity
+\begin{equation}\label{eq:count}
+N(\theta)=j+1
 \end{equation}
-so that $|m_\theta|=1$ and $m_\theta(t+1)/m_\theta(t)=\e^{2\pi i(t+\theta)}$. Hence
-$V_\theta=G_\theta/m_\theta$ is $1$-periodic by \eqref{eq:fq}. From
-$t(t-1)-(t-a)(t-a-1)=2at-a^2-a$ we get
+for almost every $\theta\in\Theta\setminus E$. Set
 \[
-\frac{m_\theta(t)}{m_\theta(t-a)}=\e^{2\pi i\theta a}\e^{2\pi iat}\e^{-\pi i(a^2+a)} ,
+m_\theta(t)=\e^{2\pi i\theta t}\e^{\pi it(t-1)},
+\qquad V_\theta=G_\theta/m_\theta.
 \]
-and the non-periodic exponentials cancel, since
-$\e^{-2\pi i(a+j)t}\cdot\e^{2\pi iat}=\e^{-2\pi ijt}$. Therefore \eqref{eq:fFE} becomes
-\begin{equation}\label{eq:pcoc}
-V_\theta(t-a)=\Lambda_\theta\e^{-2\pi ijt}P_\theta(t)V_\theta(t),
-\qquad \Lambda_\theta=-D^{-1}\e^{2\pi i\theta a}\e^{-\pi i(a^2+a)} ,
+Then $V_\theta$ is periodic, and \eqref{eq:fibre} becomes
+\[
+V_\theta(t-a)=\Lambda_\theta\e^{-2\pi ijt}P_\theta(t)V_\theta(t)
+\]
+for some $\Lambda_\theta\neq0$. Since $V_\theta\neq0$ almost everywhere,
+$W_\theta=V_\theta/|V_\theta|$ satisfies
+\[
+W_\theta(t-a)=\xi_\theta(t)W_\theta(t),
+\qquad
+\xi_\theta(t)=\frac{\Lambda_\theta}{|\Lambda_\theta|}\e^{-2\pi ijt}
+\frac{P_\theta(t)}{|P_\theta(t)|}.
+\]
+The map $\xi_\theta:\T\to\T$ is real analytic, and the argument principle gives
+\begin{equation}\label{eq:degree}
+\deg\xi_\theta=-j+\wind(P_\theta,0)=-j-1+N(\theta).
 \end{equation}
-with $\Lambda_\theta\neq0$ constant. Since the fibre is live, $V_\theta\neq0$ almost
-everywhere; put $W_\theta=V_\theta/|V_\theta|$. Because $\theta\notin E_\partial$, $P_\theta$
-is zero free on $\T$, so \eqref{eq:pcoc} gives
-\begin{equation}\label{eq:phcoc}
-W_\theta(t-a)=\xi_\theta(t)W_\theta(t),\qquad
-\xi_\theta(t)=\frac{\Lambda_\theta}{|\Lambda_\theta|}\,\e^{-2\pi ijt}\,
-\frac{P_\theta(t)}{|P_\theta(t)|} .
-\end{equation}
-The map $\xi_\theta:\T\to\T$ is real analytic, and by the argument principle
-\begin{equation}\label{eq:deg}
-\dg\xi_\theta=-j+\wind(P_\theta,0)=-j-1+N(\theta) ,
-\end{equation}
-because $P_\theta=z^{-1}Q_\theta$, the factor $z^{-1}$ contributes winding number $-1$, and
-$Q_\theta(\e^{2\pi it})$ has winding number $N(\theta)$. Proposition~\ref{prop:count} is thus
-equivalent to $\dg\xi_\theta=0$.
+If this degree were nonzero, the theorem quoted above would imply that $U_{\xi_\theta,a}$
+has no eigenfunction. But
+\[
+U_{\xi_\theta,a}\overline{W_\theta}=\overline{W_\theta},
+\]
+contradicting that theorem. Thus \eqref{eq:degree} vanishes, proving \eqref{eq:count}.
 
-\begin{proof}[Proof of Proposition~\ref{prop:count}(i): continuous windows]
-Here $G_\theta$ is continuous and, by Lemma~\ref{lem:dich}, nowhere zero on a live fibre; hence
-$V_\theta$ is continuous and nowhere zero and $W_\theta:\T\to\T$ is a continuous circle map,
-so it has a degree. Taking degrees in \eqref{eq:phcoc} and using that precomposition with a
-rotation does not change the degree of a circle map,
+If $|j|\ge2$, then \eqref{eq:count} is impossible because $N(\theta)\in\{0,1,2\}$.
+Consequently $\Theta$ is contained, up to a null set, in the finite set $E$, contradicting
+\eqref{eq:fubini}.
+
+It remains to take $j=0$. On almost every $\theta\in\Theta\setminus E$, the polynomial
+$Q_\theta$ has one zero inside and one zero $\zeta_{\mathrm{out}}(\theta)$ outside the unit
+circle. Taking logarithms in \eqref{eq:fibre} gives
 \[
-\dg W_\theta=\dg\xi_\theta+\dg W_\theta ,
+\log|G_\theta(t-a)|-\log|G_\theta(t)|
+=\log|P_\theta(t)|-\log|D|.
 \]
-whence $\dg\xi_\theta=0$. Now apply \eqref{eq:deg}.
+The right side has integral zero. Indeed, whenever an $L^1$ function has the form
+$u(t-a)-u(t)$ with $u$ finite almost everywhere, its Birkhoff sums converge to its integral
+almost everywhere and to zero in measure. Hence
+\begin{equation}\label{eq:mean}
+\int_0^1\log|P_\theta(t)|\dd t=\log|D|.
+\end{equation}
+Jensen's formula and \eqref{eq:Q} now yield
+\[
+\log|D|=\log|C|+\log|\zeta_{\mathrm{out}}(\theta)|,
+\qquad
+|\zeta_{\mathrm{out}}(\theta)|=|D|/|C|.
+\]
+By the fixed-radius observation above, this can occur for at most two values of $\theta$.
+Thus $\Theta$ is again finite up to a null set, contradicting \eqref{eq:fubini}. This proves
+the theorem.
 \end{proof}
 
-\begin{proof}[Proof of Proposition~\ref{prop:count}(ii): arbitrary $L^2$ windows]
-For merely measurable $W_\theta$ no degree is defined and the previous argument is
-unavailable. Suppose $\dg\xi_\theta\neq0$ and let $(U_\theta f)(t)=\xi_\theta(t)f(t-a)$. Since
-$\xi_\theta$ is real analytic with nonzero degree, Theorem~\ref{thm:ILR} applies and
-$U_\theta$ has no eigenvectors. On the other hand, conjugating \eqref{eq:phcoc},
-\[
-U_\theta\overline{W_\theta}
-=\xi_\theta(t)\overline{W_\theta(t-a)}
-=\overline{W_\theta(t)} ,
-\]
-so $\overline{W_\theta}$ is a unimodular --- in particular nonzero --- eigenvector of
-$U_\theta$ with eigenvalue $1$. This is a contradiction, so $\dg\xi_\theta=0$; apply
-\eqref{eq:deg}.
-\end{proof}
-
-\begin{remark}\label{rem:routes}
-The two proofs are genuinely different, and neither subsumes the other. Route~(i) is
-unconditional but needs continuity, which is exactly what makes a degree available; route~(ii)
-needs no regularity but purchases the same conclusion from a spectral theorem. Note the
-inversion: in route~(i) the vanishing $\dg\xi_\theta=0$ is \emph{forced} by the mere existence
-of a continuous $1$-periodic solution, whereas in route~(ii) it is \emph{deduced} from the
-non-existence of eigenvectors when the degree is nonzero. This is why degree-based
-obstructions for cocycles over irrational rotations (Anzai \cite{Anz}; \cite{ILR}) are useless
-in the continuous category here and decisive in the measurable one.
+\begin{remark}
+The argument stops at $j=\pm1$: the root count then allows both zeros to lie on the same side
+of the unit circle, and Jensen's formula no longer fixes the modulus of an individual root.
 \end{remark}
 
-\section{The mean condition}\label{sec:jensen}
+\begin{thebibliography}{99}\small
 
-We record a measurable-coboundary fact, which replaces the appeal to continuity in the
-evaluation of the fibre mean.
+\bibitem{FPVV}
+M.~Faulhuber, P.~Petersen, J.~T.~van Velthoven and F.~Voigtlaender,
+\emph{Linear dependence of time-frequency shifts of a Schwartz function},
+preprint, arXiv:2608.05044 (2026).
 
-\begin{lemma}\label{lem:meanzero}
-Let $R$ be an ergodic measure-preserving transformation of a probability space. Suppose
-$\varphi\in L^1$ and $u$ is finite and measurable almost everywhere with $\varphi=u\circ R-u$
-almost everywhere. Then $\int\varphi=0$.
-\end{lemma}
+\bibitem{GO}
+S.~Guan and K.~A.~Okoudjou,
+\emph{The HRT conjecture for symmetric configurations and real-valued functions},
+preprint, arXiv:2607.26878 (2026).
 
-\begin{proof}
-By Birkhoff's theorem $\frac1n\sum_{k=0}^{n-1}\varphi\circ R^k\to\int\varphi$ almost
-everywhere. The left side equals $(u\circ R^n-u)/n$. For every $\varepsilon>0$,
-\[
-\mu\bigl(|u\circ R^n-u|>n\varepsilon\bigr)\leq2\mu\bigl(|u|>n\varepsilon/2\bigr)\to0 ,
-\]
-since $u\circ R^n$ and $u$ have the same distribution. So the Birkhoff averages converge to
-zero in measure, and $\int\varphi=0$.
-\end{proof}
+\bibitem{HRT}
+C.~Heil, J.~Ramanathan and P.~Topiwala,
+\emph{Linear independence of time-frequency translates},
+Proc. Amer. Math. Soc. \textbf{124} (1996), 2787--2795.
 
-On a live fibre, Lemma~\ref{lem:dich} lets us take logarithms in \eqref{eq:modcoc}, the values
-on a null set being defined arbitrarily. Since $\log|P_\theta|\in L^1(\T)$,
-Lemma~\ref{lem:meanzero} yields
-\begin{equation}\label{eq:mean}
-\int_0^1\log|P_\theta(t)|\dd t=\log|D| .
-\end{equation}
-(For continuous $Zg$ one may instead integrate $\log|G_\theta|$, which is continuous and
-$1$-periodic, over a period; the $G$ terms cancel by translation invariance of Lebesgue
-measure alone. Lemma~\ref{lem:meanzero} is what makes the step available without continuity.)
+\bibitem{HS}
+C.~Heil and D.~Speegle,
+\emph{The HRT conjecture and the zero divisor conjecture for the Heisenberg group},
+in \emph{Excursions in Harmonic Analysis}, Vol.~3, Birkh\"auser, 2015, 159--176.
 
-Suppose $N(\theta)=1$ and let $\zeta_{\rm out}(\theta)$ be the zero of $Q_\theta$ outside the
-closed unit disc. Since $\int_0^1\log|z^{-1}|=0$, Jensen's formula together with
-\eqref{eq:mean} gives
-\begin{equation}\label{eq:jensen}
-\log|D|=\log|C|+\log|\zeta_{\rm out}(\theta)| ,
-\qquad\text{i.e.}\qquad
-|\zeta_{\rm out}(\theta)|=\frac{|D|}{|C|} .
-\end{equation}
-This is a quantity that does not depend on $\theta$ --- the fixed point of both endgames.
+\bibitem{ILR}
+A.~Iwanik, M.~Lema\'nczyk and D.~Rudolph,
+\emph{Absolutely continuous cocycles over irrational rotations},
+Israel J. Math. \textbf{83} (1993), 73--95.
 
-\section{Two endgames, and the proofs}\label{sec:endgame}
-
-Proposition~\ref{prop:count} disposes of $|j|\geq2$ at once, since $N(\theta)\in\{0,1,2\}$.
-The case $j=0$ requires \eqref{eq:jensen}, and can be closed in two ways.
-
-\subsection{Fixed-radius counting}
-This endgame is measure-theoretic and needs no continuity.
-
-\begin{lemma}[Fixed-radius counting]\label{lem:fixedradius}
-For each $\rho>0$ there are at most two values of $\theta\in\T$ for which $Q_\theta$ has a zero
-of modulus $\rho$.
-\end{lemma}
-
-\begin{proof}
-Suppose $Q_\theta(\rho\e^{i\phi})=0$. Taking absolute values,
-$\rho\,|A+C\rho\e^{i\phi}|=|B|$, and after squaring
-\[
-\Re\!\left(C\overline A\,\e^{i\phi}\right)
-=\frac{|B|^2/\rho^2-|A|^2-|C|^2\rho^2}{2\rho} .
-\]
-Because $AC\neq0$ by \eqref{eq:nonzero}, this has at most two solutions $\phi$ modulo $2\pi$.
-For each such zero $z=\rho\e^{i\phi}$ the equation $\e^{-2\pi i\theta}=-(Cz^2+Az)/B$ determines
-at most one $\theta\in\T$.
-\end{proof}
-
-In particular $E_\partial$ has at most two elements (take $\rho=1$). Combining
-\eqref{eq:jensen} with Lemma~\ref{lem:fixedradius} at $\rho=|D|/|C|$:
-\begin{equation}\label{eq:N1finite}
-\{\theta:\theta\text{ live and }N(\theta)=1\}\quad\text{has at most two elements.}
-\end{equation}
-
-\subsection{Vieta rigidity}
-This endgame is topological and needs an interval of live fibres, which
-Lemma~\ref{lem:dich} supplies in the continuous category.
-
-\begin{lemma}[Vieta rigidity]\label{lem:vieta}
-Suppose $j=0$, $Zg$ is continuous, and $I\subseteq C_1\setminus E_\partial$ is an interval of
-positive length. Then no dependence \eqref{eq:dep} exists.
-\end{lemma}
-
-\begin{proof}
-By Proposition~\ref{prop:count}, $N(\theta)=1$ on $I$, so $Q_\theta$ has one root
-$\zeta_{\rm in}(\theta)$ inside and one root $\zeta_{\rm out}(\theta)$ outside the unit circle,
-and both depend continuously on $\theta$ because the two roots stay separated. Write
-$r=|D|/|C|$ and $S=-A/C$. By Vieta,
-\[
-\zeta_{\rm in}+\zeta_{\rm out}=S\ \text{ is constant on }I,\qquad
-\zeta_{\rm in}\zeta_{\rm out}=(B/C)\e^{-2\pi i\theta} .
-\]
-By \eqref{eq:jensen}, $|\zeta_{\rm out}|\equiv r$, hence $|\zeta_{\rm in}|=|B|/(|C|r)$ is
-constant too, and therefore $|\zeta_{\rm out}-S|=|\zeta_{\rm in}|$ is a positive constant $r'$
-(positive because $\zeta_{\rm in}\zeta_{\rm out}\neq0$, as $B\neq0$). Thus
-$\zeta_{\rm out}(\theta)$ lies in
-\[
-\{|z|=r\}\cap\{|z-S|=r'\} ,
-\]
-the intersection of two circles with distinct centres, since $S\neq0$ as $A\neq0$. That set
-has at most two points. A continuous function on the interval $I$ with values in a finite set
-is constant, so $\zeta_{\rm out}$, and hence $\zeta_{\rm in}$, is constant on $I$; therefore
-the product $(B/C)\e^{-2\pi i\theta}$ is constant on $I$, which is false since $B\neq0$ and $I$
-has positive length.
-\end{proof}
-
-\begin{proof}[Proof of Theorem~\ref{thm:cont}]
-Suppose a nontrivial dependence \eqref{eq:dep} exists; by \eqref{eq:nonzero} all coefficients
-are nonzero. By Lemma~\ref{lem:dich}, $C_1$ is nonempty and open, hence contains an interval;
-removing the at most two points of $E_\partial$ leaves an interval $I$ of positive length.
-
-If $|j|\geq2$, Proposition~\ref{prop:count}(i) gives $N(\theta)=j+1\notin\{0,1,2\}$ for
-$\theta\in I$, which is absurd. If $j=0$, Lemma~\ref{lem:vieta} applies to $I$ and gives a
-contradiction directly. Since $j\notin\{-1,1\}$ by hypothesis, these cases are exhaustive.
-
-For the final assertion, a nonzero Schwartz $g$ --- more generally a nonzero
-$g\in W(C,\ell^1)$ --- has $\sum_n|g(t-n)|$ locally uniformly convergent with continuous
-terms, so $Zg$ is continuous. The case $a=\sqrt2$, $j=0$ is $\Lambda_0$ after the shift
-$(\sqrt2,\sqrt2)$, which is \cite[Conjecture~2]{HS}.
-\end{proof}
-
-\begin{proof}[Proof of Theorem~\ref{thm:L2}]
-Suppose a nontrivial dependence \eqref{eq:dep} exists; again $ABCD\neq0$. By
-Lemma~\ref{lem:fixedradius} the set $E_\partial$ is finite, so almost every live fibre lies
-outside it, and by \eqref{eq:fubini} the live fibres have positive measure.
-
-If $|j|\geq2$: since $N(\theta)\in\{0,1,2\}$ we have $N(\theta)\neq j+1$, so
-Proposition~\ref{prop:count}(ii) shows every live fibre lies in $E_\partial$ up to a null set.
-As $E_\partial$ is finite this contradicts positivity of the measure of live fibres.
-
-If $j=0$: Proposition~\ref{prop:count}(ii) excludes every live fibre outside $E_\partial$ with
-$N(\theta)=0$ or $N(\theta)=2$, and \eqref{eq:N1finite} says the live fibres with
-$N(\theta)=1$ number at most two. So the live-fibre set is finite up to a null set, again
-contradicting \eqref{eq:fubini}.
-
-Since $j\notin\{-1,1\}$, these cases are exhaustive, and no dependence exists.
-\end{proof}
-
-\section{Why $j=\pm1$ saturates both routes}\label{sec:saturate}
-
-For $j=\pm1$ Proposition~\ref{prop:count} gives $N(\theta)\in\{0,2\}$: both roots of $Q_\theta$
-lie on the same side of the unit circle. Jensen's formula then returns $\log|C|$ (if $N=2$) or
-$\log|B|$ (if $N=0$), so \eqref{eq:jensen} degenerates to the single $\theta$-independent
-condition $|C|=|D|$, respectively $|B|=|D|$. Both endgames lose their input: the radius
-$\rho=|D|/|C|$ of Lemma~\ref{lem:fixedradius} is no longer pinned to a root, and the Vieta
-rigidity of Lemma~\ref{lem:vieta} has nothing to act on.
-
-Two further routes are unavailable. First, the degree-based obstructions for cocycles over
-irrational rotations (Anzai \cite{Anz}; \cite{ILR}) require a cocycle of nonzero degree,
-whereas in the continuous category \eqref{eq:deg} pins $\dg\xi_\theta=0$ for \emph{every} $j$:
-the degree is forced by the mere existence of a continuous $1$-periodic solution. (For merely
-measurable windows there is no degree, nothing forces $0$, and these theorems do apply --- this
-is exactly the asymmetry exploited in route~(ii) and recorded in Remark~\ref{rem:routes}.)
-
-Second, no single fibre obstructs. For $N=2$ one has
-$\Lambda_\theta\e^{-2\pi ijt}P_\theta=\Lambda_\theta C(1-\zeta_1/z)(1-\zeta_2/z)$ up to a
-character, so $\log$ of the symbol has Fourier support in nonpositive frequencies with
-geometrically decaying coefficients, and the cohomological equations
-$\hat\vartheta(n)(\e^{2\pi ina}-1)=\hat\psi(n)$ are solvable for all $n\neq0$, the mean
-condition $\hat\psi(0)=0$ being exactly \eqref{eq:mean}. For badly approximable $a$ the small
-divisors are dominated by the geometric decay. Root location is likewise unobstructed: with
-$\zeta_1+\zeta_2=S$ fixed and $|\zeta_1\zeta_2|$ constant, the Schur--Cohn conditions are
-satisfiable on a short interval.
-
-Consequently a proof for $j=\pm1$ must use global input that neither route needs: the
-quasi-periodicity \eqref{eq:quasi} makes $G$ a section of a line bundle over $\T^2$ of Chern
-number one, so every continuous Zak transform vanishes somewhere and dead fibres necessarily
-exist; and the fibrewise solutions must be glued into a single continuous $G$ with matching
-behaviour on $\partial C_1$.
-
-\section{Relation to the work of Guan and Okoudjou}\label{sec:GO}
-
-While this work was being completed, Guan and Okoudjou \cite{GO} posted a proof of the HRT
-conjecture for the symmetric $(2n+1,2)$ configurations
-$\Lambda_n=\{(0,k):-n\leq k\leq n\}\cup\{(a,b),(a,-b)\}$ with arbitrary $L^2$ windows and
-$ab\neq0$ (their Theorem~1; more generally whenever the collinear spacings are
-commensurable). Their Corollary~1 reads: \emph{let $0\neq g\in L^2(\R)$ be real-valued and
-let $\widetilde\Lambda=\{(0,0),(0,1),(s,0),(a,b)\}$ consist of four distinct points with
-$a,b,s\neq0$; then the HRT conjecture holds for $\widetilde\Lambda$ and $g$.} For a
-real-valued window, conjugating a dependence sends $b\mapsto-b$ and produces the symmetric
-companion point, placing the configuration inside a symmetric $(3,2)$ configuration covered
-by their Theorem~2. Their Corollary~2 then extends this to $h=\e^{2\pi i\varphi}g$ for $g$
-real-valued and $\varphi$ a real polynomial of degree at most $2$, the quadratic part being
-absorbed by a metaplectic operator.
-
-Note that $\Lambda_0$ is an instance of $\widetilde\Lambda$ (take $s=1$,
-$(a,b)=(\sqrt2,\sqrt2)$), so their results apply to it directly. The relationship to the
-present paper should be stated plainly, in both directions.
-
-\begin{itemize}
-\item \textbf{Their result is far more general in the configuration.} It covers every
-four-point set, whereas Theorems~\ref{thm:cont} and \ref{thm:L2} cover only the resonant
-family $\Lambda_{a,j}$. It is also unconditional, and its proof is dramatically shorter than
-the development above. \emph{For windows of the form $\e^{2\pi i\varphi}g$ with $g$
-real-valued and $\deg\varphi\leq2$, the $\Lambda_0$ case is settled by \cite{GO}} --- a
-substantially larger class than ``real-valued'' alone. We claim no priority for it.
-
-\item \textbf{Our results are more general in the window class, and that is where the open
-problem lies.} The conjugation requires $\bar g=g$, and the metaplectic absorption requires
-$\varphi$ to be a polynomial of degree at most $2$. Guan and Okoudjou identify the obstruction
-themselves: writing $g=|g|\e^{2\pi i\varphi}$ with $\varphi$ merely measurable, their
-Remark~2 observes that Corollary~1 settles $|g|$ and Corollary~2 settles quadratic $\varphi$,
-so that \emph{``the essential remaining problem is to understand the effect of more general
-phase functions.''} Theorems~\ref{thm:cont} and \ref{thm:L2} impose \emph{no condition
-whatsoever on the phase}: a nonzero Schwartz window with, say, a cubic phase
-$\e^{2\pi ix^3}\e^{-x^2}$ is covered by Theorem~\ref{thm:cont} and by neither corollary of
-\cite{GO}. Neither of our theorems is implied by \cite{GO}.
-
-\item \textbf{Consequently the Heil--Speegle subconjecture is not settled by \cite{GO}.}
-\cite[Conjecture~2]{HS} is stated for $g\in\mathcal S(\R)\setminus\{0\}$, and a Schwartz
-function may carry an arbitrary smooth phase. Theorem~\ref{thm:cont} settles it as stated.
-\end{itemize}
-
-Neither result dominates: \cite{GO} is stronger in configuration generality and
-unconditionality, this paper is stronger in window class for one resonant family.
-
-We record what seems to us the most promising synthesis, since the two developments meet more
-closely than the surface suggests. Remark~2 of \cite{GO} asks for control of the \emph{phase}
-of the window; the Zak fibration used here is a coordinate system in which the phase separates
-cleanly from the modulus. Indeed \eqref{eq:modcoc} is a cocycle in $|G_\theta|$ alone --- the
-$|g|$ half, which Jensen's formula \eqref{eq:jensen} resolves --- while \eqref{eq:phcoc} is a
-cocycle in $W_\theta=V_\theta/|V_\theta|$ alone --- the $\e^{2\pi i\varphi}$ half. The
-quadratic phase absorbed metaplectically in their Corollary~2 is, on this side, exactly the
-normalising factor $m_\theta$ of \eqref{eq:m}. Moreover their mechanism and ours act on the
-same object: their Theorem~1 turns on the collinear trigonometric polynomial factoring into
-linear terms in $\omega=\e^{2\pi iat}$, and our $Q_\theta$ is precisely such a factorisation,
-with $N(\theta)$ counting the factors inside the disc.
-
-This suggests replacing the one quoted input of Theorem~\ref{thm:L2}. Our appeal to
-Theorem~\ref{thm:ILR} is needed only because a measurable $W_\theta$ has no degree; the
-product estimates of Demeter--Zaharescu used in \cite{GO}, which bound
-$\prod_{n}|P(y+n)|$ above and below on a set of measure $\geq1-\varepsilon$, never require
-one. Iterating \eqref{eq:modcoc} gives
-$|G_\theta(t-Na)|=|D|^{-N}\prod_{n<N}|P_\theta(t-na)|\,|G_\theta(t)|$, so a two-sided bound on
-that product on a set of positive measure would contradict $G_\theta\in L^2$ directly. Our
-\eqref{eq:mean} is the logarithmic --- hence weaker --- form of the same statement: it pins
-the geometric mean of the product, where the estimates of \cite{GO} pin the partial products
-themselves. Establishing the two-sided bound uniformly in the fibre parameter $\theta$ is the
-technical crux, and is the direction we regard as most likely to make Theorem~\ref{thm:L2}
-unconditional.
-
-\section{Formal verification}\label{sec:lean}
-
-Route~(ii), the $L^2$ route, has been formalised in Lean~4 against Mathlib and is machine
-checked. We describe precisely what is and is not covered, since a formalisation claim is
-worthless without its boundary.
-
-The development comprises 25 modules, about $19{,}300$ lines and $1{,}065$ declarations, of
-which 330 are in the capstone module; there is no \texttt{sorry} anywhere in it. Every
-theorem cited below has axiom footprint exactly
-\texttt{[propext, Classical.choice, Quot.sound]}, i.e.\ Lean's standard classical foundation
-and nothing else. The following are proved outright:
-
-\begin{itemize}
-\item the Zak reduction of \S\ref{sec:reduction}, the covariance \eqref{eq:cov} and the
-modulus cocycle \eqref{eq:modcoc}, for arbitrary real shifts and arbitrary $j$, with no
-compact-support or decay hypothesis;
-\item the Birkhoff coboundary lemma (Lemma~\ref{lem:meanzero}) and the mean condition
-\eqref{eq:mean};
-\item the argument principle in the form actually required, \eqref{eq:deg}: for the quadratic
-$Q_\theta$ with no root on the unit circle, an explicit lift is constructed and its winding
-number computed, giving $\dg\xi_\theta=-(j+1)+N(\theta)$
-(\texttt{exists\_lift\_quadratic}). Mathlib has no winding number, no argument principle and
-no $\pi_1(S^1)\cong\Z$; none is needed, because only this one family of loops occurs;
-\item the fixed-radius counting lemma (Lemma~\ref{lem:fixedradius}), Jensen's consequence
-\eqref{eq:jensen}, and the endgame of Theorem~\ref{thm:L2} from
-Proposition~\ref{prop:count}(ii);
-\item the three-point input of \S\ref{sec:reduction}, for this configuration
-(\texttt{hthree\_lambdaZero}): every three-point subset of $\Lambda_0$ is handled outright, so
-the reduction to $ABCD\neq0$ is \emph{proved} rather than cited, and the final theorem carries
-no three-point hypothesis;
-\item an unconditional consequence of a hypothetical dependence,
-\texttt{lambdaZero\_dependence\_forces\_norm\_eq}, which requires no external input at all.
-\end{itemize}
-
-Theorem~\ref{thm:ILR} itself is \emph{not} proved. Its conclusion --- Lebesgue maximal
-spectral type --- is not currently expressible in Mathlib, which has no maximal spectral type,
-no spectral measure for unitary operators and no notion of Lebesgue spectrum. It is therefore
-carried as an explicit Lean hypothesis \texttt{ILRStatement}, a \texttt{def} of type
-\texttt{Prop} discharged by the caller, \emph{not} as an \texttt{axiom}: consumers such as
-\texttt{heil\_speegle\_lambda\_zero\_L2\_of\_ILR} and
-\texttt{lambda0Translates\_linearIndependent\_of\_ILR} take it as an argument, so no
-\texttt{sorryAx} and no additional axiom enters any footprint. The statement is pinned to the
-loops that actually arise (\texttt{quadLoop}), so that it is not accidentally stronger than
-\cite{ILR}. One nontrivial fragment of it \emph{is} proved outright: the character case
-$\xi(t)=\e^{2\pi idt}$, $d\neq0$ (\texttt{ILR\_character}), via Parseval and the invariance of
-$|\widehat W|$ along arithmetic progressions of step $d$.
-
-Route~(i) of Proposition~\ref{prop:count} --- the unconditional continuous-window argument, and
-hence Theorem~\ref{thm:cont} --- is \textbf{not} formalised. The winding-number infrastructure
-it would need is present (\texttt{windOf}, \texttt{IsLoopLift}, \texttt{windOf\_add},
-\texttt{exists\_lift\_char}), but the invariance of the degree under precomposition with a
-rotation, and the continuous fibre dichotomy, are not. Formalising route~(i) would remove the
-one quoted input from the formal development and is the natural next step.
-
-A separate machine check certifies statement fidelity: the theorem
-\texttt{lambda0\_independent\_of\_reduction} is verified with Comparator
-\cite{Comparator}, which confirms that the claimed proof establishes exactly the statement in
-the trusted statement file, using no axioms beyond the three permitted ones. Comparator
-certifies fidelity and axiom footprint; it cannot and does not upgrade a conditional theorem
-to an unconditional one.
-
-\section{Attribution}\label{sec:attribution}
-
-This paper builds on the program of Oussa \cite{Oussa}, and we want the division of credit to
-be unambiguous. The following are already present there, for this configuration family and for
-Schwartz windows: the Zak-transform reduction \eqref{eq:FE} (his Lemma~2.1); zero propagation
-(his Lemma~2.2 and Theorem~3.3); the non-ergodicity of the relevant translation, the resulting
-fibration of $\T^2$ into invariant circles, and the orbit-saturation dichotomy underlying
-Lemma~\ref{lem:dich} (his Proposition~3.1); the vanishing of the averaged logarithmic growth
-(his Proposition~3.2); and the integrality and constancy of the winding number along lattice
-loops (his Lemma~6.1). Specifically, the proof of his Proposition~6.2 derives an identity
-which, specialised to $d=1$, fourth point $(a,a+j)$, $a=(-1,1)$ and $m=1$, yields the winding
-value; the winding lemma there is in turn credited to suggestions of C.~Heil, K.~Okoudjou and
-R.~Jadhav. Oussa works throughout with Schwartz windows and derives \emph{necessary}
-dynamical, cohomological and arithmetic conditions in the infinite proper orbit case, rather
-than claiming a proof of that case; he names $\Lambda_0$ as the unresolved resonant case.
-
-Accordingly we claim only the following.
-
-\begin{enumerate}
-\item[(i)] The derivation of $\dg\xi_\theta=0$ using \emph{continuity alone}, with no
-smoothness hypothesis, via the invariance of the degree of a circle map under precomposition
-with a rotation (Proposition~\ref{prop:count}(i)).
-\item[(ii)] The reading of that identity as a \emph{root count} $N(\theta)=j+1$, which
-immediately settles $|j|\geq2$ by a range count on $N$. No root count of a quadratic in the
-disc appears in \cite{Oussa}.
-\item[(iii)] The evaluation of the fibre mean by Jensen's formula so as to produce a quantity
-constant across fibres, \eqref{eq:jensen}. Jensen's formula does not appear in \cite{Oussa}.
-\item[(iv)] The two endgames: the fixed-radius counting lemma
-(Lemma~\ref{lem:fixedradius}), which is what settles $\Lambda_0$ in $L^2$, and the Vieta
-rigidity (Lemma~\ref{lem:vieta}), which settles it in the continuous category. Vieta's
-relations do not appear in \cite{Oussa}.
-\item[(v)] The removal of the regularity hypothesis altogether via Theorem~\ref{thm:ILR}
-(Proposition~\ref{prop:count}(ii)), and the observation of Remark~\ref{rem:routes} that the
-continuous and measurable categories require opposite arguments for the same identity.
-\item[(vi)] The formal verification described in Section~\ref{sec:lean}.
-\end{enumerate}
-
-Items (iii), (iv) and (v) are, to our knowledge, new. For the real-valued case of $\Lambda_0$
-see the discussion of \cite{GO} in Section~\ref{sec:GO}; priority there is theirs.
-
-\begin{thebibliography}{99}
-
-\bibitem{Anz} H.~Anzai, \emph{Ergodic skew product transformations on the torus},
-Osaka Math. J. \textbf{3} (1951), 83--99.
-
-\bibitem{BS} M.~Bownik and D.~Speegle, \emph{Linear independence of time-frequency translates
-of functions with faster than exponential decay}, Bull. Lond. Math. Soc. \textbf{45} (2013),
-554--566.
-
-\bibitem{Comparator} Lean FRO, \emph{Comparator}, \url{https://github.com/leanprover/comparator}.
-
-\bibitem{Dem} C.~Demeter, \emph{Linear independence of time frequency translates for special
-configurations}, Math. Res. Lett. \textbf{17} (2010), 761--779.
-
-\bibitem{DZ} C.~Demeter and A.~Zaharescu, \emph{Proof of the HRT conjecture for $(2,2)$
-configurations}, J. Math. Anal. Appl. \textbf{388} (2012), 151--159.
-
-\bibitem{GO} S.~Guan and K.~A.~Okoudjou, \emph{The HRT conjecture for symmetric
-configurations and real-valued functions}, preprint, arXiv:2607.26878v1 (29 July 2026).
-
-\bibitem{HRT} C.~Heil, J.~Ramanathan and P.~Topiwala, \emph{Linear independence of
-time-frequency translates}, Proc. Amer. Math. Soc. \textbf{124} (1996), 2787--2795.
-
-\bibitem{HS} C.~Heil and D.~Speegle, \emph{The HRT conjecture and the zero divisor conjecture
-for the Heisenberg group}, in: Excursions in Harmonic Analysis, Vol.~3, Birkh\"auser, 2015,
-pp.~159--176.
-
-\bibitem{ILR} A.~Iwanik, M.~Lema\'nczyk and D.~Rudolph, \emph{Absolutely continuous cocycles
-over irrational rotations}, Israel J. Math. \textbf{83} (1993), 73--95.
-
-\bibitem{KL} A.~Kanigowski and M.~Lema\'nczyk, \emph{Spectral theory of dynamical systems},
-arXiv:2006.11616 (2020).
-
-\bibitem{Lin} P.~A.~Linnell, \emph{Von Neumann algebras and linear independence of
-translates}, Proc. Amer. Math. Soc. \textbf{127} (1999), 3269--3277.
-
-\bibitem{Liu} W.~Liu, \emph{Short proof of the HRT conjecture for almost every $(1,3)$
-configuration}, J. Fourier Anal. Appl. \textbf{25} (2019), 1350--1360.
-
-\bibitem{MP} R.-D.~Malikiosis and D.~Poursalidis, \emph{The HRT conjecture for ultimately
-positive generators}, preprint, arXiv:2509.04281.
-
-\bibitem{Oussa} V.~Oussa, \emph{A trichotomy for the HRT conjecture at mixed-integer
-configurations}, preprint, arXiv:2508.04613v2 (2026).
+\bibitem{Oussa}
+V.~Oussa,
+\emph{A trichotomy for the HRT conjecture at mixed-integer configurations},
+preprint, arXiv:2508.04613v2 (2026).
 
 \end{thebibliography}
 

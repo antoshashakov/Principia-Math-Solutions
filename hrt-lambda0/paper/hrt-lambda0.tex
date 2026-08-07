@@ -494,44 +494,73 @@ behaviour on $\partial C_1$.
 \section{Relation to the work of Guan and Okoudjou}\label{sec:GO}
 
 While this work was being completed, Guan and Okoudjou \cite{GO} posted a proof of the HRT
-conjecture for symmetric $(2n+1,2)$ configurations with arbitrary $L^2$ windows. Their
-Corollary~1 reads: \emph{let $0\neq g\in L^2(\R)$ be real-valued and let
-$\widetilde\Lambda=\{(0,0),(0,1),(s,0),(a,b)\}$ consist of four distinct points with
-$a,b,s\neq0$; then the HRT conjecture holds for $\widetilde\Lambda$ and $g$.} Their mechanism
-is a conjugation: for real-valued $g$, conjugating a dependence relation sends $b\mapsto-b$,
-which converts an arbitrary four-point configuration into a symmetric $(3,2)$ configuration
-already covered by their main theorem.
+conjecture for the symmetric $(2n+1,2)$ configurations
+$\Lambda_n=\{(0,k):-n\leq k\leq n\}\cup\{(a,b),(a,-b)\}$ with arbitrary $L^2$ windows and
+$ab\neq0$ (their Theorem~1; more generally whenever the collinear spacings are
+commensurable). Their Corollary~1 reads: \emph{let $0\neq g\in L^2(\R)$ be real-valued and
+let $\widetilde\Lambda=\{(0,0),(0,1),(s,0),(a,b)\}$ consist of four distinct points with
+$a,b,s\neq0$; then the HRT conjecture holds for $\widetilde\Lambda$ and $g$.} For a
+real-valued window, conjugating a dependence sends $b\mapsto-b$ and produces the symmetric
+companion point, placing the configuration inside a symmetric $(3,2)$ configuration covered
+by their Theorem~2. Their Corollary~2 then extends this to $h=\e^{2\pi i\varphi}g$ for $g$
+real-valued and $\varphi$ a real polynomial of degree at most $2$, the quadratic part being
+absorbed by a metaplectic operator.
 
-The relationship to the present paper should be stated plainly, in both directions.
+Note that $\Lambda_0$ is an instance of $\widetilde\Lambda$ (take $s=1$,
+$(a,b)=(\sqrt2,\sqrt2)$), so their results apply to it directly. The relationship to the
+present paper should be stated plainly, in both directions.
 
 \begin{itemize}
 \item \textbf{Their result is far more general in the configuration.} It covers every
 four-point set, whereas Theorems~\ref{thm:cont} and \ref{thm:L2} cover only the resonant
 family $\Lambda_{a,j}$. It is also unconditional, and its proof is dramatically shorter than
-the development above. In particular, $\Lambda_0$ is an instance of $\widetilde\Lambda$ (take
-$s=1$, $(a,b)=(\sqrt2,\sqrt2)$), so \emph{for real-valued windows the $\Lambda_0$ case is
-settled by \cite{GO}}, unconditionally and by a much shorter route than either route here. We
-claim no priority for that case.
+the development above. \emph{For windows of the form $\e^{2\pi i\varphi}g$ with $g$
+real-valued and $\deg\varphi\leq2$, the $\Lambda_0$ case is settled by \cite{GO}} --- a
+substantially larger class than ``real-valued'' alone. We claim no priority for it.
 
 \item \textbf{Our results are more general in the window class, and that is where the open
-problem lies.} The conjugation trick requires $\bar g=g$; it breaks for complex windows, and
-Guan and Okoudjou say so themselves --- their Remark~2 states that \emph{``the essential
-remaining problem is to understand the effect of more general phase functions.''}
-Theorem~\ref{thm:cont} covers all complex windows with continuous Zak transform, and
-Theorem~\ref{thm:L2} all complex $L^2$ windows, for the family $\Lambda_{a,j}$. Neither is
-implied by \cite{GO}.
+problem lies.} The conjugation requires $\bar g=g$, and the metaplectic absorption requires
+$\varphi$ to be a polynomial of degree at most $2$. Guan and Okoudjou identify the obstruction
+themselves: writing $g=|g|\e^{2\pi i\varphi}$ with $\varphi$ merely measurable, their
+Remark~2 observes that Corollary~1 settles $|g|$ and Corollary~2 settles quadratic $\varphi$,
+so that \emph{``the essential remaining problem is to understand the effect of more general
+phase functions.''} Theorems~\ref{thm:cont} and \ref{thm:L2} impose \emph{no condition
+whatsoever on the phase}: a nonzero Schwartz window with, say, a cubic phase
+$\e^{2\pi ix^3}\e^{-x^2}$ is covered by Theorem~\ref{thm:cont} and by neither corollary of
+\cite{GO}. Neither of our theorems is implied by \cite{GO}.
 
 \item \textbf{Consequently the Heil--Speegle subconjecture is not settled by \cite{GO}.}
-\cite[Conjecture~2]{HS} is stated for $g\in\mathcal S(\R)\setminus\{0\}$, and Schwartz
-functions may be complex-valued; \cite{GO} settles its real-valued case.
-Theorem~\ref{thm:cont} settles it as stated.
+\cite[Conjecture~2]{HS} is stated for $g\in\mathcal S(\R)\setminus\{0\}$, and a Schwartz
+function may carry an arbitrary smooth phase. Theorem~\ref{thm:cont} settles it as stated.
 \end{itemize}
 
-Neither result dominates the other: \cite{GO} is stronger in configuration generality and in
-being unconditional, this paper is stronger in window class for one resonant family. The two
-are complementary, and combining them --- extending the symmetrisation of \cite{GO} to complex
-windows, or importing their symmetric-configuration machinery into the resonant fibration used
-here --- appears to us the most promising direction now open on four-point HRT.
+Neither result dominates: \cite{GO} is stronger in configuration generality and
+unconditionality, this paper is stronger in window class for one resonant family.
+
+We record what seems to us the most promising synthesis, since the two developments meet more
+closely than the surface suggests. Remark~2 of \cite{GO} asks for control of the \emph{phase}
+of the window; the Zak fibration used here is a coordinate system in which the phase separates
+cleanly from the modulus. Indeed \eqref{eq:modcoc} is a cocycle in $|G_\theta|$ alone --- the
+$|g|$ half, which Jensen's formula \eqref{eq:jensen} resolves --- while \eqref{eq:phcoc} is a
+cocycle in $W_\theta=V_\theta/|V_\theta|$ alone --- the $\e^{2\pi i\varphi}$ half. The
+quadratic phase absorbed metaplectically in their Corollary~2 is, on this side, exactly the
+normalising factor $m_\theta$ of \eqref{eq:m}. Moreover their mechanism and ours act on the
+same object: their Theorem~1 turns on the collinear trigonometric polynomial factoring into
+linear terms in $\omega=\e^{2\pi iat}$, and our $Q_\theta$ is precisely such a factorisation,
+with $N(\theta)$ counting the factors inside the disc.
+
+This suggests replacing the one quoted input of Theorem~\ref{thm:L2}. Our appeal to
+Theorem~\ref{thm:ILR} is needed only because a measurable $W_\theta$ has no degree; the
+product estimates of Demeter--Zaharescu used in \cite{GO}, which bound
+$\prod_{n}|P(y+n)|$ above and below on a set of measure $\geq1-\varepsilon$, never require
+one. Iterating \eqref{eq:modcoc} gives
+$|G_\theta(t-Na)|=|D|^{-N}\prod_{n<N}|P_\theta(t-na)|\,|G_\theta(t)|$, so a two-sided bound on
+that product on a set of positive measure would contradict $G_\theta\in L^2$ directly. Our
+\eqref{eq:mean} is the logarithmic --- hence weaker --- form of the same statement: it pins
+the geometric mean of the product, where the estimates of \cite{GO} pin the partial products
+themselves. Establishing the two-sided bound uniformly in the fibre parameter $\theta$ is the
+technical crux, and is the direction we regard as most likely to make Theorem~\ref{thm:L2}
+unconditional.
 
 \section{Formal verification}\label{sec:lean}
 
@@ -651,8 +680,8 @@ configurations}, Math. Res. Lett. \textbf{17} (2010), 761--779.
 \bibitem{DZ} C.~Demeter and A.~Zaharescu, \emph{Proof of the HRT conjecture for $(2,2)$
 configurations}, J. Math. Anal. Appl. \textbf{388} (2012), 151--159.
 
-\bibitem{GO} X.~Guan and K.~A.~Okoudjou, \emph{The HRT conjecture for symmetric
-$(2n+1,2)$ configurations}, preprint, arXiv:2607.26878 (2026).
+\bibitem{GO} S.~Guan and K.~A.~Okoudjou, \emph{The HRT conjecture for symmetric
+configurations and real-valued functions}, preprint, arXiv:2607.26878v1 (29 July 2026).
 
 \bibitem{HRT} C.~Heil, J.~Ramanathan and P.~Topiwala, \emph{Linear independence of
 time-frequency translates}, Proc. Amer. Math. Soc. \textbf{124} (1996), 2787--2795.

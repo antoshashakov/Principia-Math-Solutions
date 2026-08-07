@@ -212,10 +212,19 @@ on Guan–Okoudjou, and a new §10 recording the formalization boundary. The arc
 from git history. Pins:
 
 ```
-88d095b7367e971d43cf5655b6f8b5c2e958cfcb6ffe100b9cc798fb06fb2e0f  paper/hrt-lambda0.tex
-cb811ade7e6addf132b960ede5b7fba9cf71fa4e8e65a226fd7fd414bd228f56  paper/hrt-lambda0.pdf
+b5c5f4190821304d68394e192ed0f5a211561011eb4eae28afc1c150caddc028  paper/hrt-lambda0.tex
+41fb3772d6493cccabbc21e575145603ac23095782946841498fcf55030ee042  paper/hrt-lambda0.pdf
 b833084083d3a02aa732e4d6030bd3b329320a99b998fc3de72e7d24960e2134  paper/hrt_lambda0_rigorous.tex
 ```
+
+**A second citation was checked rather than inherited, and two errors were found and fixed.**
+The Guan–Okoudjou preprint was extracted from arXiv on 2026-08-07. Its authors are **Shuang**
+Guan and Kasso A. Okoudjou (an earlier draft of this directory wrote "Xuanxuan"), and its
+title is *The HRT conjecture for symmetric configurations and real-valued functions* (not
+"…for symmetric (2n+1,2) configurations"). Their coverage of Λ₀ was also understated: their
+Corollary **2** extends Corollary 1 from real-valued windows to `exp(2πiφ)·g` with `g` real
+and `deg φ ≤ 2`, so the class of Λ₀ windows they settle is larger than "real-valued". All
+three corrections are reflected in the paper's §9, the README, and `formalization.yaml`.
 
 **One citation was checked rather than inherited.** Both source manuscripts asserted that
 `Λ₀` is Heil–Speegle *Conjecture 2*. That attribution was verified against the published

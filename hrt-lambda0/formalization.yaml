@@ -46,24 +46,30 @@ sources:
       `ILRStatement` is pinned to the loop family that actually arises (`quadLoop`) so it
       cannot be accidentally stronger than the cited theorem. The character case is proved
       outright as `ILR_character`.
-  - title: "The HRT conjecture for symmetric (2n+1,2) configurations"
+  - title: "The HRT conjecture for symmetric configurations and real-valued functions"
     authors:
-      - "Xuanxuan Guan"
+      - "Shuang Guan"
       - "Kasso A. Okoudjou"
-    id: "arXiv:2607.26878 (2026)"
+    id: "arXiv:2607.26878v1 (29 July 2026)"
     type: "literature"
     license: "n/a"
     author_contacted: "no"
     note: >-
-      PRIOR ART FOR PART OF THE RESULT, recorded for attribution. Their Corollary 1 proves
-      HRT for EVERY four-point configuration when the window is REAL-VALUED, via a
-      conjugation sending b to -b; Λ₀ is an instance, so the real-valued Λ₀ case is theirs,
-      unconditionally and by a far shorter route than either route here. No priority is
-      claimed for that case. Their method requires conj(g) = g and breaks for complex
-      windows — their Remark 2 states that "the essential remaining problem is to understand
-      the effect of more general phase functions". Heil-Speegle Conjecture 2 permits complex
-      Schwartz windows, so it is NOT settled by their corollary. Discussed in the paper's §9.
-      Not used by the formalization.
+      PRIOR ART FOR PART OF THE RESULT, recorded for attribution. Their Theorem 1 proves HRT
+      for the symmetric (2n+1,2) configurations {(0,k) : -n<=k<=n} + {(a,b),(a,-b)} with
+      arbitrary L^2 windows and ab != 0. Their Corollary 1 covers EVERY four-point
+      configuration {(0,0),(0,1),(s,0),(a,b)} when the window is REAL-VALUED (conjugation
+      sends b to -b, producing the symmetric companion point); their Corollary 2 extends this
+      to exp(2*pi*i*phi)*g with g real-valued and phi a real polynomial of degree at most 2,
+      the quadratic part absorbed metaplectically. Λ₀ is an instance (s=1, (a,b)=(sqrt2,sqrt2)),
+      so the quadratic-phase-times-real Λ₀ case is theirs, unconditionally and by a far
+      shorter route than either route here. No priority is claimed for it. What their method
+      cannot reach is a GENERAL phase: their Remark 2 observes that Corollary 1 settles |g|
+      and Corollary 2 settles quadratic phases, so "the essential remaining problem is to
+      understand the effect of more general phase functions". The paper's theorems impose no
+      condition on the phase at all, so Heil-Speegle Conjecture 2 — which permits an arbitrary
+      smooth phase — is NOT settled by their results. Discussed in the paper's §9, which also
+      records a proposed synthesis. Not used by the formalization.
   - title: "Linear independence of finite Gabor systems (survey; poses Conjecture 9.2)"
     authors:
       - "Christopher Heil"

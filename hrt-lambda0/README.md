@@ -120,19 +120,29 @@ Parseval and invariance of `|Ŵ|` along arithmetic progressions.
 
 ## Relation to Guan–Okoudjou (arXiv:2607.26878)
 
-Guan and Okoudjou proved HRT for symmetric `(2n+1,2)` configurations with arbitrary `L²`
-windows. Their Corollary 1 covers **every** four-point configuration for **real-valued**
-windows, via a conjugation that sends `b ↦ −b`. `Λ₀` is an instance, so **for real-valued
-windows the `Λ₀` case is theirs**, unconditionally and by a far shorter route than either
-route here. We claim no priority for that case.
+S. Guan and K. A. Okoudjou, *The HRT conjecture for symmetric configurations and real-valued
+functions*, proved HRT for the symmetric `(2n+1,2)` configurations
+`Λₙ = {(0,k) : −n ≤ k ≤ n} ∪ {(a,b),(a,−b)}` with arbitrary `L²` windows and `ab ≠ 0`. Their
+Corollary 1 covers **every** four-point configuration `{(0,0),(0,1),(s,0),(a,b)}` for
+**real-valued** windows (conjugation sends `b ↦ −b`, producing the symmetric companion
+point); their Corollary 2 extends this to `e^{2πiφ}g` with `g` real-valued and `φ` a real
+polynomial of degree ≤ 2. `Λ₀` is an instance (`s=1`, `(a,b)=(√2,√2)`), so **for
+quadratic-phase-times-real windows the `Λ₀` case is theirs**, unconditionally and by a far
+shorter route than either route here. We claim no priority for it.
 
-Their method requires `ḡ = g` and breaks for complex windows; their Remark 2 says so —
-*"the essential remaining problem is to understand the effect of more general phase
-functions."* That is precisely this paper's territory: Heil–Speegle Conjecture 2 permits
-complex Schwartz windows, so it is **not** settled by their corollary, and the paper's
-Theorem 1 settles it. Neither result dominates: theirs is far more general in configuration
-and unconditional, this one is more general in window class for one resonant family. See
-paper §9.
+What their method cannot reach is a general phase, and they say so: writing
+`g = |g|e^{2πiφ}` with `φ` merely measurable, their Remark 2 notes that Corollary 1 settles
+`|g|` and Corollary 2 settles quadratic `φ`, so *"the essential remaining problem is to
+understand the effect of more general phase functions."* Our theorems impose **no condition
+on the phase at all** — a Schwartz window with a cubic phase is covered by Theorem 1 and by
+neither of their corollaries. Since Heil–Speegle Conjecture 2 permits an arbitrary smooth
+phase, it is **not** settled by their results, and Theorem 1 settles it.
+
+Neither dominates. The paper's §9 also records the synthesis we think most promising: in the
+Zak fibration the modulus and the phase separate into two independent cocycles — exactly the
+`|g|` / `e^{2πiφ}` split their Remark 2 asks about — and their Demeter–Zaharescu product
+estimates, which need no degree, are a candidate replacement for this paper's one quoted
+input (ILR), which would make Theorem 2 unconditional.
 
 ## What to read
 

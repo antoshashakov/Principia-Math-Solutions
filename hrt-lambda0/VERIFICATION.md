@@ -74,8 +74,8 @@ builds the `HRTLambda0` library, then `Solution`, then `Challenge`, and asserts:
 `declaration uses 'sorry'` in the development or Solution logs; no axiom outside the
 permitted triple in any footprint (this also catches `sorryAx`); the headline result
 carries the clean triple; no `native_decide` / `implemented_by` / `unsafe` / `axiom`
-declaration; and `Challenge.lean` has exactly one `sorry`. **Not yet run at commit
-time** — it triggers on this push.
+declaration; and `Challenge.lean` has exactly one `sorry`. **RUN and PASSED**, 2026-08-07,
+commit `8959fd3` (see §3b for the two earlier failed attempts and their cause).
 
 **Locally (Windows), RUN — the monolithic development file.** The development was
 written and certified as a single file; before this folder was assembled it was
@@ -150,13 +150,25 @@ and Mathlib is not built here, so the vendored library has not yet been compiled
 `lakefile.toml` (`srcDir = "HRT"`, `roots = ["HRTBridge"]`). A layout/module-path defect would
 therefore not yet have surfaced. This ledger says so rather than implying otherwise.
 
-**Where it *is* run:** a new CI job `build-hrt-l2-route` in
+**Where it *is* run: CI, and it has now PASSED.** The job `build-hrt-l2-route` in
 `.github/workflows/hrt-lambda0-build.yml` builds `HRT` on Linux over the cached Mathlib and
 asserts the same three properties as the Route I job — no `declaration uses 'sorry'`, no axiom
 outside the permitted triple in any footprint (this also catches `sorryAx`), and no `axiom`
 declaration in the sources. It is a **separate job** from `build`, so the two routes are
-verified independently and a failure in one cannot be mistaken for the other. **Not yet run at
-commit time** — it triggers on this push.
+verified independently and a failure in one cannot be mistaken for the other.
+
+**Result, 2026-08-07, commit `8959fd3`: `hrt-lambda0-build` — success (both jobs), and
+`hrt-lambda0-comparator` — success.** This closes the layout gap noted above: the vendored
+library does compile under this folder's `lakefile.toml`, so the flat module names resolve
+against `srcDir` correctly and no module-path defect was hiding in the vendoring.
+
+Two earlier attempts on this branch (`b53970e`, `b1fd301`) failed **all three jobs** at the
+Mathlib-cache step. That was not an infrastructure fault and not a Lean fault: the `HRT`
+library had been registered with `globs = ["*"]`, which is not a valid module glob, and a
+lakefile *configuration* error aborts `lake exe cache get` before it fetches anything. Fixed
+in `8959fd3` by listing the 25 module names explicitly (the pattern
+`sendov9-11/lakefile.toml` already uses) with no `roots` key. Recorded here because the
+symptom impersonated a cache outage.
 
 Static facts about the vendored sources, checked locally on Windows 2026-08-07: 25 modules,
 19,275 lines, 1,065 declarations; `grep -c sorry` returns nonzero for exactly two files
@@ -187,13 +199,20 @@ statement. Mitigations:
 
 ## §5 Comparator
 
-**Linux-only** (landrun / Landlock sandbox); **NOT run on this platform (Windows) and
-not yet run on CI at commit time.** `.github/workflows/hrt-lambda0-comparator.yml` runs
-`comparator/all.json` on push with permitted axioms exactly
-`propext / Quot.sound / Classical.choice` and requires `Your solution is okay!`. Note
-what a pass will and will not mean: it certifies statement fidelity and the axiom
-footprint of the **conditional** theorem; it cannot upgrade a conditional theorem to an
-unconditional one.
+**Linux-only** (landrun / Landlock sandbox); **NOT run on this platform (Windows)**.
+`.github/workflows/hrt-lambda0-comparator.yml` runs `comparator/all.json` on push with
+permitted axioms exactly `propext / Quot.sound / Classical.choice` and requires
+`Your solution is okay!`.
+
+**RUN and PASSED on CI**, 2026-08-07, commit `8959fd3`.
+
+Note exactly what that pass does and does not mean. It certifies that `Solution.lean`
+proves the statement in `Challenge.lean` and no other, that the five project-specific
+definitions the statement rests on match, and that the axiom footprint stays within the
+permitted triple. It **cannot** upgrade a conditional theorem to an unconditional one:
+the certified statement is still `ZakReduction g → Lambda0Independent g`, and Comparator
+has nothing to say about whether `ZakReduction` is true. It also covers **Route I only** —
+Route II is gated by the `build-hrt-l2-route` job (§3b), not by Comparator.
 
 ## §6 The paper
 

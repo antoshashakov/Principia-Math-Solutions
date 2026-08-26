@@ -1,0 +1,14 @@
+n=1: fixed translation classes=1, max=1
+n=2: fixed translation classes=3, max=7/3
+n=3: fixed translation classes=11, max=23/6
+n=4: fixed translation classes=44, max=35/6
+n=5: fixed translation classes=186, max=49/6
+n=6: fixed translation classes=814, max=32/3
+n=7: fixed translation classes=3,652, max=41/3
+n=8: fixed translation classes=16,689, max=17
+n=9: fixed translation classes=77,359, max=41/2
+all checks passed; 98,759 polyhexes checked
+
+Command (Python 3.13):
+python problems/380445/verify_polyhex.py
+

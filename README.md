@@ -11,6 +11,14 @@ self-contained Lake project with its own paper, build, and verification record.
 | [`hrt-lambda0/`](hrt-lambda0/) | **HRT conjecture at `Λ₀ = {(0,0),(1,0),(0,1),(√2,√2)}`** — the four-point resonant subconjecture (Heil 2006, Conjecture 9.2(a); Heil–Speegle, Conjecture 2): the translates `g(x), g(x−1), e^{2πix}g(x), e^{2πi√2x}g(x−√2)` of a nonzero window are linearly independent | Conditional — the endgame is proved, `sorry`-free and axiom-free; the analytic reduction (`ZakReduction`) is not (see [`VERIFICATION.md`](hrt-lambda0/VERIFICATION.md)) |
 | [`erdos361/`](erdos361/) | [Erdős Problem 361](https://www.erdosproblems.com/361) — for `f_c(n) = max{\|A\| : A ⊆ [1,⌊cn⌋], n ∉ Σ(A)}`, the sequence `f_c(n)/n` converges **iff `c ≥ 1`**: the `c ≥ 1` exact formula `⌊cn⌋ − ⌈n/2⌉` and, for every `c ∈ (0,1)`, non-convergence — the Erdős–Graham irregularity question | both results `sorry`-free & **axiom-free** (Alon 1987 Thm 1.1 is proved via general-`h` Dias da Silva–Hamidoune from Mathlib's Combinatorial Nullstellensatz, not postulated — see [`erdos361/VERIFICATION.md`](erdos361/VERIFICATION.md) §4); **Comparator-certified on CI** |
 
+## MathDB open problems
+
+[`mathdb/`](mathdb/) holds a separate campaign against open problems sampled from
+[MathDB](https://mathdb.com/database) — 20 complete results so far, one folder per problem,
+each with a markdown proof, a dependency skeleton, a literature audit, an executable
+verifier, and a Lean module where one exists. Those folders follow a lighter layout than
+the Lake projects above; see [`mathdb/README.md`](mathdb/README.md).
+
 ## Conventions
 
 Every solution folder follows the same layout, so a reviewer knows where to look

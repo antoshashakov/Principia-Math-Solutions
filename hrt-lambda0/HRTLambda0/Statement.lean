@@ -15,6 +15,10 @@ the fibre dichotomy producing a live interval, the degree identity at `j = 0`, a
 Jensen's formula on the fibre). None of that is proved in this repository. The theorem
 in `Challenge.lean` is CONDITIONAL on it, and that conditionality is the honest content
 of this solution folder.
+
+Palomar requires `Challenge.lean` to import nothing but Mathlib (and Lean core, Tau Ceti,
+CSLib), so `Challenge.lean` carries a verbatim copy of these definitions instead of
+importing this module. Keep the two in sync; Comparator fails when they differ.
 -/
 import Mathlib
 set_option autoImplicit false

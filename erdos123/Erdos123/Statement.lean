@@ -14,6 +14,10 @@ agreement is CHECKED: `Solution.lean` proves each headline theorem in this file'
 vocabulary by direct term assignment from the development's theorem, which forces Lean
 to verify the two definition sets are definitionally equal. If a copy drifted, that file
 would fail to compile.
+
+Palomar requires `Challenge.lean` to import nothing but Mathlib (and Lean core, Tau Ceti,
+CSLib), so `Challenge.lean` carries a verbatim copy of these definitions instead of
+importing this module. Keep the two in sync; Comparator fails when they differ.
 -/
 
 import Mathlib

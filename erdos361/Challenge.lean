@@ -11,8 +11,10 @@ axioms beyond the permitted list in `comparator/*.json`:
 
 The `sorry`s below are deliberate and are the only `sorry`s in the repository.
 
-Import closure: `Erdos361.Statement` (definitions only) and Mathlib. Nothing
-from the development is trusted here.
+IMPORT CLOSURE: Mathlib only, as Palomar's Challenge policy requires. The definitions
+in the first namespace block below are a verbatim copy of `Erdos361/Statement.lean`, the
+module the development and `Solution.lean` import; Comparator checks that the two
+copies agree declaration by declaration, so a drift between them fails the check.
 
 WHAT EACH STATEMENT SAYS, in words:
 
@@ -23,8 +25,18 @@ WHAT EACH STATEMENT SAYS, in words:
   erdos361_irregular Erdős–Graham irregularity. For every real c ∈ (0,1) the sequence
                      f_c(n)/n = F ⌊cn⌋ n / n does NOT converge.
 -/
-import Erdos361.Statement
+import Mathlib
 set_option autoImplicit false
+
+namespace Erdos361.Statement
+open Finset
+open scoped Classical
+def Avoids (A : Finset ℕ) (n : ℕ) : Prop := ∀ B ⊆ A, B.sum id = n → B = ∅
+noncomputable def Avoiders (M n : ℕ) : Finset (Finset ℕ) :=
+  (Icc 1 M).powerset.filter (fun A => Avoids A n)
+noncomputable def F (M n : ℕ) : ℕ := (Avoiders M n).sup Finset.card
+noncomputable def Fc (c : ℝ) (n : ℕ) : ℕ := F ⌊c * n⌋₊ n
+end Erdos361.Statement
 
 namespace Erdos361.Statement
 open Filter Topology

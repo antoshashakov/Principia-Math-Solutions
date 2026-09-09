@@ -10,6 +10,10 @@ must trust.
 The definitions are verbatim copies of the development's (`Erdos361/Core.lean`, namespace
 `Erdos361`, which imports this file); `Solution.lean` proves each headline theorem by direct
 term assignment, forcing Lean to check the two agree.
+
+Palomar requires `Challenge.lean` to import nothing but Mathlib (and Lean core, Tau Ceti,
+CSLib), so `Challenge.lean` carries a verbatim copy of these definitions instead of
+importing this module. Keep the two in sync; Comparator fails when they differ.
 -/
 import Mathlib
 set_option autoImplicit false

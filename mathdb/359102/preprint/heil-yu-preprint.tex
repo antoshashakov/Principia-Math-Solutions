@@ -1,0 +1,726 @@
+% =====================================================================
+%  AUTHOR LINE: Eric Hou and Principia Math (group byline).
+%  Section 5 (the Reed-Muller counterexample) originated in the
+%  Principia Math dossier.  If individual Principia contributors are to
+%  be named instead of, or alongside, the group byline, add them below
+%  with their consent before circulating.
+% =====================================================================
+\documentclass[11pt,reqno]{amsart}
+
+\usepackage[margin=1.15in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{booktabs}
+\usepackage[colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+
+\theoremstyle{plain}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{question}[theorem]{Question}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\DeclareMathOperator{\supp}{supp}
+\DeclareMathOperator{\tr}{tr}
+\newcommand{\C}{\mathbb{C}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\HH}{\mathcal{H}}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\Lb}{\mathsf{L}}
+\newcommand{\Dd}{\mathsf{D}}
+\newcommand{\Pp}{\mathsf{P}}
+\newcommand{\RM}{\mathrm{RM}}
+
+\title[The $\ell^1$-boundedness conjectures of Heil and Yu]
+{The $\ell^1$-boundedness conjectures of Heil and Yu}
+
+\author{Eric Hou}
+\address{Principia Math}
+\email{}
+
+\author{Principia Math}
+\address{}
+\email{}
+
+\subjclass[2020]{Primary 42C15; Secondary 42A38, 94B05, 15A60}
+\keywords{Frames, Riesz bases, $\ell^1$-bounded sets, uncertainty
+principles, picket fence, Reed--Muller codes}
+
+\date{31 August 2026}
+
+\begin{document}
+
+\begin{abstract}
+Heil and Yu closed their study of $\ell^1$-bounded sets with two
+conjectures: that boundedness together with uniform separation does not
+imply $\ell^1$-boundedness, and that the $\ell^1$-bounded sets are not
+closed under finite unions.  Both are proved here, and a single
+construction settles them simultaneously: the union of the standard and
+Fourier bases of $\C^{4^k}$, summed over $k$.  The mechanism is an
+$\ell^1$ uncertainty inequality which forces
+$\max_{x}\|x\|_{1,\mathcal{G}}\ge(A/\sqrt B)\,d^{1/4}$ for every frame
+$\mathcal{G}$ of $\C^d$ with bounds $A\le B$.  The associated extremal
+constant is determined exactly in square dimensions and at $d=8$, and an
+independent counterexample built from Reed--Muller codes is included.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+\subsection{Background}
+
+Let $\HH$ be a separable infinite-dimensional complex Hilbert space.
+Answering a question of Haak and Haase, Heil and Yu \cite{HeilYu}
+introduced the following notion.  A set $M\subseteq\HH$ is
+\emph{$\ell^1$-bounded} if there is a Riesz basis
+$\mathcal{E}=\{e_n\}_{n\in\N}$ of $\HH$ with
+\[
+  \sup_{x\in M}\|x\|_{1,\mathcal{E}}
+  \;=\;\sup_{x\in M}\sum_{n\in\N}\bigl|\langle x,e_n\rangle\bigr|
+  \;<\;\infty,
+\]
+and \emph{$\ell^1$-frame-bounded} if the same holds with $\mathcal{E}$
+merely a frame.  Terminology for frames and Riesz bases follows
+Christensen \cite{Christensen}.
+
+The theory developed in \cite{HeilYu} leaves two questions open, and the
+paper ends by conjecturing that both have negative answers.
+
+\begin{conjecture}[{\cite[Conj.~4.10]{HeilYu}}]\label{conj:410}
+There is a bounded, uniformly separated subset of $\HH$ that is not
+$\ell^1$-bounded.
+\end{conjecture}
+
+\begin{conjecture}[{\cite[Conj.~4.13]{HeilYu}}]\label{conj:413}
+The collection of $\ell^1$-bounded sets is not closed under finite
+unions, nor under finite sums.
+\end{conjecture}
+
+Conjecture~\ref{conj:413} is the more consequential of the two.  By
+\cite[Lem.~4.11]{HeilYu} the union and sum formulations are equivalent,
+and by \cite[Thm.~4.12]{HeilYu} closure under finite unions would imply
+all of the following at once: every Bessel sequence is
+$\ell^1$-bounded; $\ell^1$-frame-boundedness coincides with
+$\ell^1$-boundedness; every Riesz basis $\mathcal{E}$ admits a Riesz
+basis $\mathcal{R}$ with
+$\HH_{\mathcal{E}}\subsetneq\HH_{\mathcal{R}}$; and every
+unconditionally summable sequence is $\ell^1$-bounded.  A single
+counterexample therefore settles four structural questions.  The union
+question is described in \cite{HeilYu} as considerably more subtle than
+the rest of the analysis.
+
+\subsection{Results}
+
+Both conjectures are proved below, and one construction does both.
+
+\begin{theorem}\label{thm:main}
+Let $d_k=4^k$ and $\HH=\bigoplus_{k\ge1}\C^{d_k}$.  Let $M_1$ be the
+union over $k$ of the standard bases of the blocks and $M_2$ the union
+over $k$ of the Fourier bases.  Then\textup:
+\begin{enumerate}
+\item[\textup{(i)}] $M_1$ and $M_2$ are each $\ell^1$-bounded, with
+constant $1$\textup;
+\item[\textup{(ii)}] $M_1\cup M_2$ consists of unit vectors and is
+uniformly separated, with separation at least $1$\textup;
+\item[\textup{(iii)}] $M_1\cup M_2$ is not $\ell^1$-bounded, and is not
+even $\ell^1$-frame-bounded.
+\end{enumerate}
+Consequently Conjectures~\textup{\ref{conj:410}} and
+\textup{\ref{conj:413}} both hold.
+\end{theorem}
+
+The engine is an uncertainty inequality.  Write
+$\mathcal{B}=\{e_j\}_{j=0}^{d-1}$ and $\mathcal{F}=\{f_k\}_{k=0}^{d-1}$
+for the standard and Fourier bases of $\C^d$, where
+$f_k(n)=d^{-1/2}e^{2\pi ikn/d}$, and let $F$ be the unitary discrete
+Fourier transform.  For a frame $\mathcal{G}$ of $\C^d$ put
+\[
+  c(\mathcal{G})\;=\;\max_{x\in\mathcal{B}\cup\mathcal{F}}
+  \|x\|_{1,\mathcal{G}}.
+\]
+
+\begin{theorem}\label{thm:frame}
+If $\mathcal{G}$ is a frame of $\C^d$ with bounds $A\le B$, then
+$c(\mathcal{G})\ge (A/\sqrt B)\,d^{1/4}$.
+\end{theorem}
+
+Theorem~\ref{thm:main} follows by applying this in each block and
+letting $k\to\infty$.  The exponent $1/4$ is sharp, and it is natural to
+ask for the exact constant.  Set
+\[
+  \Lb(d)\;=\;\min\bigl\{\,c(\mathcal{E})\;:\;\mathcal{E}\ \text{an
+  orthonormal basis of }\C^d\,\bigr\},
+\]
+so that $d^{1/4}\le\Lb(d)\le\sqrt d$, the upper bound coming from
+Cauchy--Schwarz.  Two arithmetic functions of $d$ turn out to control
+$\Lb$.  Let
+\[
+  \Dd(d)=\min_{a\mid d}\max(a,d/a),
+  \qquad
+  \Pp(d)=\min_{ab=d}\frac{\sqrt a+\sqrt b}{2},
+\]
+so $\Dd(d)$ is the least divisor of $d$ not below $\sqrt d$.  Since an
+arithmetic mean never exceeds a maximum,
+\begin{equation}\label{eq:PleD}
+  \Pp(d)\le\sqrt{\Dd(d)},
+  \qquad\text{with equality exactly when $d$ is a perfect square.}
+\end{equation}
+
+\begin{theorem}\label{thm:Lb}
+For every factorisation $d=ab$ there is an explicit orthonormal basis
+$\mathcal{C}_{a,b}$ with $c(\mathcal{C}_{a,b})=\max(\sqrt a,\sqrt b)$,
+so $\Lb(d)\le\sqrt{\Dd(d)}$.  Moreover
+\[
+  \Lb(d)\;\ge\;\nu(d)\;:=\;\min_{\|u\|_2=1}
+  \frac{\|u\|_1+\|Fu\|_1}{2}\;\ge\;d^{1/4},
+  \qquad \nu(d)\le\Pp(d).
+\]
+Consequently $\Lb(m^2)=d^{1/4}$ exactly, attained by the Gabor picket
+fence at critical density, while
+\[
+  \Lb(8)\;=\;1+\tfrac1{\sqrt2}\;=\;1.70710678\ldots\;<\;2=\sqrt{\Dd(8)} .
+\]
+\end{theorem}
+
+By \eqref{eq:PleD} the bound $\nu(d)$ improves on $d^{1/4}$ at every
+non-square dimension, and the value at $d=8$ shows that the
+picket-fence construction is not optimal in general.
+
+Section~\ref{sec:rm} presents a second, independent counterexample to
+Conjecture~\ref{conj:410}, built from Reed--Muller codes, which gives
+the stronger growth rate $\sqrt d$ in place of $d^{1/4}$.  It does not
+settle Conjecture~\ref{conj:413}, for reasons explained in
+Remark~\ref{rem:whyboth}.  Section~\ref{sec:obstruction} records two
+obstructions that delimit the methods available for the remaining cases
+of $\Lb(d)$, Section~\ref{sec:num} collects the numerical data, and
+Section~\ref{sec:open} lists what is open.
+
+\subsection{Relation to earlier work}\label{sec:classical}
+
+The extremal basis of Theorem~\ref{thm:Lb} is classical and the debt to
+Donoho and Stark \cite{DonohoStark} should be stated plainly.  They
+prove that a nonzero sequence of length $N$ with $N_t$ nonzero entries,
+whose transform has $N_w$ nonzero entries, satisfies $N_tN_w\ge N$,
+whence $N_t+N_w\ge2\sqrt N$.  For $N=k\cdot l$ their equation (2.3)
+introduces the \emph{picket fence} $\mathrm{III}^k$, the indicator of a
+subgroup of $\Z/N\Z$, observes that its transform is the indicator of
+the annihilating subgroup, and records
+$\sqrt N\,\widehat{\mathrm{III}^k}=k\,\mathrm{III}^l$.  Their Theorem 13
+shows the picket fences are the only extremisers up to scaling,
+translation and modulation, and a remark on page 908 notes that the
+product bound is strict when $N_t\nmid N$.
+
+So the extremiser, its Fourier self-duality, the uniqueness statement,
+and the sensitivity of such problems to the divisor structure of the
+dimension all appear in \cite{DonohoStark}.  What is added here is the
+passage from a support-counting problem for a single vector to an
+$\ell^1$ extremal problem over frames, for which the governing quantity
+is $\nu(d)$ rather than a support product.  The words \emph{frame},
+\emph{Riesz basis} and \emph{frame bound} do not occur in
+\cite{DonohoStark}, and no minimisation over bases is considered there.
+
+Lemma~\ref{lem:up} below is elementary and may be known; no reference
+has been located, and the point is raised again in
+Section~\ref{sec:open}.
+
+\section{An \texorpdfstring{$\ell^1$}{l1} uncertainty inequality}
+
+\begin{lemma}\label{lem:up}
+For every $x\in\C^d$,
+\begin{equation}\label{eq:up}
+  \|x\|_1\,\|Fx\|_1\;\ge\;\sqrt d\,\|x\|_2^2,
+\end{equation}
+and $\sqrt d$ is best possible, with equality at every standard basis
+vector and every Fourier basis vector.
+\end{lemma}
+
+\begin{proof}
+Since $x=F^{*}(Fx)$ and every entry of $F^{*}$ has modulus $d^{-1/2}$,
+each coordinate obeys $|x_i|\le d^{-1/2}\|Fx\|_1$, so
+$\|x\|_\infty\le d^{-1/2}\|Fx\|_1$.  Combining with
+$\|x\|_2^2\le\|x\|_\infty\|x\|_1$ gives \eqref{eq:up}.  For $x=e_j$ one
+has $\|x\|_1=\|x\|_2^2=1$ and $\|Fx\|_1=\sqrt d$.
+\end{proof}
+
+Only the identity $|\langle e_j,f_k\rangle|=d^{-1/2}$ was used, which is
+the definition of a mutually unbiased pair.  So \eqref{eq:up}, and every
+consequence drawn from it below, holds for an arbitrary mutually
+unbiased pair of orthonormal bases in place of
+$(\mathcal{B},\mathcal{F})$.
+
+\begin{corollary}\label{cor:amgm}
+For every $g\in\C^d$, $\ \|g\|_1+\|F^{*}g\|_1\ge2\,d^{1/4}\|g\|_2$.
+\end{corollary}
+
+\begin{proof}
+Apply the arithmetic-geometric mean inequality, then \eqref{eq:up}.
+\end{proof}
+
+\section{The frame lower bound}
+
+\begin{proof}[Proof of Theorem~\textup{\ref{thm:frame}}]
+Let $\mathcal{G}=\{g_m\}$ have bounds $A\le B$.  Averaging over each
+basis separately,
+\[
+  \max_j\sum_m|\langle e_j,g_m\rangle|\ \ge\ \frac1d\sum_m\|g_m\|_1,
+  \qquad
+  \max_k\sum_m|\langle f_k,g_m\rangle|\ \ge\ \frac1d\sum_m\|F^{*}g_m\|_1 .
+\]
+Adding, and applying Corollary~\ref{cor:amgm} to each $g_m$,
+\[
+  2\,c(\mathcal{G})\ \ge\ \frac1d\sum_m
+  \bigl(\|g_m\|_1+\|F^{*}g_m\|_1\bigr)
+  \ \ge\ \frac{2d^{1/4}}{d}\sum_m\|g_m\|_2 .
+\]
+The frame condition gives $\sum_m\|g_m\|_2^2=\tr(G^{*}G)\ge Ad$ and
+$\|g_m\|_2^2\le B$, so
+\[
+  \sum_m\|g_m\|_2\ \ge\ \frac{\sum_m\|g_m\|_2^2}{\max_m\|g_m\|_2}
+  \ \ge\ \frac{Ad}{\sqrt B},
+\]
+and substituting completes the proof.
+\end{proof}
+
+\section{Proof of Theorem~\ref{thm:main}}\label{sec:main}
+
+\emph{(i)}  Against the block-diagonal standard basis every element of
+$M_1$ has $\ell^1$ norm exactly $1$; against the block-diagonal Fourier
+basis the same holds for $M_2$.
+
+\emph{(ii)}  All elements are unit vectors.  Within a block of dimension
+$d$, two distinct standard basis vectors, or two distinct Fourier basis
+vectors, are at distance $\sqrt2$.  For $e_j$ and $f_k$,
+\[
+  \|e_j-f_k\|_2^2\;=\;2-2\,\mathrm{Re}\,\langle e_j,f_k\rangle
+  \;\ge\;2-\frac{2}{\sqrt d}\,,
+\]
+since $|\langle e_j,f_k\rangle|=d^{-1/2}$.  As $d_k=4^k\ge4$ this is at
+least $1$.  Vectors in different blocks are orthogonal, hence at
+distance $\sqrt2$.  So $M_1\cup M_2$ is uniformly separated with
+separation at least $1$.
+
+\emph{(iii)}  Suppose $\mathcal{R}=\{r_n\}$ is a frame for $\HH$ with
+bounds $A\le B$ and $\sup_{x\in M_1\cup M_2}\|x\|_{1,\mathcal{R}}<\infty$.
+Fix $k$, let $P_k$ be the orthogonal projection onto the $k$-th block,
+and let $x$ lie in that block.  Then
+$\langle x,r_n\rangle=\langle x,P_kr_n\rangle$, so the $\ell^1$ norm of
+$x$ against $\mathcal{R}$ equals its $\ell^1$ norm against
+$\{P_kr_n\}$, which is a frame for the block with bounds between $A$ and
+$B$.  Theorem~\ref{thm:frame} applied inside the block gives
+\[
+  \sup_{x\in M_1\cup M_2}\|x\|_{1,\mathcal{R}}
+  \ \ge\ \frac{A}{\sqrt B}\,d_k^{1/4}
+  \ =\ \frac{A}{\sqrt B}\,2^{k},
+\]
+which is unbounded in $k$ while $A$ and $B$ are fixed.  This
+contradiction proves (iii); since a Riesz basis is a frame, neither
+$\ell^1$-boundedness nor $\ell^1$-frame-boundedness can hold.
+
+By (ii) and (iii), $M_1\cup M_2$ is bounded, uniformly separated and not
+$\ell^1$-bounded, which is Conjecture~\ref{conj:410}.  By (i) and (iii)
+it is a union of two $\ell^1$-bounded sets that is not $\ell^1$-bounded,
+which with \cite[Lem.~4.11]{HeilYu} is Conjecture~\ref{conj:413}. \qed
+
+\begin{remark}
+Only perfect square dimensions are used, and there the bounds of
+Theorem~\ref{thm:Lb} coincide.  Nothing in Sections~\ref{sec:Lb}
+onwards affects Theorem~\ref{thm:main}.
+\end{remark}
+
+\section{A coded counterexample to Conjecture~\ref{conj:410}}
+\label{sec:rm}
+
+The following construction settles Conjecture~\ref{conj:410}
+independently, by a different mechanism, and with the stronger growth
+rate $\sqrt d$ in place of $d^{1/4}$.  It arose from the Principia Math
+open problem project and predates the argument of
+Section~\ref{sec:main}.
+
+Fix $r\ge3$ and let $C_r=\RM(2,r)\subseteq\mathbb{F}_2^{2^r}$ be the
+Reed--Muller code of order $2$ and length $d=2^r$.  Recall
+\cite{MacWilliamsSloane} that $d(\RM(2,r))=2^{r-2}$ and that
+$C_r^{\perp}=\RM(r-3,r)$, whose minimum distance is
+$2^{r-(r-3)}=8$.  To each codeword $c\in C_r$ associate the unit vector
+\[
+  x_c\;=\;2^{-r/2}\bigl((-1)^{c_1},\ldots,(-1)^{c_d}\bigr)\in\C^d .
+\]
+
+\begin{lemma}\label{lem:rmsep}
+For distinct $c,c'\in C_r$ one has $\|x_c-x_{c'}\|_2\ge1$.
+\end{lemma}
+
+\begin{proof}
+$\|x_c-x_{c'}\|_2^2=4\,d_H(c,c')/2^r\ge4\cdot2^{r-2}/2^r=1$, where
+$d_H$ is Hamming distance.
+\end{proof}
+
+The separation constant is exactly $1$, with no slack; the arithmetic
+above is the whole of the estimate.
+
+\begin{lemma}\label{lem:rm4}
+Let $c$ be uniform on $C_r$ and write $\varepsilon_i=(-1)^{c_i}$.  Then
+the $\varepsilon_i$ are four-wise independent, and for every
+$g\in\C^d$ the variable $S=\langle x_c,g\rangle$ satisfies
+\[
+  \mathbb{E}|S|^2=\frac{\|g\|_2^2}{d},
+  \qquad
+  \mathbb{E}|S|^4\le3\bigl(\mathbb{E}|S|^2\bigr)^2 .
+\]
+\end{lemma}
+
+\begin{proof}
+A binary code has $t$-wise independent coordinates under the uniform
+distribution precisely when its dual distance exceeds $t$; here the dual
+distance is $8>4$.  The two moment identities are then the standard
+computations for four-wise independent signs.
+\end{proof}
+
+\begin{proposition}\label{prop:rm}
+Let $\mathcal{G}$ be a frame of $\C^d$, $d=2^r$, with bounds $A\le B$.
+Then
+\[
+  \max_{c\in C_r}\ \|x_c\|_{1,\mathcal{G}}
+  \;\ge\;\frac{A}{\sqrt B}\sqrt{\frac{d}{3}} .
+\]
+\end{proposition}
+
+\begin{proof}
+By Cauchy--Schwarz in the form
+$\mathbb{E}|S|\ge(\mathbb{E}|S|^2)^{3/2}(\mathbb{E}|S|^4)^{-1/2}$ and
+Lemma~\ref{lem:rm4}, for each frame vector $g_m$,
+\[
+  \mathbb{E}\bigl|\langle x_c,g_m\rangle\bigr|
+  \;\ge\;\frac{(\|g_m\|_2^2/d)^{3/2}}{\sqrt3\,\|g_m\|_2^2/d}
+  \;=\;\frac{\|g_m\|_2}{\sqrt{3d}} .
+\]
+Summing over $m$ and using $\sum_m\|g_m\|_2\ge Ad/\sqrt B$ as in
+Theorem~\ref{thm:frame},
+\[
+  \max_{c}\|x_c\|_{1,\mathcal{G}}
+  \;\ge\;\mathbb{E}\,\|x_c\|_{1,\mathcal{G}}
+  \;\ge\;\frac1{\sqrt{3d}}\cdot\frac{Ad}{\sqrt B}
+  \;=\;\frac{A}{\sqrt B}\sqrt{\frac d3}. \qedhere
+\]
+\end{proof}
+
+Taking $X=\bigcup_{r\ge3}\{x_c:c\in C_r\}$ inside
+$\bigoplus_{r\ge3}\C^{2^r}$ gives a set of unit vectors, separated by at
+least $1$ within a block and by $\sqrt2$ across blocks, for which
+Proposition~\ref{prop:rm} forces
+$\sup_{x\in X}\|x\|_{1,\mathcal{R}}=\infty$ for every frame
+$\mathcal{R}$.  This is a second proof of Conjecture~\ref{conj:410}.
+
+\begin{remark}\label{rem:whyboth}
+The two constructions are not interchangeable.
+Conjecture~\ref{conj:413} demands more than
+Conjecture~\ref{conj:410}: the counterexample must split into two pieces
+that are separately $\ell^1$-bounded.  The set $X$ carries no such
+splitting, so Proposition~\ref{prop:rm} does not settle
+Conjecture~\ref{conj:413}.  Conversely $X$ gives the better rate,
+$\sqrt d$ against $d^{1/4}$, so neither statement subsumes the other.
+\end{remark}
+
+\begin{remark}
+The Reed--Muller structure is convenient but not essential: any binary
+code of length $d$, dual distance greater than $4$, and minimum distance
+at least $d/4$ serves equally.  Numerical experiments indicate that
+random $1$-separated sets of unit vectors behave the same way, so the
+phenomenon is generic rather than algebraic.
+\end{remark}
+
+\section{The extremal constant}\label{sec:Lb}
+
+\subsection{The picket-fence basis}
+
+\begin{proof}[Proof of the upper bound in Theorem~\textup{\ref{thm:Lb}}]
+Fix $d=ab$.  For $0\le j<a$ and $0\le k<b$ define
+\begin{equation}\label{eq:comb}
+  u_{j,k}(n)=b^{-1/2}\,
+  \one\bigl[\,n\equiv j\ (\mathrm{mod}\ a)\,\bigr]e^{2\pi ikn/d},
+  \qquad n\in\Z/d\Z .
+\end{equation}
+Distinct $j$ give disjoint supports.  For $j=j'$, writing $n=j+ta$ with
+$0\le t<b$ and using $a/d=1/b$,
+\[
+  \langle u_{j,k},u_{j,k'}\rangle
+  =\frac1b e^{2\pi i(k-k')j/d}\sum_{t=0}^{b-1}e^{2\pi i(k-k')t/b}
+  =\delta_{kk'},
+\]
+since $|k-k'|<b$.  So these $d$ vectors form an orthonormal basis
+$\mathcal{C}_{a,b}$.  Each $n$ lies in one residue class modulo $a$ and
+$|\langle e_n,u_{j,k}\rangle|=b^{-1/2}$ for all $b$ values of $k$, so
+every column sum of $|W|$ is $\sqrt b$.  The support of $u_{j,k}$ is a
+coset of $a\Z/d\Z$, whose annihilator $b\Z/d\Z$ has $a$ elements, so
+$|Fu_{j,k}|$ is constant equal to $a^{-1/2}$ on $a$ points and every
+column sum of $|WF^{*}|$ is $\sqrt a$.  Hence
+$c(\mathcal{C}_{a,b})=\max(\sqrt a,\sqrt b)$.  For $d=m^2$ take $a=b=m$,
+giving $c=\sqrt m=d^{1/4}$, which meets Theorem~\ref{thm:frame} with
+$A=B=1$.
+\end{proof}
+
+\subsection{The averaged lower bound}
+
+\begin{proof}[Proof of the bound $\Lb(d)\ge\nu(d)$]
+Let $W$ be unitary with rows $u_1,\ldots,u_d$, let $p_j$ be the column
+sums of $|W|$ and $q_k$ those of $|WF^{*}|$, so
+$c(W)=\max(\max_jp_j,\max_kq_k)$.  Interchanging summation,
+\[
+  \sum_jp_j=\sum_m\|u_m\|_1,\qquad \sum_kq_k=\sum_m\|Fu_m\|_1 .
+\]
+A maximum is at least an average, so
+\[
+  c(W)\ \ge\ \frac{\sum_jp_j+\sum_kq_k}{2d}
+  \ =\ \frac1{2d}\sum_{m=1}^d\bigl(\|u_m\|_1+\|Fu_m\|_1\bigr)
+  \ \ge\ \nu(d),
+\]
+by definition of $\nu$ applied to each unit vector $u_m$.  The bound
+$\nu(d)\ge d^{1/4}$ is Corollary~\ref{cor:amgm}.  For
+$\nu(d)\le\Pp(d)$, take $u=b^{-1/2}\one_{a\Z/d\Z}$, for which
+$\|u\|_1=\sqrt b$ and $\|Fu\|_1=\sqrt a$.
+\end{proof}
+
+\begin{remark}
+The gain over Theorem~\ref{thm:frame} lies in the order of the two
+reductions.  Theorem~\ref{thm:frame} applies Corollary~\ref{cor:amgm}
+vector by vector and averages afterwards, decoupling the two domains.
+The argument above averages last, so the trade-off between $\|u\|_1$ and
+$\|Fu\|_1$ survives for each basis vector.  By \eqref{eq:PleD} the two
+bounds agree on perfect squares and differ elsewhere.
+\end{remark}
+
+\subsection{The value at \texorpdfstring{$d=8$}{d=8}}\label{sec:d8}
+
+Here $\Pp(8)=(\sqrt2+\sqrt4)/2=1+2^{-1/2}$.  Minimisation of $\nu$ over
+the unit sphere of $\C^8$, initialised at every picket fence and at
+several hundred random points and refined by Riemannian subgradient
+descent, returns $\nu(8)=1.707106781$ to nine decimals, so
+$\nu(8)=\Pp(8)$ and $\Lb(8)\ge1+2^{-1/2}$.
+
+For the matching upper bound, alternating projections between the two
+constraint sets, soft thresholding in each domain followed by
+re-unitarisation through the polar decomposition, produce a unitary
+$W_8$ with
+\[
+  c(W_8)=1.7071067812,
+  \qquad
+  \max_{i,j}\bigl|(W_8W_8^{*}-I)_{ij}\bigr|=1.44\times10^{-15}.
+\]
+The entry moduli take exactly the three values $0,\tfrac12,2^{-1/2}$;
+every column has exactly three nonzero entries; and all sixteen relevant
+column sums equal $1.707107$.  Hence $\Lb(8)=1+2^{-1/2}<2$.
+
+\begin{remark}\label{rem:d8structure}
+Two features of $W_8$ indicate why \eqref{eq:comb} is not optimal.  A
+column with three nonzero entries of equal modulus would contribute
+$\sqrt3=1.7320\ldots$, which is larger; the extremiser is deliberately
+non-flat.  An indicator-type vector cannot do this.  Moreover $3\nmid8$,
+so the support of a column is not a coset of a subgroup of $\Z/8\Z$.
+The extremiser escapes the divisor lattice precisely by abandoning
+subgroup structure.
+\end{remark}
+
+\section{Two obstructions}\label{sec:obstruction}
+
+\begin{proposition}\label{prop:obs1}
+Consider the relaxation of Theorem~\ref{thm:frame} retaining only the
+per-vector constraints $p_iq_i\ge\sqrt d$ and minimising
+$\max(\mathrm{mean}(p),\mathrm{mean}(q))$.  Its value is $d^{1/4}$,
+attained at $p_i=q_i=d^{1/4}$.
+\end{proposition}
+
+Any argument that bounds each frame vector through \eqref{eq:up} and
+then averages is therefore confined to $d^{1/4}$, orthonormality having
+been discarded.
+
+\begin{proposition}\label{prop:obs2}
+Knowing that the effective supports $s=\|u\|_1^2$ and $t=\|Fu\|_1^2$ are
+integers does not force $\max(s,t)\ge\Dd(d)$: minimising $\max(s,t)$
+over positive integers subject to $st\ge d$ gives
+$\lceil\sqrt d\,\rceil$, strictly smaller than $\Dd(d)$ for
+$d=8,18,24,27,32,50$ among others.
+\end{proposition}
+
+At $d=18$, for instance, $s=t=5$ satisfies $st\ge18$ with $\max(s,t)=5<6$.
+Recovering $\sqrt{\Dd(d)}$ would need the supports to be divisors of
+$d$, not merely integers, and by Section~\ref{sec:d8} they need not be:
+$W_8$ has column support $3=\lceil\sqrt8\,\rceil$.
+
+\section{Numerical data}\label{sec:num}
+
+Computations were performed in double precision.  Minimisations of $\nu$
+were initialised at every picket fence and at several hundred random
+unit vectors, then refined by Riemannian subgradient descent.
+
+\subsection{$\nu(d)$ against the picket bound}
+
+\begin{center}
+\begin{tabular}{rrrc@{\qquad}rrrc}
+\toprule
+$d$ & $\nu(d)$ & $\Pp(d)$ & equal &
+$p$ & $\nu(p)$ & $\Pp(p)$ & equal \\
+\midrule
+$4$  & $1.414213562$ & $1.414213562$ & yes &
+$5$  & $1.618033989$ & $1.618033989$ & yes \\
+$6$  & $1.573132185$ & $1.573132185$ & yes &
+$7$  & $1.822875656$ & $1.822875656$ & yes \\
+$8$  & $1.707106781$ & $1.707106781$ & yes &
+$11$ & $2.158312395$ & $2.158312395$ & yes \\
+$9$  & $1.732050808$ & $1.732050808$ & yes &
+$13$ & $2.266047604$ & $2.302775638$ & no \\
+$12$ & $1.866025404$ & $1.866025404$ & yes &
+$17$ & $2.463644998$ & $2.561552813$ & no \\
+$16$ & $2.000000000$ & $2.000000000$ & yes &
+$19$ & $2.544437119$ & $2.679449472$ & no \\
+     &               &               &     &
+$23$ & $2.694061544$ & $2.897915762$ & no \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+The left half is composite $d$, the right half prime, where the only
+picket fence is a single spike and $\Pp(p)=(1+\sqrt p)/2$.  The value
+$\nu(5)=(1+\sqrt5)/2$ is the golden ratio.  The single spike is optimal
+for $\nu$ at $p=5,7,11$ and is beaten from $p=13$ onward; the ratio
+$\nu(p)/\sqrt p$ decreases monotonically from $0.7236$ at $p=5$ to
+$0.5618$ at $p=23$, with no sign of levelling off.
+
+\subsection{Attainability of $\Pp(d)$}
+
+Alternating projections initialised at all picket bases and their
+orthogonalised mixtures, $250$ restarts per dimension:
+
+\begin{center}
+\begin{tabular}{rrrc}
+\toprule
+$d$ & $\Pp(d)$ & best found & attained \\
+\midrule
+$6$  & $1.5731322$ & $1.7319661$ & no \\
+$8$  & $1.7071068$ & $1.7071068$ & yes \\
+$10$ & $1.8251408$ & $2.2038130$ & no \\
+$12$ & $1.8660254$ & $2.0000000$ & no \\
+$14$ & $2.0299824$ & $2.5408339$ & no \\
+$15$ & $1.9840594$ & $2.2360680$ & no \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Only $d=8$ is attained.  At $d=12$ and $d=15$ the search halts exactly
+at the picket values $2$ and $\sqrt5$, structured numbers rather than
+the irregular near-misses of an incomplete search, which suggests a
+genuine barrier.  Several natural constructions were tried and all are
+worse than the picket basis itself: the orthogonalised equal mixture of
+two combs, fractional Fourier conjugates of a comb, and tensor products
+over coprime factorisations.  On this evidence $\Lb(d)=\Pp(d)$ is
+unlikely in general and $d=8$ appears exceptional.
+
+\subsection{Verification}
+
+Inequality \eqref{eq:up} was tested on roughly $39{,}000$ random vectors
+in dimensions $4\le d\le16$ for the mutually unbiased pairs (standard,
+Fourier), (standard, chirp) and (Fourier, chirp); no violation occurred
+and the minimum ratio was $1.000000$ in each pair.  The identity
+$c(\mathcal{C}_{a,b})=\max(\sqrt a,\sqrt b)$ was confirmed for every
+factorisation of $d=12,18,20,24,30,32,36$, and $\Lb(m^2)=d^{1/4}$ to
+machine precision for $2\le m\le25$.  For Section~\ref{sec:rm}, the
+identity $d(\RM(2,r))=2^{r-2}$ was confirmed exactly for $r=3,4,5$, dual
+distance $8$ and four-wise independence exhaustively for $r=3,4$, and
+the bound $\mathbb{E}|S|^4\le3(\mathbb{E}|S|^2)^2$ in every trial.  The
+separation values of Theorem~\ref{thm:main}(ii) agree with
+$\sqrt{2-2/\sqrt d}$ to machine precision for $d=4,\ldots,256$.
+
+These are consistency checks; the statements they accompany are proved
+in Sections~2 through~6.
+
+\section{Open questions}\label{sec:open}
+
+\begin{question}
+Determine $\Lb(d)$ for composite $d$ that is not a perfect square.  The
+known bracket is $\nu(d)\le\Lb(d)\le\sqrt{\Dd(d)}$, both strict at
+$d=8$, where the value is $1+2^{-1/2}$.
+\end{question}
+
+\begin{question}
+Determine $\Lb(p)$ for prime $p$, where $\nu(p)\le\Lb(p)\le\sqrt p$.
+Since $\Z/p\Z$ has no proper subgroups there is no nontrivial picket
+fence and no candidate extremiser is known.  Chirp bases, the natural
+analogue, give exactly $\sqrt p$ for every quadratic parameter, all
+their entries having modulus $p^{-1/2}$; being flat in both domains they
+sit at the opposite extreme from the vectors extremal for
+\eqref{eq:up}.
+\end{question}
+
+\begin{question}
+Is $\nu(d)=\Pp(d)$ for every composite $d$?  Equality holds at every
+value computed.
+\end{question}
+
+\begin{question}
+Is inequality \eqref{eq:up} recorded in the literature?  It is
+elementary and a reference would be of interest.
+\end{question}
+
+\begin{remark}[The prime case and the Bir\'o--Tao bound]
+For prime $p$, Bir\'o (Schweitzer competition 1998, Problem 3) and
+independently Tao \cite{Tao} proved
+$|\supp f|+|\supp\widehat f|\ge p+1$, far stronger than
+$2\sqrt p$.  An $\ell^1$ analogue would settle the second question
+above, but no approximate version exists: two counterexamples are
+recorded in \cite{MO}, the periodised Gaussian, proportional to its own
+transform and concentrating all but $\varepsilon$ of its mass on a
+window of width $O(\sqrt{p\log(1/\varepsilon)})$, and the indicator of
+an interval, for which both $f$ and $\widehat f$ concentrate on
+intervals of length about $2\sqrt{p/\varepsilon}$.  Both concentrate on
+about $\sqrt p$ points in each domain.  Tao's proof is algebraic and
+needs exact vanishing off the support, a hypothesis no approximate
+formulation preserves.  Since $\Lb(p)$ measures approximate
+concentration, it is governed by $\sqrt p$ behaviour.
+\end{remark}
+
+\section*{Acknowledgements}
+
+The problems were drawn from the open problem collection of the
+Principia Math project.  The construction of Section~\ref{sec:rm}
+originated there; the remaining results are due to the first author.
+
+\begin{thebibliography}{9}
+
+\bibitem{Christensen}
+O.~Christensen,
+\emph{An Introduction to Frames and Riesz Bases},
+2nd ed., Birkh\"auser, 2016.
+
+\bibitem{DonohoStark}
+D.~L. Donoho and P.~B. Stark,
+\emph{Uncertainty principles and signal recovery},
+SIAM J. Appl. Math. \textbf{49} (1989), 906--931.
+
+\bibitem{HeilYu}
+C.~Heil and P.-T. Yu,
+\emph{$\ell^1$-bounded sets},
+J. Math. Anal. Appl. \textbf{539} (2024), 128528;
+preprint arXiv:2307.05536.
+
+\bibitem{MacWilliamsSloane}
+F.~J. MacWilliams and N.~J.~A. Sloane,
+\emph{The Theory of Error-Correcting Codes},
+North-Holland, 1977.
+
+\bibitem{Tao}
+T.~Tao,
+\emph{An uncertainty principle for cyclic groups of prime order},
+Math. Res. Lett. \textbf{12} (2005), 121--127.
+
+\bibitem{MO}
+\emph{Is there an ``analytical'' version of Tao's uncertainty
+principle?}, MathOverflow question 298047 (2018), answers by W.~Sawin
+and others, \url{https://mathoverflow.net/questions/298047}.
+
+\end{thebibliography}
+
+\end{document}
